@@ -201,7 +201,7 @@ export class openiap extends events.EventEmitter {
     }
     async Signin(options: SigninOptions): Promise<SigninResponse> {
         const opt: SigninOptions = Object.assign(new SigninDefaults(), options)
-        let message = ListCollectionsRequest.create(opt as any);
+        let message = SigninRequest.create(opt as any);
         // let message = SigninRequest.create({ agent: opt.agent, version: opt.version, username: opt.username, password: opt.password, ping: opt.ping, longtoken: opt.longtoken })
         // if (opt.jwt != null && opt.jwt != "") {
         //     message = SigninRequest.create({ jwt: opt.jwt, ping: opt.ping })
