@@ -11,6 +11,7 @@ import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from ".
 export class openiap extends events.EventEmitter {
     client: client;
     agent: clientAgent = "node";
+    version: string = "0.0.1"
     connected: boolean = false;
     connecting: boolean = false;
     signedin: boolean = false;
@@ -18,6 +19,7 @@ export class openiap extends events.EventEmitter {
     pingerhandle: any;
     constructor(public url: string = "") {
         super()
+        this.version = require("../package.json").version;
         if(this.url == null || this.url == "") this.url = process.env.apiurl
         if(this.url == null || this.url == "") this.url = process.env.grpcapiurl
         if(this.url == null || this.url == "") this.url = process.env.wscapiurl
@@ -83,13 +85,13 @@ export class openiap extends events.EventEmitter {
         if(_password == null) _password = "";
 
         if (_username != "" && _password != "") {
-            const reply = await this.Signin({ username: _username, password: _password, ping: config.DoPing, agent: this.agent })
+            const reply = await this.Signin({ username: _username, password: _password, ping: config.DoPing, agent: this.agent, version: this.version })
             if (this.loginresolve != null) {
                 this.loginresolve(reply.user);
                 this.loginresolve = null;
             }
         } else if (_jwt != "") {
-            const reply = await this.Signin({ jwt: _jwt, ping: config.DoPing, agent: this.agent })
+            const reply = await this.Signin({ jwt: _jwt, ping: config.DoPing, agent: this.agent, version: this.version })
             if (this.loginresolve != null) {
                 this.loginresolve(reply.user);
                 this.loginresolve = null;

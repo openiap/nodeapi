@@ -7,6 +7,7 @@ export declare class openiap extends events.EventEmitter {
     url: string;
     client: client;
     agent: clientAgent;
+    version: string;
     connected: boolean;
     connecting: boolean;
     signedin: boolean;
