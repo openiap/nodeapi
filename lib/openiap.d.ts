@@ -1,11 +1,12 @@
 /// <reference types="node" />
-import { client } from "./client";
+import { client, clientAgent } from "./client";
 import events = require("events");
 import { DownloadResponse, SigninResponse, UploadResponse, User } from "./proto/base";
 import { QueueEvent, UpdateResult, Workitem } from ".";
 export declare class openiap extends events.EventEmitter {
     url: string;
     client: client;
+    agent: clientAgent;
     connected: boolean;
     connecting: boolean;
     signedin: boolean;

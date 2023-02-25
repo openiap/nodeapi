@@ -1,4 +1,4 @@
-import { client } from "./client";
+import { client, clientAgent } from "./client";
 import { protowrap } from "./protowrap";
 import { config } from "./config";
 const { info, err, warn }  = config;
@@ -10,6 +10,7 @@ import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from ".
 
 export class openiap extends events.EventEmitter {
     client: client;
+    agent: clientAgent = "node";
     connected: boolean = false;
     connecting: boolean = false;
     signedin: boolean = false;
@@ -82,13 +83,13 @@ export class openiap extends events.EventEmitter {
         if(_password == null) _password = "";
 
         if (_username != "" && _password != "") {
-            const reply = await this.Signin({ username: _username, password: _password, ping: config.DoPing })
+            const reply = await this.Signin({ username: _username, password: _password, ping: config.DoPing, agent: this.agent })
             if (this.loginresolve != null) {
                 this.loginresolve(reply.user);
                 this.loginresolve = null;
             }
         } else if (_jwt != "") {
-            const reply = await this.Signin({ jwt: _jwt, ping: config.DoPing })
+            const reply = await this.Signin({ jwt: _jwt, ping: config.DoPing, agent: this.agent })
             if (this.loginresolve != null) {
                 this.loginresolve(reply.user);
                 this.loginresolve = null;
@@ -200,7 +201,7 @@ export class openiap extends events.EventEmitter {
     }
     async Signin(options: SigninOptions): Promise<SigninResponse> {
         const opt: SigninOptions = Object.assign(new SigninDefaults(), options)
-        let message = SigninRequest.create({ username: opt.username, password: opt.password, ping: opt.ping, longtoken: opt.longtoken })
+        let message = SigninRequest.create({ agent: opt.agent, username: opt.username, password: opt.password, ping: opt.ping, longtoken: opt.longtoken })
         if (opt.jwt != null && opt.jwt != "") {
             message = SigninRequest.create({ jwt: opt.jwt, ping: opt.ping })
         }
