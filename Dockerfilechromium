@@ -1,0 +1,51 @@
+FROM fedora:36
+# ENV CHROMIUM_VERSION 109.0
+# ENV XVFB_VERSION 1.20
+
+    # chromedriver-${CHROMIUM_VERSION}* \
+    # chromium-${CHROMIUM_VERSION}* \
+RUN dnf upgrade -y --refresh \
+  && dnf install wget git nano -y \
+    chromedriver \
+    chromium \
+    npm \
+    nodejs \
+    python3-pip \
+    tzdata \
+    xorg-x11-server-Xvfb-${XVFB_VERSION}* \
+  && dnf clean all
+
+COPY bin/chromium-browser.sh /tmp/chromium-browser
+RUN mv /usr/lib64/chromium-browser/chromium-browser /usr/lib64/chromium-browser/chromium-browser-original \
+  && ln -sfv /tmp/chromium-browser /usr/lib64/chromium-browser/chromium-browser
+RUN chmod +x /usr/lib64/chromium-browser/chromium-browser
+RUN ln -sf /usr/lib64/chromium-browser/chromium-browser /usr/bin/google-chrome
+
+RUN useradd -ms /bin/bash openiapuser
+RUN usermod -aG root openiapuser
+WORKDIR /tmp
+ENV HOME=/tmp
+# use browser.launch({executablePath: 'google-chrome'})
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+# ENV PUPPETEER_CACHE_DIR /tmp/.chrome
+USER openiapuser
+RUN npm install puppeteer
+
+# WORKDIR /home/openiapuser
+# COPY --chown=openiapuser:openiapgroup tsconfig.json /home/openiapuser/tsconfig.json
+# COPY --chown=openiapuser:openiapgroup package.json /home/openiapuser/package.json
+# RUN npm i
+# COPY --chown=openiapuser:openiapgroup src /home/openiapuser/src
+# COPY --chown=openiapuser:openiapgroup proto /home/openiapuser/proto
+# COPY --chown=openiapuser:openiapgroup lib /home/openiapuser/lib
+WORKDIR /tmp
+COPY --chown=openiapuser:openiapgroup tsconfig.json /tmp/tsconfig.json
+COPY --chown=openiapuser:openiapgroup package.json /tmp/package.json
+RUN npm i
+COPY --chown=openiapuser:openiapgroup src /tmp/src
+COPY --chown=openiapuser:openiapgroup proto /tmp/proto
+COPY --chown=openiapuser:openiapgroup lib /tmp/lib
+RUN rm -rf /tmp/.npm
+
+CMD ["node", "./lib/agent.js"]
+

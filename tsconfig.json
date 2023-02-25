@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": false,
+        "sourceMap": true,
+        "declaration": true,
+        "outDir":"lib"
+    }
+}

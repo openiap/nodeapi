@@ -1,0 +1,48 @@
+{
+  "name": "@openiap/nodeapi",
+  "version": "0.0.2",
+  "description": "",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "scripts": {
+    "cli": "nodemon src/cli.ts",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "agent": "ts-node src/agent.ts",
+    "updateproto": "npm uninstall @openiap/proto && npm --save-dev i openiap/proto",
+    "generate": "mkdir -p src/proto && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_out='service=grpc-node,mode=grpc-js:./src/proto' --ts_proto_opt=snakeToCamel=false --proto_path=proto --ts_proto_out=./src/proto proto/base.proto proto/ace.proto proto/querys.proto proto/queues.proto proto/watch.proto proto/workitems.proto"
+  },
+  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openiap/nodepai.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "OpenIAP ApS / Allan Zimmermann",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://community.openiap.io/"
+  },
+  "homepage": "https://github.com/openiap/nodepai",
+  "funding": "https://github.com/sponsors/skadefro",
+  "dependencies": {
+    "@grpc/grpc-js": "^1.8.8",
+    "adm-zip": "^0.5.10",
+    "express": "^4.18.2",
+    "nodemon": "^2.0.20",
+    "pako": "^2.1.0",
+    "protobufjs": "^7.1.2",
+    "rxjs": "^7.8.0",
+    "ts-node": "^10.9.1",
+    "ts-proto": "^1.138.0",
+    "ts-protoc-gen": "^0.15.0",
+    "typescript": "^4.9.4",
+    "ws": "^8.12.0"
+  },
+  "devDependencies": {
+    "@openiap/proto": "github:openiap/proto",
+    "grpc-tools": "^1.12.4"
+  }
+}
