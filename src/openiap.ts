@@ -20,6 +20,7 @@ export class openiap extends events.EventEmitter {
     constructor(public url: string = "") {
         super()
         this.version = require("../package.json").version;
+        this.agent = "node";
         if(this.url == null || this.url == "") this.url = process.env.apiurl
         if(this.url == null || this.url == "") this.url = process.env.grpcapiurl
         if(this.url == null || this.url == "") this.url = process.env.wscapiurl
@@ -27,7 +28,7 @@ export class openiap extends events.EventEmitter {
     loginresolve: any;
     async connect(first: boolean = true) {
         return new Promise<User>(async (resolve) => {
-            if(process.env.log_with_colors == "false") {
+            if(process.env.log_with_colors == "false" || process.env.log_with_colors == "False") {
                 var keys = Object.keys(config.color);
                 for(var i = 0; i < keys.length; i++) {
                     config.color[keys[i]] = "";
@@ -85,13 +86,13 @@ export class openiap extends events.EventEmitter {
         if(_password == null) _password = "";
 
         if (_username != "" && _password != "") {
-            const reply = await this.Signin({ username: _username, password: _password, ping: config.DoPing, agent: this.agent, version: this.version })
+            const reply = await this.Signin({ username: _username, password: _password, ping: config.DoPing })
             if (this.loginresolve != null) {
                 this.loginresolve(reply.user);
                 this.loginresolve = null;
             }
         } else if (_jwt != "") {
-            const reply = await this.Signin({ jwt: _jwt, ping: config.DoPing, agent: this.agent, version: this.version })
+            const reply = await this.Signin({ jwt: _jwt, ping: config.DoPing })
             if (this.loginresolve != null) {
                 this.loginresolve(reply.user);
                 this.loginresolve = null;
@@ -203,6 +204,8 @@ export class openiap extends events.EventEmitter {
     }
     async Signin(options: SigninOptions): Promise<SigninResponse> {
         const opt: SigninOptions = Object.assign(new SigninDefaults(), options)
+        if(opt.agent == null || opt.agent == "") opt.agent = this.agent;
+        if(opt.version == null || opt.version == "") opt.version = this.version;
         let message = SigninRequest.create(opt as any);
         // let message = SigninRequest.create({ agent: opt.agent, version: opt.version, username: opt.username, password: opt.password, ping: opt.ping, longtoken: opt.longtoken })
         // if (opt.jwt != null && opt.jwt != "") {
@@ -539,8 +542,6 @@ export type SigninOptions = {
 class SigninDefaults {
     ping: boolean = true;
     validateonly: boolean = false;
-    agent: string = "nodeagent"
-    version: string = "0.0.1"
     longtoken:boolean = false;
 }
 export type ListCollectionsOptions = {
