@@ -104,7 +104,7 @@ export class openiap extends events.EventEmitter {
         try {
             await this.onConnected(this);
         } catch (error) {
-            error(error)
+            err(error)
         }
         this.emit("connected", this)
     }
@@ -129,7 +129,7 @@ export class openiap extends events.EventEmitter {
         try {
             this.onDisconnected(this, error);
         } catch (error) {
-            error(error)
+            err(error)
         }
         this.emit("disconnected", this, error)
         this.connect(false);
