@@ -42,7 +42,6 @@
     "ws": "^8.12.0"
   },
   "devDependencies": {
-    "@openiap/proto": "github:openiap/proto",
-    "grpc-tools": "^1.12.4"
+    "@openiap/proto": "github:openiap/proto"
   }
 }
