@@ -51,7 +51,10 @@ export class protowrap {
   'grpc.max_connection_age_ms': 71992547,
   'grpc.max_connection_age_grace_ms': 71992547,
   'grpc.http2.max_pings_without_data': 71992547,
-  'grpc.keepalive_permit_without_calls': 1}
+  'grpc.keepalive_permit_without_calls': 1,
+  'grpc.max_receive_message_length': 1024 * 1024 * 1024,
+  'grpc.max_send_message_length': 1024 * 1024 * 1024,
+  }
 
   static defaultprotocol: clientType = "pipe" // pipe, socket, ws, grpc, rest
   // static packageDefinition: protoLoader.PackageDefinition;
@@ -792,14 +795,12 @@ export class protowrap {
         let host = url.host.split(":")[0];
 
         if (url.port == "443") {
+          var options = { ...protowrap.grpc_server_options, 'grpc.ssl_target_name_override': host};
           // @ts-ignore
-          result.grpc = new this.openiap_proto.FlowService(url.host, grpc.credentials.createSsl(),
-            {
-              'grpc.ssl_target_name_override': host
-            });
+          result.grpc = new this.openiap_proto.FlowService(url.host, grpc.credentials.createSsl(), options);
         } else {
           // @ts-ignore
-          result.grpc = new this.openiap_proto.FlowService(url.host, grpc.credentials.createInsecure());
+          result.grpc = new this.openiap_proto.FlowService(url.host, grpc.credentials.createInsecure(), protowrap.grpc_server_options);
         }
         // @ts-ignore
         // result.grpc = new this.openiap_proto.FlowService(url.host, grpc.credentials.createInsecure());
