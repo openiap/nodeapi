@@ -496,7 +496,7 @@ export class openiap extends events.EventEmitter {
         if(result && result.workitem && result.workitem.payload) {
             if(typeof result.workitem.payload == "string") {
                 try {
-                    result.workitem.payload = JSON.stringify(result.workitem.payload)
+                    result.workitem.payload = JSON.parse(result.workitem.payload)
                 } catch (error) {
                 }
             }
