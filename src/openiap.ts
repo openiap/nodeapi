@@ -493,6 +493,14 @@ export class openiap extends events.EventEmitter {
         const data = Any.create({type_url: "type.googleapis.com/openiap.PopWorkitemRequest", "value": PopWorkitemRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "popworkitem", data, jwt: opt.jwt });
         const result = PopWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        if(result && result.workitem && result.workitem.payload) {
+            if(typeof result.workitem.payload == "string") {
+                try {
+                    result.workitem.payload = JSON.stringify(result.workitem.payload)
+                } catch (error) {
+                }
+            }
+        }
         return result.workitem
     }
     async UpdateWorkitem(options: UpdateWorkitemOptions): Promise<Workitem> {
