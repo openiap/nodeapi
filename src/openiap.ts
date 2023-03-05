@@ -81,7 +81,7 @@ export class openiap extends events.EventEmitter {
         var _jwt = process.env.jwt
         var _username = u.username;
         var _password = u.password;
-        if(_jwt == null) _jwt = "";
+        if(_jwt == null) _jwt = client.jwt;
         if(_username == null) _username = "";
         if(_password == null) _password = "";
 
