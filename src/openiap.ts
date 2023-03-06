@@ -17,7 +17,7 @@ export class openiap extends events.EventEmitter {
     signedin: boolean = false;
     reconnectms: number = 100;
     pingerhandle: any;
-    constructor(public url: string = "") {
+    constructor(public url: string = "", public jwt: string = "") {
         super()
         this.version = require("../package.json").version;
         this.agent = "node";
@@ -81,6 +81,7 @@ export class openiap extends events.EventEmitter {
         var _jwt = process.env.jwt
         var _username = u.username;
         var _password = u.password;
+        if(_jwt == null) _jwt = this.jwt
         if(_jwt == null) _jwt = client.jwt;
         if(_username == null) _username = "";
         if(_password == null) _password = "";

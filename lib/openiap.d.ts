@@ -5,6 +5,7 @@ import { DownloadResponse, SigninResponse, UploadResponse, User } from "./proto/
 import { QueueEvent, UpdateResult, Workitem } from ".";
 export declare class openiap extends events.EventEmitter {
     url: string;
+    jwt: string;
     client: client;
     agent: clientAgent;
     version: string;
@@ -13,7 +14,7 @@ export declare class openiap extends events.EventEmitter {
     signedin: boolean;
     reconnectms: number;
     pingerhandle: any;
-    constructor(url?: string);
+    constructor(url?: string, jwt?: string);
     loginresolve: any;
     connect(first?: boolean): Promise<User>;
     __server_pinger(): void;
