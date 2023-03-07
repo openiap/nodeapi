@@ -522,6 +522,7 @@ export class openiap extends events.EventEmitter {
     }
     async CustomCommand<T>(options: CustomCommandOptions): Promise<string> {
         const opt: CustomCommandOptions = Object.assign(new CustomCommandDefaults(), options)
+        if(opt.data != null && typeof opt.data !== "string") opt.data = JSON.stringify(opt.data)
         let message = CustomCommandRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.CustomCommand", "value": CustomCommandRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "customcommand", data, jwt: opt.jwt });
