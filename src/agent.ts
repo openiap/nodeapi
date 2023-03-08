@@ -1,7 +1,9 @@
+const { openiap } = require("./openiap");
 import { execSync } from "child_process"
 import * as fs from "fs"
 import * as path from "path"
 import * as AdmZip from "adm-zip"
+var tar = require('tar');
 
 async function GitClone(gitrepo: string): Promise<void> {
   if (!fs.existsSync("package")) {
@@ -12,7 +14,6 @@ async function GitClone(gitrepo: string): Promise<void> {
   }
 }
 async function getpackage(id: string): Promise<void> {
-  const openiap = require("openiap");
   var client = new openiap();
   await client.connect();
   const reply = await client.DownloadFile({ id });
@@ -21,8 +22,52 @@ async function getpackage(id: string): Promise<void> {
     var zip = new AdmZip(reply.filename);
     zip.extractAllTo(path.join(process.cwd(), "package"), true);
     console.log("done")
-  }
+  } else if(path.extname(reply.filename) == ".tar.gz" || path.extname(reply.filename) == ".tgz") {
+    var dest = path.join(process.cwd(), "package");
+    if (!fs.existsSync(dest)) {
+      fs.mkdirSync(dest);
+    }
+    try {
+      await tar.x({
+        file: reply.filename,
+        C: path.join(process.cwd(), "package"),
+      })
+    } catch (error) {
+      console.error(error)
+      throw error;
+    }
+  }    
 }
+async function getpackagefrom(id: string): Promise<void> {
+  var client = new openiap();
+  await client.connect();
+  const pack = await client.Query({ query: {"_id": id, "_type": "package"}, collectionname: "agents"})
+  if(pack == null) throw new Error("Unknown package id: " + id)
+  if(pack.length == 0) throw new Error("Unknown package id: " + id)
+  if(pack[0].fileid == null || pack[0].fileid == "") throw new Error("Package id " + id + " is missing a fileid")
+  const reply = await client.DownloadFile({ id: pack[0].fileid });
+  client.Close();
+  if (path.extname(reply.filename) == ".zip") {
+    var zip = new AdmZip(reply.filename);
+    zip.extractAllTo(path.join(process.cwd(), "package"), true);
+    console.log("done")
+  } else if(path.extname(reply.filename) == ".tar.gz" || path.extname(reply.filename) == ".tgz") {
+    var dest = path.join(process.cwd(), "package");
+    if (!fs.existsSync(dest)) {
+      fs.mkdirSync(dest);
+    }
+    try {
+      await tar.x({
+        file: reply.filename,
+        C: path.join(process.cwd(), "package"),
+      })
+    } catch (error) {
+      console.error(error)
+      throw error;
+    }
+  }    
+}
+
 function getscriptpath(packagepath) {
   if (fs.existsSync(path.join(packagepath, "package.json"))) {
     var project = require(path.join(packagepath, "package.json"))
@@ -112,9 +157,12 @@ async function main() {
 
   let packagepath = path.join(process.cwd(), "package")
   const fileid = process.env.fileid || "";
+  const packageid = process.env.packageid || "";  
   const gitrepo = process.env.gitrepo || "";
   if (gitrepo != "") {
     await GitClone(gitrepo);
+  } else if (packageid != "") {
+    await getpackagefrom(packageid);
   } else if (fileid != "") {
     await getpackage(fileid);
   }
