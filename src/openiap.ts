@@ -392,8 +392,9 @@ export class openiap extends events.EventEmitter {
     }
     async UploadFile(options: UploadFileOptions): Promise<UploadResponse> {
         const opt: UploadFileOptions = Object.assign(new UploadFileDefaults(), options)
-        const result = await protowrap.UploadFile(this.client, opt.filename, opt.jwt);
-        return result;
+        const result:Envelope = await protowrap.UploadFile(this.client, opt.filename, opt.jwt) as any;
+        var res = UploadResponse.decode(result.data.value);
+        return res;
     }
     queues: any = {};
     defaltqueue: string = "";
