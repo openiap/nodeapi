@@ -114,7 +114,8 @@ function copyFolderSync(from, to) {
 function npminstall(packagepath) {
   // copyFolderSync(path.join(process.cwd(), "node_modules"), path.join(packagepath, "node_modules"));
   if (fs.existsSync(path.join(packagepath, "package.json"))) {
-    execSync("npm install --unsafe-perm", {
+    console.log("run npm install")
+    execSync("npm install", {
       stdio: [0, 1, 2],
       cwd: packagepath,
     })
