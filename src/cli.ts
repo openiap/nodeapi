@@ -87,10 +87,6 @@ async function main() {
         continue;
       }
       if (str == "nnn") {
-        // var data2 = await c.RegisterQueue({queuename: "dummyfindme555"}, (e1, e2)=> {
-        //   info("RECEIVED QueueMessage");
-        //   return {"blah": "blah"}
-        // });
         var data2 = await c.RegisterQueue({queuename: "ExampleQueue"}, async (msg, payload)=> {
           info("RECEIVED QueueMessage replyto=" + msg.replyto + "");
           payload.name = "blah blah"
@@ -111,8 +107,9 @@ async function main() {
         var data = await c.QueueMessage({ queuename: "findme555", data: {"text": "Hej smukke"}, striptoken: true}, true);
         console.log("QueueMessage REPLY", data);
       } else if (str == "nn") {
-        var data2 = await c.RegisterQueue({queuename: "findme555"}, async (msg, payload)=> {
-          console.log("findme555 RECEIVE", data);
+        var data2 = await c.RegisterQueue({queuename: "findme555"}, async (msg, payload, user, jwt)=> {
+          console.log("findme555 RECEIVE", msg);
+          console.log("findme555 RECEIVE", payload);
           payload.name = "Hi there"
           return payload;
         });

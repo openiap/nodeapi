@@ -157,20 +157,20 @@ export class openiap extends events.EventEmitter {
             }
         } else if (message.command == "queueevent") {
             let we: QueueEvent = QueueEvent.decode(message.data.value)
+            var data = JSON.parse(we.data)
+            delete data.spanId;
+            delete data.traceId;
+            const user = data.__user;
+            const jwt = data.__jwt;
+            delete data.__user;
+            delete data.__jwt;
+            we.data = JSON.stringify(data);
             if(this.queuecallbacks[we.correlationId] && (we.replyto == "" || we.replyto == null)) {
-                var data = JSON.parse(we.data)
-                delete data.spanId;
-                delete data.traceId;
-                const user = data.__user;
-                delete data.__jwt;
-                delete data.__user;
                 this.queuecallbacks[we.correlationId](data, user);
                 delete this.queuecallbacks[we.correlationId];
             } else if (this.queues[we.queuename]) {
                 try {
-                    var data = JSON.parse(we.data)
-                    if (typeof data == "string") { data = JSON.parse(data)}
-                    var reply2 = await this.queues[we.queuename](we, data);
+                    var reply2 = await this.queues[we.queuename](we, data, user, jwt);
                     if(reply2 != null && we.replyto != null && we.replyto != "") {
                         await this.QueueMessage({ correlationId: we.correlationId, queuename: we.replyto, data: reply2, striptoken: true}, false);
                     }
@@ -398,7 +398,7 @@ export class openiap extends events.EventEmitter {
     }
     queues: any = {};
     defaltqueue: string = "";
-    async RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any)=> any ): Promise<string> {
+    async RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt:string)=> any ): Promise<string> {
         if (!callback) return "";
         const opt: RegisterQueueOptions = Object.assign(new RegisterQueueDefaults(), options)
         let message = RegisterQueueRequest.create(opt as any);
@@ -413,7 +413,7 @@ export class openiap extends events.EventEmitter {
         }
         return result.queuename;
     }
-    async RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any)=> any): Promise<string> {
+    async RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt:string)=> any): Promise<string> {
         if (!callback) return "";
         const opt: RegisterExchangeOptions = Object.assign(new RegisterExchangeDefaults(), options)
         let message = RegisterExchangeRequest.create(opt as any);

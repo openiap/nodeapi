@@ -51,8 +51,8 @@ export declare class openiap extends events.EventEmitter {
     UploadFile(options: UploadFileOptions): Promise<UploadResponse>;
     queues: any;
     defaltqueue: string;
-    RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any) => any): Promise<string>;
-    RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any) => any): Promise<string>;
+    RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any): Promise<string>;
+    RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any): Promise<string>;
     UnRegisterQueue(options: UnRegisterQueueOptions): Promise<void>;
     queuecallbacks: any;
     QueueMessage(options: QueueMessageOptions, rpc?: boolean): Promise<any>;
