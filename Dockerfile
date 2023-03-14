@@ -1,7 +1,8 @@
-FROM node:lts-alpine
+# FROM node:lts-alpine
+from alpine:3.17
 ENV NODE_ENV production
 RUN apk update
-RUN apk add git
+RUN apk add git nodejs npm
 RUN addgroup -S openiapgroup && adduser -S openiapuser -G openiapgroup
 # USER openiapuser
 # WORKDIR /home/openiapuser
