@@ -4,6 +4,35 @@ import * as fs from "fs"
 import * as path from "path"
 import * as AdmZip from "adm-zip"
 var tar = require('tar');
+function findInPath(exec) {
+  try {
+  let command;
+  switch (process.platform) {
+    case 'linux':
+    case 'darwin':
+      command = 'which ' + exec;
+      break;
+    case 'win32':
+      command = 'where ' + exec;
+      break;
+    default:
+      throw new Error(`Unsupported platform: ${process.platform}`);
+  }
+  const stdout = execSync(command, { stdio: 'pipe' }).toString();
+  return stdout.trim() || null;
+} catch (error) {
+  throw error;
+}
+}
+function findPythonPath() {
+  return findInPath("python")
+}
+function findDotnetPath() {
+  return findInPath("dotnet")
+}
+function findXvfbPath() {
+  return findInPath("xvfb-run")
+}
 
 async function GitClone(gitrepo: string): Promise<void> {
   if (!fs.existsSync("package")) {
@@ -82,12 +111,18 @@ function getscriptpath(packagepath) {
   if (fs.existsSync(path.join(packagepath, "agent.js"))) return path.join(packagepath, "agent.js");
   if (fs.existsSync(path.join(packagepath, "main.js"))) return path.join(packagepath, "main.js");
   if (fs.existsSync(path.join(packagepath, "index.js"))) return path.join(packagepath, "index.js");
+  if (fs.existsSync(path.join(packagepath, "agent.py"))) return path.join(packagepath, "agent.py");
+  if (fs.existsSync(path.join(packagepath, "main.py"))) return path.join(packagepath, "main.py");
+  if (fs.existsSync(path.join(packagepath, "index.py"))) return path.join(packagepath, "index.py");
 }
 function getpackagepath(packagepath, first = true) {
   if (fs.existsSync(path.join(packagepath, "package.json"))) return packagepath;
   if (fs.existsSync(path.join(packagepath, "agent.js"))) return packagepath;
   if (fs.existsSync(path.join(packagepath, "main.js"))) return packagepath;
   if (fs.existsSync(path.join(packagepath, "index.js"))) return packagepath;
+  if (fs.existsSync(path.join(packagepath, "agent.py"))) return packagepath;
+  if (fs.existsSync(path.join(packagepath, "main.py"))) return packagepath;
+  if (fs.existsSync(path.join(packagepath, "index.py"))) return packagepath;
   if (!first) return ""
   if (!fs.existsSync(packagepath)) return ""
   var files = fs.readdirSync(packagepath)
@@ -100,19 +135,7 @@ function getpackagepath(packagepath, first = true) {
   }
   return ""
 }
-function copyFolderSync(from, to) {
-  fs.mkdirSync(to);
-  fs.readdirSync(from).forEach(element => {
-      if (fs.lstatSync(path.join(from, element)).isFile()) {
-          fs.copyFileSync(path.join(from, element), path.join(to, element));
-      } else {
-          copyFolderSync(path.join(from, element), path.join(to, element));
-      }
-  });
-}
-
 function npminstall(packagepath) {
-  // copyFolderSync(path.join(process.cwd(), "node_modules"), path.join(packagepath, "node_modules"));
   if (fs.existsSync(path.join(packagepath, "package.json"))) {
     console.log("run npm install")
     execSync("npm install", {
@@ -123,9 +146,19 @@ function npminstall(packagepath) {
     // console.log("* skip NPM install *")
   }
 }
-function runit(packagepath, command) {
+async function pipinstall(packagepath, pythonpath) {
+  if (fs.existsSync(path.join(packagepath, "requirements.txt.done"))) return;
+  if (fs.existsSync(path.join(packagepath, "requirements.txt"))) {
+    console.log("Running pip install");
+    execSync(pythonpath + " -m pip install -r " + path.join(packagepath, "requirements.txt"), {
+      stdio: [0, 1, 2],
+      cwd: packagepath,
+    })
+  }
+}
+function runit(packagepath, command, processor) {
   var SKIP_XVFB = process.env.SKIP_XVFB;
-  var runthis  = process.execPath + " " + command;
+  var runthis  = processor + " " + command;
   if(SKIP_XVFB != null && SKIP_XVFB != "") {
     console.log(command)
     if (command == "npm run start") {
@@ -171,7 +204,17 @@ async function main() {
   if (packagepath == "") throw new Error("packagepath not found, is this a nodejs project?")
   let command = getscriptpath(packagepath)
   if(command == "") throw new Error("Failed locating a command to run, EXIT")
-  npminstall(packagepath)
-  runit(packagepath, command)
+  if(command.endsWith(".py")) {
+    var python = findPythonPath();
+    await pipinstall(packagepath, python);
+    runit(packagepath, command, python)
+  } else if(command.endsWith(".js") || command == "npm run start") {
+    var node = process.execPath
+    npminstall(packagepath)
+    runit(packagepath, command, node)
+  } else {
+    var dotnet = findDotnetPath();
+    runit(packagepath, "run", dotnet)
+  }
 }
 main()

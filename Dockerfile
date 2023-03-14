@@ -1,8 +1,7 @@
 # FROM node:lts-alpine
 from alpine:3.17
 ENV NODE_ENV production
-RUN apk update
-RUN apk add git nodejs npm
+RUN apk add --update git nodejs npm python3 py3-pip && rm -rf /var/cache/apk/*
 RUN addgroup -S openiapgroup && adduser -S openiapuser -G openiapgroup
 # USER openiapuser
 # WORKDIR /home/openiapuser
@@ -16,7 +15,7 @@ USER openiapuser
 WORKDIR /tmp
 COPY --chown=openiapuser:openiapgroup tsconfig.json /tmp/tsconfig.json
 COPY --chown=openiapuser:openiapgroup package.json /tmp/package.json
-RUN npm i
+RUN npm i --omit=dev
 COPY --chown=openiapuser:openiapgroup src /tmp/src
 COPY --chown=openiapuser:openiapgroup proto /tmp/proto
 COPY --chown=openiapuser:openiapgroup lib /tmp/lib
