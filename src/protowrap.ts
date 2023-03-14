@@ -7,7 +7,9 @@ import { messageParser } from "./message-parser";
 // import { FlowService, FlowServiceClientImpl } from "./proto/base"
 
 import * as  iostream from "stream";
-import * as  express from "express";
+// import * as  express from "express";
+import * as  WebSocket from "ws";
+
 import * as  protobuf from "protobufjs";
 import * as  https from "https";
 import * as  http from "http";
@@ -16,7 +18,6 @@ import * as  protoLoader from "@grpc/proto-loader";
 import * as  net from "net";
 import * as  fs from "fs";
 import * as  path from "path";
-import * as  WebSocket from "ws";
 import * as  crypto from "crypto";
 import { Throttler } from "./Throttler";
 import { client, clientType, iclient } from "./client";
@@ -950,11 +951,11 @@ export class protowrap {
     result.id = Math.random().toString(36).substring(2, 11);
     if (protocol == "rest") {
       var listen = false;
-      if (!app) {
-        app = express();
-        app.use(express.json())
-        listen = true;
-      }
+      // if (!app) {
+      //   app = express();
+      //   app.use(express.json())
+      //   listen = true;
+      // }
       app.post(path, async (req, res, next) => {
         const id = Math.random().toString(36).substring(2, 11);
         var clientresult: client = new clientConstructor();
