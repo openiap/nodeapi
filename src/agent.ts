@@ -21,11 +21,14 @@ function findInPath(exec) {
   const stdout = execSync(command, { stdio: 'pipe' }).toString();
   return stdout.trim() || null;
 } catch (error) {
-  throw error;
+  return null;
+  // throw error;
 }
 }
 function findPythonPath() {
-  return findInPath("python")
+  var result = findInPath("python")
+  if(result == null || result == "") result = findInPath("python3")
+  return result
 }
 function findDotnetPath() {
   return findInPath("dotnet")
@@ -157,9 +160,10 @@ async function pipinstall(packagepath, pythonpath) {
   }
 }
 function runit(packagepath, command, processor) {
-  var SKIP_XVFB = process.env.SKIP_XVFB;
+  var xvfb = findXvfbPath()
+
   var runthis  = processor + " " + command;
-  if(SKIP_XVFB != null && SKIP_XVFB != "") {
+  if(xvfb == null || xvfb == "") {
     console.log(command)
     if (command == "npm run start") {
       runthis = "npm run start"
@@ -167,9 +171,9 @@ function runit(packagepath, command, processor) {
   } else {
     console.log("xvfb-run " + command)
     if (command == "npm run start") {
-      runthis = `/usr/bin/xvfb-run -e /tmp/xvfb.log --server-args="-screen 0 1920x1080x24 -ac" ${command}`
+      runthis = xvfb + ` -e /tmp/xvfb.log --server-args="-screen 0 1920x1080x24 -ac" ${command}`
     } else {
-      runthis = `/usr/bin/xvfb-run -e /tmp/xvfb.log --server-args="-screen 0 1920x1080x24 -ac" ${process.execPath} ${command}`
+      runthis = xvfb + ` -e /tmp/xvfb.log --server-args="-screen 0 1920x1080x24 -ac" ${processor} ${command}`
     }
   }
   execSync(runthis, {

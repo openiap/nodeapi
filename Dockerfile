@@ -2,6 +2,7 @@
 from alpine:3.17
 ENV NODE_ENV production
 RUN apk add --update git nodejs npm python3 py3-pip && rm -rf /var/cache/apk/*
+RUN ln -sf /usr/bin/python3 /usr/bin/python
 RUN addgroup -S openiapgroup && adduser -S openiapuser -G openiapgroup
 # USER openiapuser
 # WORKDIR /home/openiapuser
