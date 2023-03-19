@@ -87,7 +87,7 @@ async function main() {
         continue;
       }
       if (str == "nnn") {
-        var data2 = await c.RegisterQueue({queuename: "ExampleQueue"}, async (msg, payload)=> {
+        var data2 = await c.RegisterQueue({queuename: "ExampleQueue"}, async (msg, payload, user, jwt)=> {
           info("RECEIVED QueueMessage replyto=" + msg.replyto + "");
           payload.name = "blah blah"
 

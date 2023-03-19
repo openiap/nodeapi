@@ -44,7 +44,7 @@ export declare class openiap extends events.EventEmitter {
     DeleteOne(options: DeleteOneOptions): Promise<number>;
     DeleteMany(options: DeleteManyOptions): Promise<number>;
     watchids: any;
-    Watch(options: WatchOptions, callback: any): Promise<string>;
+    Watch(options: WatchOptions, callback: (operation: string, document: any) => void): Promise<string>;
     UnWatch(options: UnWatchOptions): Promise<void>;
     GetElement(xpath: string): Promise<string>;
     DownloadFile(options: DownloadFileOptions): Promise<DownloadResponse>;

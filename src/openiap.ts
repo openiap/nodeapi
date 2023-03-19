@@ -351,7 +351,7 @@ export class openiap extends events.EventEmitter {
         return result.affectedrows;
     }
     watchids: any = {};
-    async Watch(options: WatchOptions, callback: any): Promise<string> {
+    async Watch(options: WatchOptions, callback: (operation: string, document: any)=> void): Promise<string> {
         if (!callback) return "";
         const opt: WatchOptions = Object.assign(new WatchDefaults(), options)
         if(opt.paths) {
@@ -442,7 +442,7 @@ export class openiap extends events.EventEmitter {
                 if(typeof opt.data !== 'string') opt.data = JSON.stringify(opt.data) as any;
                 if(rpc) {
                     if(this.defaltqueue == "") {
-                        this.defaltqueue = await this.RegisterQueue({queuename: ""}, (msg, user)=>{
+                        this.defaltqueue = await this.RegisterQueue({queuename: ""}, (msg, payload, user, jwt)=>{
                             if(msg && msg.correlationId) {
                                 warn("temp queue received message for unknown receiver with correlationId " + msg.correlationId)
                             } else {
