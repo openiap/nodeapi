@@ -126,7 +126,7 @@ export class openiap extends events.EventEmitter {
                     err(new Error("Disconnected from server " + message));
                 }
             } catch (_error) {
-                err(_error);
+                err(error);
             }
         } else {
             info("Disconnected from server");
