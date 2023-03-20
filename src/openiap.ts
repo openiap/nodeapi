@@ -121,8 +121,12 @@ export class openiap extends events.EventEmitter {
         var msg: string = "";
         if (error) {
             var message: string = (error.message || error as any);
-            if (message && !message.startsWith("Disconnected from server")) {
-                err(new Error("Disconnected from server " + message));
+            try {
+                if (message && !message.startsWith("Disconnected from server")) {
+                    err(new Error("Disconnected from server " + message));
+                }
+            } catch (_error) {
+                err(_error);
             }
         } else {
             info("Disconnected from server");
