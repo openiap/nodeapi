@@ -8,7 +8,7 @@ import { WatchEvent } from "./proto/watch";
 import { Any } from "./proto/google/protobuf/any";
 import { Envelope, FlowService } from "./proto/base"
 export type clientType = "socket" | "pipe" | "ws" | "grpc" | "rest";
-export type clientAgent = "node" | "browser" | "nodered" | "openrpa" | "powershell" | "python" | "java" | "csharp" | "go" | "unknown";
+export type clientAgent = "node" | "browser" | "nodered" | "openrpa" | "powershell" | "assistent" | "nodeagent" | "python" | "java" | "csharp" | "go" | "unknown";
 export interface iclient {
   id: string;
   seq: number;
