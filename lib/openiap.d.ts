@@ -16,6 +16,8 @@ export declare class openiap extends events.EventEmitter {
     pingerhandle: any;
     constructor(url?: string, jwt?: string);
     loginresolve: any;
+    loginreject: any;
+    allowconnectgiveup: boolean;
     connect(first?: boolean): Promise<User>;
     __server_pinger(): void;
     Close(): void;

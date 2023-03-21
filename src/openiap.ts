@@ -26,8 +26,10 @@ export class openiap extends events.EventEmitter {
         if(this.url == null || this.url == "") this.url = process.env.wscapiurl
     }
     loginresolve: any;
+    loginreject: any;
+    allowconnectgiveup: boolean = true;
     async connect(first: boolean = true) {
-        return new Promise<User>(async (resolve) => {
+        return new Promise<User>(async (resolve, reject) => {
             if(process.env.log_with_colors == "false" || process.env.log_with_colors == "False") {
                 var keys = Object.keys(config.color);
                 for(var i = 0; i < keys.length; i++) {
@@ -38,7 +40,10 @@ export class openiap extends events.EventEmitter {
             if(u.protocol == "grpc:") {
                 await protowrap.init()
             }
-            if (this.loginresolve == null) this.loginresolve = resolve;
+            if (this.loginresolve == null) {
+                this.loginresolve = resolve;
+                this.loginreject = reject;
+            }
             // await protowrap.init()
             this.connected = false;
             this.connecting = true;
@@ -46,7 +51,6 @@ export class openiap extends events.EventEmitter {
             this.pingerhandle = setInterval(this.__server_pinger.bind(this), 30000)
             setTimeout(() => {
                 try {
-                    
                     this.client = protowrap.connect(this.url)
                     this.client.onConnected = this.cliOnConnected.bind(this);
                     this.client.onDisconnected = this.cliOnDisconnected.bind(this);
@@ -77,7 +81,6 @@ export class openiap extends events.EventEmitter {
         this.connecting = false;
         var u = new URL(this.url);
         info("Connected to server " + u.host);
-        this.reconnectms = 100;
         var _jwt = process.env.jwt
         var _username = u.username;
         var _password = u.password;
@@ -103,6 +106,7 @@ export class openiap extends events.EventEmitter {
             this.loginresolve = null;
         }
         try {
+            this.reconnectms = 100;
             await this.onConnected(this);
         } catch (error) {
             err(error)
@@ -117,7 +121,19 @@ export class openiap extends events.EventEmitter {
         this.signedin = false;
         if(this.pingerhandle != null) clearInterval(this.pingerhandle);    
         this.reconnectms += 100;
-        if (this.reconnectms > 30000) this.reconnectms = 30000;
+        if(this.reconnectms > 1800 && this.allowconnectgiveup == true) {
+            this.reconnectms = 200;
+            if(this.loginreject != null) {
+                this.loginreject(new Error("Giving up, not responding"));
+                this.loginresolve = null;
+                this.loginreject = null;
+            } else {
+                err(new Error("Giving up, not responding"));
+            }
+            return;
+        } else if(this.reconnectms > 2500) {
+            this.reconnectms = 2500
+        }
         var msg: string = "";
         if (error) {
             var message: string = (error.message || error as any);
