@@ -82,8 +82,8 @@ export class openiap extends events.EventEmitter {
         var u = new URL(this.url);
         info("Connected to server " + u.host);
         var _jwt = process.env.jwt
-        var _username = u.username;
-        var _password = u.password;
+        var _username = decodeURIComponent(u.username);
+        var _password = decodeURIComponent(u.password);
         if(_jwt == null) _jwt = this.jwt
         if(_jwt == null) _jwt = client.jwt;
         if(_username == null) _username = "";
