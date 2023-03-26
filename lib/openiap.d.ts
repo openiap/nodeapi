@@ -185,6 +185,7 @@ export type UnWatchOptions = {
 export type DownloadFileOptions = {
     id?: string;
     filename?: string;
+    folder?: string;
     jwt?: string;
 };
 export type UploadFileOptions = {

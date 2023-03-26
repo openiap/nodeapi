@@ -333,12 +333,15 @@ export class protowrap {
       this.sendMesssag(client, _payload, id, true);
     });
   }
-  static DownloadFile(client: client, id: string, filename: string, highWaterMark: number | undefined):Promise<DownloadResponse> {
+  static DownloadFile(client: client, id: string, filename: string, folder: string, highWaterMark: number | undefined):Promise<DownloadResponse> {
     return new Promise<any>(async (resolve, reject) => {
       let temp: boolean = false
       if(filename == null || filename == "") {
         temp = true
         filename = Math.random().toString(36).substring(2, 11) + ".tmp";
+      }
+      if(folder != null && folder != "") {
+        filename = path.join(folder, filename);
       }
       var name = filename;
       if (!name || name == "") name = path.basename(filename);
@@ -371,7 +374,11 @@ export class protowrap {
         var msg = DownloadResponse.decode(test.data.value);
         s.filename = msg.filename
         if(temp) {
-          fs.renameSync(filename, msg.filename)
+          if(folder != null && folder != "") {
+            fs.renameSync(filename, path.join(folder, msg.filename))
+          } else {
+            fs.renameSync(filename, msg.filename)
+          }          
         }
         s.bytes = ws.bytesWritten;
         s.bytesWritten = ws.bytesWritten;

@@ -17,7 +17,7 @@ export declare class protowrap {
     static _RPC(client: client, payload: any): [string, Promise<any>];
     static SetStream(client: client, stream: any, rid: string): any;
     static CreateStream(client: client, stream: any, payload: any): Promise<unknown>;
-    static DownloadFile(client: client, id: string, filename: string, highWaterMark: number | undefined): Promise<DownloadResponse>;
+    static DownloadFile(client: client, id: string, filename: string, folder: string, highWaterMark: number | undefined): Promise<DownloadResponse>;
     static sendFileContent(client: client, rid: any, filename: any, highWaterMark: any): Promise<unknown>;
     static UploadFile(client: client, filename: string, jwt: string): Promise<UploadResponse>;
     static ReceiveFileContent(client: client, rid: string, filename: string, highWaterMark: number): Promise<unknown>;

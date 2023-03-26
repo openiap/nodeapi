@@ -11,7 +11,7 @@ import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from ".
 export class openiap extends events.EventEmitter {
     client: client;
     agent: clientAgent = "node";
-    version: string = "0.0.1"
+    version: string = "0.0.10"
     connected: boolean = false;
     connecting: boolean = false;
     signedin: boolean = false;
@@ -408,7 +408,7 @@ export class openiap extends events.EventEmitter {
     }
     async DownloadFile(options: DownloadFileOptions): Promise<DownloadResponse> {
         const opt: DownloadFileOptions = Object.assign(new DownloadFileDefaults(), options)
-        return await protowrap.DownloadFile(this.client, opt.id, opt.filename, config.SendFileHighWaterMark);
+        return await protowrap.DownloadFile(this.client, opt.id, opt.filename, opt.folder, config.SendFileHighWaterMark);
     }
     async UploadFile(options: UploadFileOptions): Promise<UploadResponse> {
         const opt: UploadFileOptions = Object.assign(new UploadFileDefaults(), options)
@@ -738,6 +738,7 @@ class UnWatchDefaults {
 export type DownloadFileOptions = {
     id?: string;
     filename?: string;
+    folder?: string;
     jwt?: string;
 }
 class DownloadFileDefaults {
