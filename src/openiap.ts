@@ -272,6 +272,22 @@ export class openiap extends events.EventEmitter {
         const result = QueryResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
+    async FindOne<T>(options: FindOneOptions): Promise<T> {
+        const opt: FindOneOptions = Object.assign(new FindOneDefaults(), options)
+        let message = QueryRequest.create(opt as any);
+        message.top = 1;
+        if (typeof message.query == "object") message.query = this.stringify(message.query);
+        if (typeof message.orderby == "object") message.orderby = this.stringify(message.orderby);
+        if (typeof message.projection == "object") message.projection = this.stringify(message.projection);
+        const data = Any.create({type_url: "type.googleapis.com/openiap.QueryRequest", "value": QueryRequest.encode(message).finish()})
+        const payload = Envelope.create({ command: "query",data });
+        const result = QueryResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        if(result.results == null || result.results == "") return null;
+        var array = JSON.parse(result.results);
+        if(!Array.isArray(array)) return null;
+        if(array.length == 0) return null;
+        return array[0];
+    }
     async GetDocumentVersion<T>(options: GetDocumentVersionOptions): Promise<T[]> {
         const opt: GetDocumentVersionOptions = Object.assign(new GetDocumentVersionDefaults(), options)
         let message = GetDocumentVersionRequest.create(opt as any);
@@ -587,6 +603,18 @@ export type DropCollectionOptions = {
     jwt?: string;
 }
 class DropCollectionDefaults {
+}
+export type FindOneOptions = {
+    collectionname?: string;
+    query?: object;
+    projection?: Object;
+    orderby?: Object | string;
+    queryas?: string;
+    jwt?: string;
+}
+class FindOneDefaults {
+    collectionname: string = "entities";
+    query: object = {};
 }
 export type QueryOptions = {
     collectionname?: string;

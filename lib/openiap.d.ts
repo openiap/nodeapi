@@ -34,6 +34,7 @@ export declare class openiap extends events.EventEmitter {
     ListCollections(options?: ListCollectionsOptions): Promise<any[]>;
     DropCollection(options: DropCollectionOptions): Promise<void>;
     Query<T>(options: QueryOptions): Promise<T[]>;
+    FindOne<T>(options: FindOneOptions): Promise<T>;
     GetDocumentVersion<T>(options: GetDocumentVersionOptions): Promise<T[]>;
     Count(options: CountOptions): Promise<number>;
     Aggregate<T>(options: AggregateOptions): Promise<T[]>;
@@ -82,6 +83,14 @@ export type ListCollectionsOptions = {
 };
 export type DropCollectionOptions = {
     collectionname: string;
+    jwt?: string;
+};
+export type FindOneOptions = {
+    collectionname?: string;
+    query?: object;
+    projection?: Object;
+    orderby?: Object | string;
+    queryas?: string;
     jwt?: string;
 };
 export type QueryOptions = {
