@@ -21,6 +21,8 @@ export interface PingRequest {
 }
 export interface PingResponse {
 }
+export interface Noop {
+}
 export interface ErrorResponse {
     message: string;
     code: number;
@@ -200,6 +202,14 @@ export declare const PingResponse: {
     toJSON(_: PingResponse): unknown;
     create<I extends {} & {} & { [K in Exclude<keyof I, never>]: never; }>(base?: I): PingResponse;
     fromPartial<I_1 extends {} & {} & { [K_1 in Exclude<keyof I_1, never>]: never; }>(_: I_1): PingResponse;
+};
+export declare const Noop: {
+    encode(_: Noop, writer?: _m0.Writer): _m0.Writer;
+    decode(input: _m0.Reader | Uint8Array, length?: number): Noop;
+    fromJSON(_: any): Noop;
+    toJSON(_: Noop): unknown;
+    create<I extends {} & {} & { [K in Exclude<keyof I, never>]: never; }>(base?: I): Noop;
+    fromPartial<I_1 extends {} & {} & { [K_1 in Exclude<keyof I_1, never>]: never; }>(_: I_1): Noop;
 };
 export declare const ErrorResponse: {
     encode(message: ErrorResponse, writer?: _m0.Writer): _m0.Writer;

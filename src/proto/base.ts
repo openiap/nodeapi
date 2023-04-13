@@ -80,6 +80,9 @@ export interface PingRequest {
 export interface PingResponse {
 }
 
+export interface Noop {
+}
+
 export interface ErrorResponse {
   message: string;
   code: number;
@@ -403,6 +406,49 @@ export const PingResponse = {
 
   fromPartial<I extends Exact<DeepPartial<PingResponse>, I>>(_: I): PingResponse {
     const message = createBasePingResponse();
+    return message;
+  },
+};
+
+function createBaseNoop(): Noop {
+  return {};
+}
+
+export const Noop = {
+  encode(_: Noop, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Noop {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNoop();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): Noop {
+    return {};
+  },
+
+  toJSON(_: Noop): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Noop>, I>>(base?: I): Noop {
+    return Noop.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Noop>, I>>(_: I): Noop {
+    const message = createBaseNoop();
     return message;
   },
 };

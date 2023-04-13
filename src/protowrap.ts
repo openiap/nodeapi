@@ -88,6 +88,8 @@ export class protowrap {
     switch (command) {
       case "error":
         return "openiap.ErrorResponse";
+      case "noop":
+        return "openiap.Noop";
       case "ace":
         return "openiap.Ace";
       case "grpcservice":
