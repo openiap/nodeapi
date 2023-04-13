@@ -681,7 +681,7 @@ export class protowrap {
           try {
             var payload = data;
             try {
-              payload = JSON.parse(data);
+              if(data.indexOf("{") > -1) payload = JSON.parse(data);
             } catch (error) {            
             }
             if (payload && payload.data && payload.data.type && payload.data.type.toLowerCase() == "buffer") {
