@@ -678,12 +678,20 @@ export class protowrap {
     if (client.protocol == "rest") {
       if (config.role == "client") {
         this.post(client.jwt, client.agent, client.url, JSON.stringify(payload)).then((data: any) => {
-          var payload = JSON.parse(data);
-          if (payload && payload.data && payload.data.type && payload.data.type.toLowerCase() == "buffer") {
-            payload.data = Buffer.from(payload.data.data);
+          try {
+            var payload = data;
+            try {
+              payload = JSON.parse(data);
+            } catch (error) {            
+            }
+            if (payload && payload.data && payload.data.type && payload.data.type.toLowerCase() == "buffer") {
+              payload.data = Buffer.from(payload.data.data);
+            }
+            this.IsPendingReply(client, payload);
+          } catch (error) {
+            err(error);            
           }
-          this.IsPendingReply(client, payload);
-        }).catch((error) => {
+      }).catch((error) => {
           err(error);
         });
       } else {
