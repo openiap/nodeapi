@@ -235,6 +235,9 @@ export class openiap extends events.EventEmitter {
         const data = Any.create({type_url: "type.googleapis.com/openiap.SigninRequest", value: SigninRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "signin", data, jwt: opt.jwt });
         const result = SigninResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        if(result.user == null) {
+            throw new Error("Login seem to have failed, nu user object returned");            
+        }
         if(options.validateonly) {
             info("Validated " + result.user.name);
             return result;
