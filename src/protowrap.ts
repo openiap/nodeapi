@@ -283,7 +283,12 @@ export class protowrap {
       } else if (data != null) {
         try {
           if (data.type_url != null) {
-            msg = protomsg.decode(data.value)
+            if(data.value.data) { // REST, so json parsed buffer {type: 'Buffer', data: [...]}
+              msg = protomsg.decode(data.value.data)
+            } else {
+              msg = protomsg.decode(data.value)
+            }
+            
           } else {
             msg = protomsg.decode(data)
           }
