@@ -37,7 +37,6 @@ export class openiap extends EventEmitter {
     loginreject: any;
     allowconnectgiveup: boolean = true;
     /**
-     * 
      * @param first Should be left out or used as true. Is used internally for controlling retry logic
      * @returns Returns the {@link User} object if login was successful, otherwise throws an error
      * @example
@@ -101,8 +100,24 @@ export class openiap extends EventEmitter {
     /**
      * Override this function to add logic executed when the client has connected to the server.
      * If credentails has been set, the client will automatically login before calling this function
-     * Using EventMitter is also possible .on("connected", (client) => {})
+     * Using EventMitter is also possible using client.on("connected", (client) => {})
      * @param client 
+     * @example
+     * using onConnected override
+     * ```typescript
+     * var client = new openiap();
+     * client.onConnected = (client) => {
+     *   console.log("Connected to server");
+     * }
+     * client.connect();
+     * @example
+     * using EventEmitter. Remember to remove the listener when done to avoid memory leaks
+     * ```typescript
+     * var client = new openiap();
+     * client.on("connected", (client) => {
+     *  console.log("Connected to server");
+     * });
+     * client.connect();
      */
     async onConnected(client:openiap) {
     }
@@ -267,6 +282,11 @@ export class openiap extends EventEmitter {
         const payload = Envelope.create({ command: "ping", data });
         const result = await protowrap.RPC(this.client, payload);
     }
+    /**
+     * Wrapper around JSON.stringify to allow serialiszing object with regular expressions
+     * @param object Object to serialize
+     * @returns 
+     */
     stringify(object: any) {
         return JSON.stringify(object, (key, value) => {
             if (value == null) return value;
@@ -280,6 +300,14 @@ export class openiap extends EventEmitter {
             } else return value;
         });
     }
+    /**
+     * By default we use crendetials from the connection string or from jwt environment variable.
+     * But you can also call Signin to login with a username and password or with a jwt token.
+     * This function can also be used to validate credentials without changing the current credentials by setting 
+     * {@link SigninOptions.validateonly} to true.
+     * @param options 
+     * @returns 
+     */    
     async Signin(options: SigninOptions): Promise<SigninResponse> {
         const opt: SigninOptions = Object.assign(new SigninDefaults(), options)
         if(opt.agent == null || opt.agent == "") opt.agent = this.agent;
@@ -307,6 +335,11 @@ export class openiap extends EventEmitter {
         this.emit("signedin", this, result.user)
         return result;
     }
+    /**
+     * Returns a list of all known collections. By default filtering out history collectins.
+     * @param options 
+     * @returns 
+     */
     async ListCollections(options: ListCollectionsOptions = {}): Promise<any[]> {
         const opt: ListCollectionsOptions = Object.assign(new ListCollectionsDefaults(), options)
         let message = ListCollectionsRequest.create(opt as any);
@@ -315,6 +348,10 @@ export class openiap extends EventEmitter {
         const result = ListCollectionsResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
+    /**
+     * Drop a collection removing all data from the collection. Only users with admin rights can drop collections.
+     * @param options 
+     */
     async DropCollection(options: DropCollectionOptions): Promise<void> {
         const opt: DropCollectionOptions = Object.assign(new DropCollectionDefaults(), options)
         let message = DropCollectionRequest.create(opt as any);
@@ -322,6 +359,26 @@ export class openiap extends EventEmitter {
         const payload = Envelope.create({ command: "dropcollection", data, jwt: opt.jwt });
         const result = await protowrap.RPC(this.client, payload);
     }
+    /**
+     * Query a collection for data
+     * @param options 
+     * @returns an array of documents matching the query
+     * @example
+     * Get all documents with type "test" from entities collection
+     * ```typescript
+     * const result = await client.Query({ query: { "_type": "test" } });
+     * ```
+     * @example
+     * Get all documents with type "test" from entities collection and only return the name field
+     * ```typescript
+     * const result = await client.Query({ collectionname: "entities", query: { "_type": "test" }, projection: { "name": 1 } });
+     * ```
+     * @example
+     * Get all documents with type "test" from entities collection and only return the name field and order by name
+     * ```typescript
+     * const result = await client.Query({ collectionname: "entities", query: { "_type": "test" }, projection: { "name": 1 }, orderby: { "name": 1 } });
+     * ```
+     */
     async Query<T>(options: QueryOptions): Promise<T[]> {
         const opt: QueryOptions = Object.assign(new QueryDefaults(), options)
         let message = QueryRequest.create(opt as any);
@@ -333,6 +390,26 @@ export class openiap extends EventEmitter {
         const result = QueryResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
+    /**
+     * Query a collection for data and return the first document
+     * @param options
+     * @returns a document matching the query
+     * @example
+     * Get the first document with type "test" from entities collection
+     * ```typescript
+     * const result = await client.FindOne({ query: { "_type": "test" } });
+     * ```
+     * @example
+     * Get the first document with type "test" from entities collection and only return the name field
+     * ```typescript
+     * const result = await client.FindOne({ collectionname: "entities", query: { "_type": "test" }, projection: { "name": 1 } });
+     * ```
+     * @example
+     * Get the first document with type "test" from entities collection and only return the name field and order by name
+     * ```typescript
+     * const result = await client.FindOne({ collectionname: "entities", query: { "_type": "test" }, projection: { "name": 1 }, orderby: { "name": 1 } });
+     * ```
+     */
     async FindOne<T>(options: FindOneOptions): Promise<T> {
         const opt: FindOneOptions = Object.assign(new FindOneDefaults(), options)
         let message = QueryRequest.create(opt as any);
@@ -455,8 +532,8 @@ export class openiap extends EventEmitter {
      * @param callback 
      * @returns server id assigned to the watch. Used with {@link UnWatch} to stop receiving notifications from the watch.
      * @example
-     * const watchid = await db.Watch({ collection: "entities", paths: ["$.[?(@._type == 'test')]"] }, (operation, document) => {
-     *     console.log(operation, document);
+     * const watchid = await db.Watch({ collectionname: "entities", paths: ["$.[?(@._type == 'test')]"] }, (operation, document) => {
+     *     console.log(operation + " on " + document.name);
      * });
      * 
      */
@@ -518,7 +595,15 @@ export class openiap extends EventEmitter {
      * Upload a file to OpenIAP flow database.
      * This uses streams to download file content, and is therefore not supported using REST interface.
      * @param options 
-     * @returns 
+     * @returns Server response, including the file id
+     * @see {@link UploadResponse}
+     * @see {@link UploadFileOptions}
+     * @example
+     * Upload test.txt from current folder to OpenIAP flow database
+     * ```typescript
+     * const res = await client.UploadFile({ filename: "test.txt" });
+     * console.log("file upladed with id " + res.id);
+     * ```
      */
     async UploadFile(options: UploadFileOptions): Promise<UploadResponse> {
         const opt: UploadFileOptions = Object.assign(new UploadFileDefaults(), options)
@@ -535,6 +620,19 @@ export class openiap extends EventEmitter {
      * @param options 
      * @param callback 
      * @returns Returns the queue name. Use this name to send messages to the queue. Also use this to unregister the queue with {@link UnRegisterQueue }
+     * @see {@link QueueMessage}
+     * @see {@link UnRegisterQueue}
+     * @example
+     * ```typescript
+     * const queuename = await client.RegisterQueue({ queuename: "myqueue" }, (msg, payload, user, jwt) => {
+     *   console.log(JSON.stringify(payload, null, 2));
+     *   if(payload == null) payload = {}
+     *   payload.result = true
+     *   // If returning a onject, it will be sent back to the sender of the message, if caller requested a response using rpc = true. 
+     *   return payload;
+     * });
+     * console.log("registered queue " + queuename);
+     * ```
      */
     async RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt:string)=> any ): Promise<string> {
         if (!callback) return "";
@@ -557,6 +655,15 @@ export class openiap extends EventEmitter {
      * @param options 
      * @param callback 
      * @returns Returns the queue name, used to consume the exchange. Use this when unregistering the exchange with {@link UnRegisterQueue }
+     * @see {@link QueueMessage}
+     * @see {@link UnRegisterQueue}
+     * @example
+     * ```typescript
+     * const queuename = await client.RegisterExchange({ exchange: "myexchange" }, (msg, payload, user, jwt) => {
+     *   console.log(JSON.stringify(payload, null, 2));
+     * });
+     * console.log("registered exchange myexchange and is consuming it using queue " + queuename);
+     * ```
      */
     async RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt:string)=> any): Promise<string> {
         if (!callback) return "";
@@ -573,6 +680,8 @@ export class openiap extends EventEmitter {
     /**
      * Tell server to close queue and stop receving message from the queue ( or queue consuming an exchange )
      * @param options 
+     * @see {@link RegisterQueue}
+     * @see {@link RegisterExchange}
      */
     async UnRegisterQueue(options: UnRegisterQueueOptions): Promise<void> {
         const opt: UnRegisterQueueOptions = Object.assign(new UnRegisterQueueDefaults(), options)
@@ -584,6 +693,26 @@ export class openiap extends EventEmitter {
         delete this.queues[opt.queuename];
     }
     queuecallbacks: any = {};
+    /**
+     * Send message to queue or exchange. If recevied sends a reply back, set rpc = true to recevied response as return value.
+     * Be aware, right now there is no timeout on the wait, so if recevier never sends a reply it will hang for ever
+     * @param options 
+     * @param rpc 
+     * @returns If rpc is trye, will return the reply from the queue. If rpc is false, will return null when server has received the message
+     * @see {@link RegisterQueue}
+     * @see {@link RegisterExchange}
+     * @example
+     * Send message to myqueue and wait for reply, then dump the result to console
+     * ```typescript
+     * const result = await client.QueueMessage({ queuename: "myqueue", data: { "hello": "world" } }, true);
+     * console.log("result from queue " + JSON.stringify(result, null, 2));
+     * ```
+     * @example
+     * Send message to myexchange
+     * ```typescript
+     * await client.QueueMessage({ exchangename: "myexchange", data: { "hello": "world" } }, false);
+     * ```
+     */
     async QueueMessage(options: QueueMessageOptions, rpc: boolean = false) {
         return new Promise<any>(async (resolve, reject)=> {
             try {
@@ -618,6 +747,32 @@ export class openiap extends EventEmitter {
         });
 
     }
+    /**
+     * Push a workitem to a workqueue. Workitem can be processed by a worker after calling {@link PopWorkitem} 
+     * @param options 
+     * @returns Returns the workitem that was pushed, including the workitem id
+     * @see {@link PopWorkitem}
+     * @see {@link PushWorkitems}
+     * @example
+     * Push a workitem to myworkqueue
+     * ```typescript
+     * const workitem = await client.PushWorkitem({ wiq: "myworkqueue", payload: { "hello": "world" } });
+     * console.log("Pushed workitem with id " + workitem._id);
+     * ```
+     * @example
+     * Push a workitem with a file to myworkqueue 
+     * ```typescript
+     * import * as path  from 'path';
+     * import * as fs  from "fs";
+     * import * as pako from 'pako';
+     * // ....
+     * const filepath = "/path/data.csv";
+     * const filename = path.basename(filepath);
+     * const workitem = await client.PushWorkitem({
+     *  payload: {"name": "test " + filename}, wiq: "q2", name: "file test " + filename,
+     *   files: [{ _id:"", filename, compressed: true, file: pako.deflate(fs.readFileSync(filepath, null)) }]});
+     * console.log("Pushed workitem with id " + workitem._id);
+     */
     async PushWorkitem(options: PushWorkitemOptions): Promise<Workitem> {
         const opt: PushWorkitemOptions = Object.assign(new PushWorkitemDefaults(), options)
         if(typeof opt.payload !== 'string') opt.payload = JSON.stringify(opt.payload);
@@ -627,6 +782,11 @@ export class openiap extends EventEmitter {
         const result = PushWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.workitem
     }
+    /**
+     * Push multiple workitems to a workqueue. Workitems can be processed by a worker after calling {@link PopWorkitem}
+     * @param options 
+     * @returns an array of workitems that was pushed, including the workitem id's
+     */
     async PushWorkitems(options: PushWorkitemsOptions): Promise<Workitem[]> {
         const opt: PushWorkitemsOptions = Object.assign(new PushWorkitemsDefaults(), options)
         opt.items.forEach(wi => {
@@ -638,6 +798,12 @@ export class openiap extends EventEmitter {
         const result = PushWorkitemsResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.workitems
     }
+    /**
+     * Pop an item of a workitem queue. An items aviailable in the queue will be determined by it's status, retry time and runat time steamp.
+     * If multiple items are available, the items will be fatched based on each wrkitem's priority field.
+     * @param options 
+     * @returns If no workitem is available, this will return null. 
+     */
     async PopWorkitem(options: PopWorkitemOptions): Promise<Workitem | undefined> {
         const opt: PopWorkitemOptions = Object.assign(new PopWorkitemDefaults(), options)
         let message = PopWorkitemRequest.create(opt as any);
@@ -654,6 +820,27 @@ export class openiap extends EventEmitter {
         }
         return result.workitem
     }
+    /**
+     * Update an existing workitem. Workitem can be fetched using {@link PopWorkitem}. Use this to update the status of a workitem.
+     * You can also update the payload, and update or add files to the workitem.
+     * @param options 
+     * @returns Returns the updated workitem 
+     * @see {@link PopWorkitem}
+     * @example
+     * Update a workitem
+     * ```typescript
+     * 
+     * const workitem = await client.PopWorkitem({ wiq: "purchase_orders" }); // Will update the workitem state to processing
+     * if(workitem == null) return;
+     * await new Promise(resolve => setTimeout(resolve, 1000)); // simulate processing 
+     * if(workitem.payload == null) workitem.payload = {}
+     * workitem.payload.transaction = "ID45434" // update payload
+     * workitem.status = "successful" // must be successful, processing or retry
+     * await client.UpdateWorkitem({ workitem }); // update workitem
+     * console.log("Updated workitem with id " + workitem._id);
+     * ```
+     * 
+     */
     async UpdateWorkitem(options: UpdateWorkitemOptions): Promise<Workitem> {
         const opt: UpdateWorkitemOptions = Object.assign(new UpdateWorkitemDefaults(), options)
         if(typeof opt.workitem.payload !== 'string') opt.workitem.payload = JSON.stringify(opt.workitem.payload);
@@ -663,12 +850,21 @@ export class openiap extends EventEmitter {
         const result = UpdateWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.workitem
     }
+    /**
+     * Delete one workitem and all associated files from a workitem queue.
+     * @param options 
+     * @example
+     * Delete a workitem
+     * ```typescript
+     * client.DeleteWorkitem({ id: "64366f12cffb7419a89d5e10" });
+     * ```
+     */
     async DeleteWorkitem(options: DeleteWorkitemOptions): Promise<void> {
         const opt: DeleteWorkitemOptions = Object.assign(new DeleteWorkitemDefaults(), options)
         let message = DeleteWorkitemRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.DeleteWorkitemRequest", "value": DeleteWorkitemRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "deleteworkitem", data, jwt: opt.jwt });
-        const result = DeleteWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        await protowrap.RPC(this.client, payload);
     }
     async CustomCommand<T>(options: CustomCommandOptions): Promise<string> {
         const opt: CustomCommandOptions = Object.assign(new CustomCommandDefaults(), options)
@@ -972,8 +1168,17 @@ class PopWorkitemDefaults {
     compressed: boolean = true;
 }
 export type UpdateWorkitemOptions = {
+    /**
+     * Workitem to update
+     */
     workitem: Workitem;
+    /**
+     * If workitem has reached the max number of retryes and this is set to true, the workitem will be updated it to retry anyway
+     */
     ignoremaxretries?: boolean;
+    /**
+     * Override who the request should run as, using a customer jwt
+     */
     jwt?: string;
   }
 class UpdateWorkitemDefaults {
