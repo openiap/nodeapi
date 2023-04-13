@@ -77,41 +77,46 @@ export class openiap extends events.EventEmitter {
     async onConnected(client:openiap) {
     }
     private async cliOnConnected(client:client) {
-        this.connected = true;
-        this.connecting = false;
-        var u = new URL(this.url);
-        info("Connected to server " + u.host);
-        var _jwt = process.env.jwt
-        var _username = decodeURIComponent(u.username);
-        var _password = decodeURIComponent(u.password);
-        if(_jwt == null) _jwt = this.jwt
-        if(_jwt == null) _jwt = client.jwt;
-        if(_username == null) _username = "";
-        if(_password == null) _password = "";
-
-        if (_username != "" && _password != "") {
-            const reply = await this.Signin({ username: _username, password: _password, ping: config.DoPing })
-            if (this.loginresolve != null) {
-                this.loginresolve(reply.user);
-                this.loginresolve = null;
-            }
-        } else if (_jwt != "") {
-            const reply = await this.Signin({ jwt: _jwt, ping: config.DoPing })
-            if (this.loginresolve != null) {
-                this.loginresolve(reply.user);
-                this.loginresolve = null;
-            }
-        } else if (this.loginresolve != null) {
-            this.loginresolve(null);
-            this.loginresolve = null;
-        }
         try {
-            this.reconnectms = 100;
-            await this.onConnected(this);
+            this.connected = true;
+            this.connecting = false;
+            var u = new URL(this.url);
+            info("Connected to server " + u.host);
+            var _jwt = process.env.jwt
+            var _username = decodeURIComponent(u.username);
+            var _password = decodeURIComponent(u.password);
+            if(_jwt == null) _jwt = this.jwt
+            if(_jwt == null) _jwt = client.jwt;
+            if(_username == null) _username = "";
+            if(_password == null) _password = "";
+
+            if (_username != "" && _password != "") {
+                const reply = await this.Signin({ username: _username, password: _password, ping: config.DoPing })
+                if (this.loginresolve != null) {
+                    this.loginresolve(reply.user);
+                    this.loginresolve = null;
+                }
+            } else if (_jwt != "") {
+                const reply = await this.Signin({ jwt: _jwt, ping: config.DoPing })
+                if (this.loginresolve != null) {
+                    this.loginresolve(reply.user);
+                    this.loginresolve = null;
+                }
+            } else if (this.loginresolve != null) {
+                this.loginresolve(null);
+                this.loginresolve = null;
+            }
+            try {
+                this.reconnectms = 100;
+                await this.onConnected(this);
+            } catch (error) {
+                err(error)
+            }
+            this.emit("connected", this)
         } catch (error) {
-            err(error)
+            this.loginresolve = null;
+            this.loginreject(error);
         }
-        this.emit("connected", this)
     }
     public onDisconnected(client:openiap, error: Error) {
     }
@@ -234,7 +239,8 @@ export class openiap extends events.EventEmitter {
         // }
         const data = Any.create({type_url: "type.googleapis.com/openiap.SigninRequest", value: SigninRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "signin", data, jwt: opt.jwt });
-        const result = SigninResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        const d = (await protowrap.RPC(this.client, payload))
+        const result = SigninResponse.decode(d.data.value);
         if(result.user == null) {
             throw new Error("Login seem to have failed, nu user object returned");            
         }

@@ -72,10 +72,15 @@ async function readln(q) {
 async function main() {
   config.DoPing = false; config.doDumpMesssages = true;
   var c = new openiap(url);
-  // c.onMessage = onMessage;
-  await c.connect();
+  try {
+    // c.onMessage = onMessage;
+    await c.connect();
 
-  cleanup()
+    cleanup()
+  } catch (error) {
+    err(error);
+    process.exit();
+  }
   while (true) {
     try {
       var payload = { command: "getelement", data: null };

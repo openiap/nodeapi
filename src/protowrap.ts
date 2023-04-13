@@ -522,6 +522,11 @@ export class protowrap {
         const { resolve, reject, dt } = client.replies[rid];
         if (resolve) {
           try {
+            // @ts-ignore // REST HACK
+            if(payload.data && payload.data.value && payload.data.value.data) {
+              // @ts-ignore
+              payload.data.value = payload.data.value.data;
+            }
             if (payload.command == "error") {
               var msg = ErrorResponse.decode(payload.data.value);
               var error = new ServerError(msg.message, msg.stack);
@@ -794,14 +799,18 @@ export class protowrap {
         maxSockets: 1
       });
       this.post(result.jwt, result.agent, apiurl, JSON.stringify({ "command": "noop" })).then((data: any) => {
-        result.connected = true;
-        result.connecting = false;
-        result.onConnected(result);
-        var payload = JSON.parse(data);
-        if (payload && payload.data && payload.data.type && payload.data.type.toLowerCase() == "buffer") {
-          payload.data = Buffer.from(payload.data.data);
+        try {
+          result.connected = true;
+          result.connecting = false;
+          result.onConnected(result);
+          var payload = JSON.parse(data);
+          if (payload && payload.data && payload.data.type && payload.data.type.toLowerCase() == "buffer") {
+            payload.data = Buffer.from(payload.data.data);
+          }
+          // this.IsPendingReply(payload);
+        } catch (error) {
+          this.ClientCleanup(result, result.onDisconnected, error);  
         }
-        // this.IsPendingReply(payload);
       }).catch((e) => {
         this.ClientCleanup(result, result.onDisconnected, e);
       });
