@@ -110,6 +110,7 @@ export class openiap extends EventEmitter {
      *   console.log("Connected to server");
      * }
      * client.connect();
+     * ```
      * @example
      * using EventEmitter. Remember to remove the listener when done to avoid memory leaks
      * ```typescript
@@ -118,6 +119,7 @@ export class openiap extends EventEmitter {
      *  console.log("Connected to server");
      * });
      * client.connect();
+     * ```
      */
     async onConnected(client:openiap) {
     }
