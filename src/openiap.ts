@@ -1,3 +1,4 @@
+// @ts-check
 import { client, clientAgent } from "./client";
 import { protowrap } from "./protowrap";
 import { config } from "./config";
@@ -914,8 +915,8 @@ class PushWorkitemsDefaults {
 export type PopWorkitemOptions = {
     wiq?: string;
     wiqid?: string;
-    includefiles: boolean;
-    compressed: boolean;
+    includefiles?: boolean;
+    compressed?: boolean;
     jwt?: string;
 }
 class PopWorkitemDefaults {

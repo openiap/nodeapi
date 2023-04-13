@@ -309,8 +309,8 @@ export type PushWorkitemsOptions = {
 export type PopWorkitemOptions = {
     wiq?: string;
     wiqid?: string;
-    includefiles: boolean;
-    compressed: boolean;
+    includefiles?: boolean;
+    compressed?: boolean;
     jwt?: string;
 };
 export type UpdateWorkitemOptions = {
