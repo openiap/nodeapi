@@ -3,12 +3,16 @@ import { protowrap } from "./protowrap";
 import { config } from "./config";
 const { info, err, warn }  = config;
 import { Any } from "./proto/google/protobuf/any";
-import events = require("events");
+// import events = require("events");
+import { EventEmitter } from "events";
 import { CustomCommandRequest, CustomCommandResponse, DownloadResponse, Envelope, GetElementRequest, GetElementResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
 import { AggregateRequest, AggregateResponse, CountRequest, CountResponse, DeleteManyRequest, DeleteManyResponse, DeleteOneRequest, DeleteOneResponse, DeleteWorkitemRequest, DeleteWorkitemResponse, DropCollectionRequest, GetDocumentVersionRequest, GetDocumentVersionResponse, InsertManyRequest, InsertManyResponse, InsertOneRequest, InsertOneResponse, InsertOrUpdateManyRequest, InsertOrUpdateManyResponse, InsertOrUpdateOneRequest, InsertOrUpdateOneResponse, ListCollectionsRequest, ListCollectionsResponse, PopWorkitemRequest, PopWorkitemResponse, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse, QueryRequest, QueryResponse, QueueEvent, QueueMessageRequest, RegisterExchangeRequest, RegisterExchangeResponse, RegisterQueueRequest, RegisterQueueResponse, UnRegisterQueueRequest, UnWatchRequest, UpdateDocumentRequest, UpdateDocumentResponse, UpdateOneRequest, UpdateOneResponse, UpdateResult, UpdateWorkitemRequest, UpdateWorkitemResponse, WatchEvent, WatchRequest, WatchResponse, Workitem } from ".";
 import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from "./proto/queues";
 
-export class openiap extends events.EventEmitter {
+/**
+ * OpenIAP
+ */
+export class openiap extends EventEmitter {
     client: client;
     agent: clientAgent = "node";
     version: string = "0.0.10"
@@ -17,6 +21,10 @@ export class openiap extends events.EventEmitter {
     signedin: boolean = false;
     reconnectms: number = 100;
     pingerhandle: any;
+    /**
+     * @param url By default we read from environment variable apiurl, grpcapiurl or wscapiurl but can be overriden here
+     * @param jwt By default we read from environment variable jwt but can be overriden here
+     */
     constructor(public url: string = "", public jwt: string = "") {
         super()
         this.version = require("../package.json").version;
@@ -28,7 +36,12 @@ export class openiap extends events.EventEmitter {
     loginresolve: any;
     loginreject: any;
     allowconnectgiveup: boolean = true;
-    async connect(first: boolean = true) {
+    /**
+     * 
+     * @param first Should be left out or used as true. Is used internally for controlling retry logic
+     * @returns Returns the {@link User} object if login was successful, otherwise throws an error
+     */
+    async connect(first: boolean = true): Promise<User> {
         return new Promise<User>(async (resolve, reject) => {
             if(process.env.log_with_colors == "false" || process.env.log_with_colors == "False") {
                 var keys = Object.keys(config.color);
@@ -66,6 +79,9 @@ export class openiap extends events.EventEmitter {
             this.client.ping(null);
         }
     }
+    /**
+     * Close connection to server. Use this to ensure the client will not reconnect to the server
+     */
     Close() {
         this.signedin = false;
         if(this.pingerhandle != null) clearInterval(this.pingerhandle);
@@ -74,6 +90,12 @@ export class openiap extends events.EventEmitter {
         // if (this.client && this.client.terminate) this.client.terminate();
         if (this.client && this.client.Close) this.client.Close();
     }
+    /**
+     * Override this function to add logic executed when the client has connected to the server.
+     * If credentails has been set, the client will automatically login before calling this function
+     * Using EventMitter is also possible .on("connected", (client) => {})
+     * @param client 
+     */
     async onConnected(client:openiap) {
     }
     private async cliOnConnected(client:client) {
@@ -118,6 +140,12 @@ export class openiap extends events.EventEmitter {
             this.loginreject(error);
         }
     }
+    /**
+     * Override this function to add logic executed when the client has disconnected from the server.
+     * Using EventMitter is also possible .on("disconnected", (client, error) => {})
+     * @param client Return client instance that disconnected
+     * @param error If the disconnect was caused by an error, this will contain the error object
+     */
     public onDisconnected(client:openiap, error: Error) {
     }
     private cliOnDisconnected(client:client, error: Error) {
@@ -160,9 +188,21 @@ export class openiap extends events.EventEmitter {
         this.emit("disconnected", this, error)
         this.connect(false);
     }
+    /**
+     * Used to generate a unique identifier, used for example when creating new packages.
+     * @returns A unique identifier
+     */
     public static GetUniqueIdentifier(): string {
         return Math.random().toString(36).substring(2, 11);
     }
+    /**
+     * Override this function to get notified when the client receives a message from the server.
+     * This will only be called for messages that are not handled by the client it self.
+     * Using EventMitter is also possible .on("message", (client, command, message) => {})
+     * @param client Return client instance that received the message
+     * @param command The command of the message that was received
+     * @param message The message that was received
+     */
     async onMessage(client:openiap, command:string, message: any): Promise<any> {
         info("Received " + command + " message from server");
     }
@@ -209,6 +249,10 @@ export class openiap extends events.EventEmitter {
             this.emit("message", message)
         }
     }
+    /**
+     * Used internally to send a ping message to server, to keep the connection alive.
+     * Only used if server require pings, or if the client is configured to send pings using {@link config.DoPing}
+     */
     async Ping(): Promise<void> {
         let message = PingRequest.create();
         const data = Any.create({type_url : "type.googleapis.com/openiap.PingRequest", value: PingRequest.encode(message).finish()})
@@ -396,6 +440,17 @@ export class openiap extends events.EventEmitter {
         return result.affectedrows;
     }
     watchids: any = {};
+    /**
+     * Register a change stream ( watch ) on a collection. Use paths to narrow the scope of the watch.
+     * @param options 
+     * @param callback 
+     * @returns 
+     * @example
+     * const watchid = await db.Watch({ collection: "users", paths: ["name", "age"] }, (operation, document) => {
+     *     console.log(operation, document);
+     * });
+     * 
+     */
     async Watch(options: WatchOptions, callback: (operation: string, document: any)=> void): Promise<string> {
         if (!callback) return "";
         const opt: WatchOptions = Object.assign(new WatchDefaults(), options)

@@ -1,9 +1,12 @@
 /// <reference types="node" />
 import { client, clientAgent } from "./client";
-import events = require("events");
+import { EventEmitter } from "events";
 import { DownloadResponse, SigninResponse, UploadResponse, User } from "./proto/base";
 import { QueueEvent, UpdateResult, Workitem } from ".";
-export declare class openiap extends events.EventEmitter {
+/**
+ * OpenIAP
+ */
+export declare class openiap extends EventEmitter {
     url: string;
     jwt: string;
     client: client;
@@ -14,20 +17,60 @@ export declare class openiap extends events.EventEmitter {
     signedin: boolean;
     reconnectms: number;
     pingerhandle: any;
+    /**
+     * @param url By default we read from environment variable apiurl, grpcapiurl or wscapiurl but can be overriden here
+     * @param jwt By default we read from environment variable jwt but can be overriden here
+     */
     constructor(url?: string, jwt?: string);
     loginresolve: any;
     loginreject: any;
     allowconnectgiveup: boolean;
+    /**
+     *
+     * @param first Should be left out or used as true. Is used internally for controlling retry logic
+     * @returns Returns the {@link User} object if login was successful, otherwise throws an error
+     */
     connect(first?: boolean): Promise<User>;
     __server_pinger(): void;
+    /**
+     * Close connection to server. Use this to ensure the client will not reconnect to the server
+     */
     Close(): void;
+    /**
+     * Override this function to add logic executed when the client has connected to the server.
+     * If credentails has been set, the client will automatically login before calling this function
+     * Using EventMitter is also possible .on("connected", (client) => {})
+     * @param client
+     */
     onConnected(client: openiap): Promise<void>;
     private cliOnConnected;
+    /**
+     * Override this function to add logic executed when the client has disconnected from the server.
+     * Using EventMitter is also possible .on("disconnected", (client, error) => {})
+     * @param client Return client instance that disconnected
+     * @param error If the disconnect was caused by an error, this will contain the error object
+     */
     onDisconnected(client: openiap, error: Error): void;
     private cliOnDisconnected;
+    /**
+     * Used to generate a unique identifier, used for example when creating new packages.
+     * @returns A unique identifier
+     */
     static GetUniqueIdentifier(): string;
+    /**
+     * Override this function to get notified when the client receives a message from the server.
+     * This will only be called for messages that are not handled by the client it self.
+     * Using EventMitter is also possible .on("message", (client, command, message) => {})
+     * @param client Return client instance that received the message
+     * @param command The command of the message that was received
+     * @param message The message that was received
+     */
     onMessage(client: openiap, command: string, message: any): Promise<any>;
     private cliOnMessage;
+    /**
+     * Used internally to send a ping message to server, to keep the connection alive.
+     * Only used if server require pings, or if the client is configured to send pings using {@link config.DoPing}
+     */
     Ping(): Promise<void>;
     stringify(object: any): string;
     Signin(options: SigninOptions): Promise<SigninResponse>;
@@ -47,6 +90,17 @@ export declare class openiap extends events.EventEmitter {
     DeleteOne(options: DeleteOneOptions): Promise<number>;
     DeleteMany(options: DeleteManyOptions): Promise<number>;
     watchids: any;
+    /**
+     * Register a change stream ( watch ) on a collection. Use paths to narrow the scope of the watch.
+     * @param options
+     * @param callback
+     * @returns
+     * @example
+     * const watchid = await db.Watch({ collection: "users", paths: ["name", "age"] }, (operation, document) => {
+     *     console.log(operation, document);
+     * });
+     *
+     */
     Watch(options: WatchOptions, callback: (operation: string, document: any) => void): Promise<string>;
     UnWatch(options: UnWatchOptions): Promise<void>;
     GetElement(xpath: string): Promise<string>;

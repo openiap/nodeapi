@@ -99,4 +99,10 @@ Is an experimental and **unsuppported** feature where all services that does not
 
 
 ## api-documentation
-Comming soon
+
+All options are based of the proto3 files defined at the following [github repo](https://github.com/openiap/proto). More infromation about the underlayinng protocol are described there.
+
+This repo can also be used as a server, but is not documented right now.
+
+Using the openiap client offers access to the following functions
+
