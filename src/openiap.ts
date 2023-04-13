@@ -1,4 +1,3 @@
-// @ts-check
 import { client, clientAgent } from "./client";
 import { protowrap } from "./protowrap";
 import { config } from "./config";
@@ -41,6 +40,14 @@ export class openiap extends EventEmitter {
      * 
      * @param first Should be left out or used as true. Is used internally for controlling retry logic
      * @returns Returns the {@link User} object if login was successful, otherwise throws an error
+     * @example
+     * ```typescript
+     * var client = new openiap();
+     * client.connect().then((user) => {
+     *    console.log("Logged in as " + user.username);
+     * }).catch((err) => {
+     *   console.log("Failed to login: " + err);
+     * });
      */
     async connect(first: boolean = true): Promise<User> {
         return new Promise<User>(async (resolve, reject) => {
@@ -443,11 +450,12 @@ export class openiap extends EventEmitter {
     watchids: any = {};
     /**
      * Register a change stream ( watch ) on a collection. Use paths to narrow the scope of the watch.
+     * This uses streams to notify client about changes, and is therefore not supported using REST interface.
      * @param options 
      * @param callback 
-     * @returns 
+     * @returns server id assigned to the watch. Used with {@link UnWatch} to stop receiving notifications from the watch.
      * @example
-     * const watchid = await db.Watch({ collection: "users", paths: ["name", "age"] }, (operation, document) => {
+     * const watchid = await db.Watch({ collection: "entities", paths: ["$.[?(@._type == 'test')]"] }, (operation, document) => {
      *     console.log(operation, document);
      * });
      * 
@@ -472,6 +480,10 @@ export class openiap extends EventEmitter {
         }
         return result.id;
     }
+    /**
+     * Unregister a change stream ( watch ) created with {@link Watch } to stop receiving notifications from the watch.
+     * @param options 
+     */
     async UnWatch(options: UnWatchOptions): Promise<void> {
         const opt: UnWatchOptions = Object.assign(new UnWatchDefaults(), options)
         delete this.watchids[opt.id];
@@ -480,6 +492,11 @@ export class openiap extends EventEmitter {
         const payload = Envelope.create({ command: "unwatch", data });
         const result = await protowrap.RPC(this.client, payload);
     }
+    /**
+     * Dummy function used to test the connection to the server.
+     * @param xpath 
+     * @returns xpath with added text
+     */
     async GetElement(xpath: string) {
         var message = GetElementRequest.create({ xpath })
         const data = Any.create({type_url: "type.googleapis.com/openiap.GetElementRequest", "value": GetElementRequest.encode(message).finish()})
@@ -487,10 +504,22 @@ export class openiap extends EventEmitter {
         const result = GetElementResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.xpath;
     }
+    /**
+     * Download a file from OpenIAP flow database, using the file id or file name. 
+     * This uses streams to download file content, and is therefore not supported using REST interface.
+     * @param options 
+     * @returns 
+     */
     async DownloadFile(options: DownloadFileOptions): Promise<DownloadResponse> {
         const opt: DownloadFileOptions = Object.assign(new DownloadFileDefaults(), options)
         return await protowrap.DownloadFile(this.client, opt.id, opt.filename, opt.folder, config.SendFileHighWaterMark);
     }
+    /**
+     * Upload a file to OpenIAP flow database.
+     * This uses streams to download file content, and is therefore not supported using REST interface.
+     * @param options 
+     * @returns 
+     */
     async UploadFile(options: UploadFileOptions): Promise<UploadResponse> {
         const opt: UploadFileOptions = Object.assign(new UploadFileDefaults(), options)
         const result:Envelope = await protowrap.UploadFile(this.client, opt.filename, opt.jwt) as any;
@@ -499,6 +528,14 @@ export class openiap extends EventEmitter {
     }
     queues: any = {};
     defaltqueue: string = "";
+    /**
+     * Register and consume a Message Queue. Queues are registered in the mq collection. 
+     * If no queue name is provided, a random queue name is generated.
+     * This uses streams to notify client about messages, and is therefore not supported using REST interface.
+     * @param options 
+     * @param callback 
+     * @returns Returns the queue name. Use this name to send messages to the queue. Also use this to unregister the queue with {@link UnRegisterQueue }
+     */
     async RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt:string)=> any ): Promise<string> {
         if (!callback) return "";
         const opt: RegisterQueueOptions = Object.assign(new RegisterQueueDefaults(), options)
@@ -514,6 +551,13 @@ export class openiap extends EventEmitter {
         }
         return result.queuename;
     }
+    /**
+     * Register an exchange and a message queue and consume it. Exchange's are registered in the mq collection. 
+     * This uses streams to notify client about messages, and is therefore not supported using REST interface.
+     * @param options 
+     * @param callback 
+     * @returns Returns the queue name, used to consume the exchange. Use this when unregistering the exchange with {@link UnRegisterQueue }
+     */
     async RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt:string)=> any): Promise<string> {
         if (!callback) return "";
         const opt: RegisterExchangeOptions = Object.assign(new RegisterExchangeDefaults(), options)
@@ -526,6 +570,10 @@ export class openiap extends EventEmitter {
         }
         return result.queuename;
     }
+    /**
+     * Tell server to close queue and stop receving message from the queue ( or queue consuming an exchange )
+     * @param options 
+     */
     async UnRegisterQueue(options: UnRegisterQueueOptions): Promise<void> {
         const opt: UnRegisterQueueOptions = Object.assign(new UnRegisterQueueDefaults(), options)
         let message = UnRegisterQueueRequest.create(opt as any);

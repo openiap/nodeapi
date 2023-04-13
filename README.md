@@ -4,6 +4,8 @@ This is the client (and server) side api needed to connect and consume an OpenIA
 
 This version is for nodejs only, for browser implementation please see the [jsapi](https://github.com/openiap/jsapi) version
 
+See [documentation](https://openiap.github.io/nodeapi/) for more information and examples
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -106,3 +108,4 @@ This repo can also be used as a server, but is not documented right now.
 
 Using the openiap client offers access to the following functions
 
+See [documentation](https://openiap.github.io/nodeapi/) for more information and examples

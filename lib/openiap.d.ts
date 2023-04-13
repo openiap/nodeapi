@@ -94,14 +94,18 @@ export declare class openiap extends EventEmitter {
      * Register a change stream ( watch ) on a collection. Use paths to narrow the scope of the watch.
      * @param options
      * @param callback
-     * @returns
+     * @returns server id assigned to the watch. Used with @UnWatch to stop receiving notifications from the watch.
      * @example
-     * const watchid = await db.Watch({ collection: "users", paths: ["name", "age"] }, (operation, document) => {
+     * const watchid = await db.Watch({ collection: "entities", paths: ["$.[?(@._type == 'test')]"] }, (operation, document) => {
      *     console.log(operation, document);
      * });
      *
      */
     Watch(options: WatchOptions, callback: (operation: string, document: any) => void): Promise<string>;
+    /**
+     * Un registers a watch registered with @Watch
+     * @param options
+     */
     UnWatch(options: UnWatchOptions): Promise<void>;
     GetElement(xpath: string): Promise<string>;
     DownloadFile(options: DownloadFileOptions): Promise<DownloadResponse>;
