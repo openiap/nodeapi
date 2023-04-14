@@ -18,10 +18,10 @@ Install using npm with
 npm install @openiap/nodeapi
 ```
 For bleeding edge version directly from github, use
+note: this require you also have git installed
 ```bash
 npm install openiap/nodeapi
 ```
-note: this require you also have git installed
 
 ## Getting Started
 We highly recomend you install the [vs code extention](https://marketplace.visualstudio.com/items?itemName=openiap.openiap-assistant) while working on your code. This can help you setup launch files with the correct envoriment variables and to publish your code to an OpenIAP flow instance.
@@ -48,7 +48,7 @@ async function main() {
 main();
 ```
 
-For code that will be running for a long time, like a webhook, or code waiting on message from a message queue, it's handy to do all initializaion in the onConnected callback. By default the client will auto connect to your OpenIAP flow instance, so by adding you initilizaion code here, it will get rerun when connected.
+For code that will be running for a long time, like a webhook, or code waiting on message from a message queue, it's handy to do all initializaion in the onConnected callback. By default the client will auto connect to your OpenIAP flow instance if it looses connection, so by adding you initilizaion code here, it will get rerun when connected.
 
 ```javascript
 async function onConnected(client) {
@@ -71,33 +71,24 @@ main();
 You **can** add the connection string to your OpenIAP flow instance using the client constructor.
 ```javascript
 async function main() {
-    const client = new openiap("grpc://grpc.app.openiap.io:443"");
-    client.onConnected = onConnected
+    const client = new openiap("grpc://grpc.app.openiap.io:443");
     await client.connect();
     client.Signin({username: "henrik", password: "SuperSecret"})
 }
 main();
 ```
+
 You can also supply crendetials in the connection string, then you don't need to call Signin()
 ```javascript
 async function main() {
-    const client = new openiap("grpc://henrik:SuperSecret@grpc.app.openiap.io:443"");
+    const client = new openiap("grpc://henrik:SuperSecret@grpc.app.openiap.io:443");
     client.onConnected = onConnected
     await client.connect();
 }
 main();
 ```
 
-OpenIAP Flow support multiple different transport protocols, and you define what protocol to use, in the connection strings protocol part
-
-- `grpc://host.name:port`
-is for connecting using GRPC. For kubernetes and docker deployments the default endpoint will be the instance's domain prefixed with grpc.
-For instance https://app.openiap.io has an grpc endpoint at `grpc://grpc.app.openiap.io:443`
-- `ws[s]://host.name/ws/v2`
-If using SSL certificates use wss: for unencrypted connections only use ws: 
-- `pipe://host.name` and `pipe://host.name:port` uses either name pipes or raw TCP sockets to connect to openflow. For most installations this will not be avaliable without some heave modifications to the [helm chart](https://github.com/open-rpa/helm-charts/) or [docker compose file](https://github.com/open-rpa/docker)
-- `http[s]://host.name/ws/v2` 
-Is an experimental and **unsuppported** feature where all services that does not require streaming,  are exposed as a REST endpoints.
+Please see [openiap constructor](https://openiap.github.io/nodeapi/classes/openiap.html#constructor) for more information about connecting strings
 
 
 ## api-documentation

@@ -13,29 +13,115 @@ import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from ".
  * OpenIAP
  */
 export class openiap extends EventEmitter {
-    client: client;
-    agent: clientAgent = "node";
-    version: string = "0.0.10"
-    connected: boolean = false;
-    connecting: boolean = false;
-    signedin: boolean = false;
-    reconnectms: number = 100;
-    pingerhandle: any;
     /**
+     * The internal client object
+     */
+    client: client;
+    private loginresolve: any;
+    private loginreject: any;
+    private reconnectms: number = 100;
+    private pingerhandle: any;
+    private queuecallbacks: any = {};
+    private watchids: any = {};
+    private queues: any = {};
+    private defaltqueue: string = "";
+    /**
+     * Define client type when authenticating toward the server
+     */
+    agent: clientAgent = "node";
+    /**
+     * If false, the client will never give up trying to connect to the server, if true, will give up after 17 seconds
+     */
+    allowconnectgiveup: boolean = true;
+    /**
+     * Define the version of the client sent to the server
+     */
+    version: string = "0.0.14"
+    /**
+     * Define if connected to server
+     */
+    connected: boolean = false;
+    /**
+     * Define if we are trying to (re)connect
+     */
+    connecting: boolean = false;
+    /**
+     * If connected, are we also signed in or is server waiting on use to authenticate
+     */
+    signedin: boolean = false;
+    /**
+     * The URL used when connecting to the server
+     */
+    url: string = "";
+    /**
+     * The JWT used when authenticating to the server
+     */
+    jwt: string = "";
+    /**
+     * Create a client for connecting to an OpenIAP flow instace.
+     * By default it loads the apiurl from environment variable apiurl, grpcapiurl or wscapiurl
+     * You can supply username and password in the URL ( remember this needs to e URL encoded ) or you
+     * can supply a JWT token in the jwt environment variable or as the second parameter to the constructor.
+     * 
+     * You can connect using one of these protocols
+     * - Using google RPC by using grpc:// as protocol. This require you also supply a port number. Example: `grpc://host.name:port`
+     * For docker or kubernetes deployments this is usually the main domain prefixed with grpc.
+     * for instance if your main domain is `app.openiap.io` then the grpc url would be `grpc://groc.app.openiap.io:443`
+     * For developer installations, the grpc url would be `grpc://localhost:50051`
+     * - Using WebSocket by using ws:// or wss:// as protocol. wss when using certificates. ws when unsecured
+     * For example `wss://app.openiap.io` or `ws://localhost.openiap.io`
+     * - Using named pipes by using pipe:// as protocol. For example `pipe://localhost/testpipe`
+     * - Using TCP sockets by using tcp:// as protocol. For example `tcp://localhost.openiap.io:8080`
+     * - Using HTTP/REST by using http:// or https:// as protocol. https when using certificates. http when unsecured
+     * For example `https://app.openiap.io/api/v2` or `http://localhost.openiap.io/api/v2`
+     * 
      * @param url By default we read from environment variable apiurl, grpcapiurl or wscapiurl but can be overriden here
      * @param jwt By default we read from environment variable jwt but can be overriden here
+     * @example
+     * Connect to OpenIAP flow instance
+     * ```typescript
+     * const { openiap } = require("@openiap/nodeapi");
+     * client.connect().then(async client=> {
+     *  console.log("Connected")
+     *  const result = await client.Query({ query: { "_type": "test" } });
+     *  console.log(result);
+     *  client.Close();
+     * }).catch(err => {
+     * console.log("Failed to connect: " + err)
+     * }
+     * ```
+     * @example
+     * Connect to OpenIAP using a connection string. 
+     * ```typescript
+     * const { openiap } = require("@openiap/nodeapi");
+     * async function main() {
+     *   const client = new openiap("grpc://grpc.app.openiap.io:443");
+     *   await client.connect();
+     *   const user = client.Signin({username: "henrik", password: "SuperSecret"});
+     * }
+     * main();
+     * ```
+     * @example
+     * Alternatively we can supply credentials in the connection string, then we do not need to call Signin
+     * ```typescript
+     * const { openiap } = require("@openiap/nodeapi");
+     * async function main() {
+     *   const client = new openiap("grpc://henrik:SuperSecret@grpc.app.openiap.io:443");
+     *   await client.connect();
+     * }
+     * main();
+     * ```
      */
-    constructor(public url: string = "", public jwt: string = "") {
+    constructor(url: string = "", jwt: string = "") {
         super()
         this.version = require("../package.json").version;
         this.agent = "node";
+        if(url != null && url != "") this.url = url;
+        if(jwt != null && jwt != "") this.jwt = jwt;
         if(this.url == null || this.url == "") this.url = process.env.apiurl
         if(this.url == null || this.url == "") this.url = process.env.grpcapiurl
         if(this.url == null || this.url == "") this.url = process.env.wscapiurl
     }
-    loginresolve: any;
-    loginreject: any;
-    allowconnectgiveup: boolean = true;
     /**
      * @param first Should be left out or used as true. Is used internally for controlling retry logic
      * @returns Returns the {@link User} object if login was successful, otherwise throws an error
@@ -170,6 +256,24 @@ export class openiap extends EventEmitter {
      * Using EventMitter is also possible .on("disconnected", (client, error) => {})
      * @param client Return client instance that disconnected
      * @param error If the disconnect was caused by an error, this will contain the error object
+     * @example
+     * using onConnected override
+     * ```typescript
+     * var client = new openiap();
+     * client.onDisconnected = (client, err) => {
+     *   console.log("Disconnected from server");
+     * }
+     * client.connect();
+     * ```
+     * @example
+     * using EventEmitter. Remember to remove the listener when done to avoid memory leaks
+     * ```typescript
+     * var client = new openiap();
+     * client.on("disconnected", (client, err) => {
+     *  console.log("Disconnected from server");
+     * });
+     * client.connect();
+     * ```
      */
     public onDisconnected(client:openiap, error: Error) {
     }
@@ -228,9 +332,9 @@ export class openiap extends EventEmitter {
      * @param command The command of the message that was received
      * @param message The message that was received
      */
-    async onMessage(client:openiap, command:string, message: any): Promise<any> {
-        info("Received " + command + " message from server");
-    }
+    // async onMessage(client:openiap, command:string, message: any): Promise<any> {
+    //     info("Received " + command + " message from server");
+    // }
     private async cliOnMessage(client: client, message: Envelope): Promise<any> {
         if (message.command == "refreshtoken") {
             let rt: RefreshToken = RefreshToken.decode(message.data.value);
@@ -307,7 +411,7 @@ export class openiap extends EventEmitter {
      * But you can also call Signin to login with a username and password or with a jwt token.
      * This function can also be used to validate credentials without changing the current credentials by setting 
      * {@link SigninOptions.validateonly} to true.
-     * @param options 
+     * @param options {@link SigninOptions}
      * @returns 
      */    
     async Signin(options: SigninOptions): Promise<SigninResponse> {
@@ -339,7 +443,7 @@ export class openiap extends EventEmitter {
     }
     /**
      * Returns a list of all known collections. By default filtering out history collectins.
-     * @param options 
+     * @param options {@link ListCollectionsOptions}
      * @returns 
      */
     async ListCollections(options: ListCollectionsOptions = {}): Promise<any[]> {
@@ -352,7 +456,7 @@ export class openiap extends EventEmitter {
     }
     /**
      * Drop a collection removing all data from the collection. Only users with admin rights can drop collections.
-     * @param options 
+     * @param options {@link DropCollectionOptions}
      */
     async DropCollection(options: DropCollectionOptions): Promise<void> {
         const opt: DropCollectionOptions = Object.assign(new DropCollectionDefaults(), options)
@@ -363,7 +467,7 @@ export class openiap extends EventEmitter {
     }
     /**
      * Query a collection for data
-     * @param options 
+     * @param options {@link QueryOptions}
      * @returns an array of documents matching the query
      * @example
      * Get all documents with type "test" from entities collection
@@ -394,7 +498,7 @@ export class openiap extends EventEmitter {
     }
     /**
      * Query a collection for data and return the first document
-     * @param options
+     * @param options {@link FindOneOptions}
      * @returns a document matching the query
      * @example
      * Get the first document with type "test" from entities collection
@@ -428,6 +532,18 @@ export class openiap extends EventEmitter {
         if(array.length == 0) return null;
         return array[0];
     }
+    /**
+     * By default OpenIAP will keep history information about all data in the database.
+     * This function will try and reconstruct the document at it was at a given version. 
+     * This can be used to restore data to a previous state or even restore deleted data.
+     * @param options {@link GetDocumentVersionOptions}
+     * @returns The reconstructed document
+     * @example
+     * Get the document with id "643917fb153b7c2c1466fb21" from entities collection at version 1
+     * ```typescript
+     * const result = await client.GetDocumentVersion({ id: "643917fb153b7c2c1466fb21", version: 1 });
+     * ```
+     */
     async GetDocumentVersion<T>(options: GetDocumentVersionOptions): Promise<T[]> {
         const opt: GetDocumentVersionOptions = Object.assign(new GetDocumentVersionDefaults(), options)
         let message = GetDocumentVersionRequest.create(opt as any);
@@ -436,6 +552,22 @@ export class openiap extends EventEmitter {
         const result = GetDocumentVersionResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
     }
+    /**
+     * Getting the count of documents in a collection can be done using this function. 
+     * Leave query empty to get the total count of documents in the collection.
+     * @param options {@link CountOptions}
+     * @returns The number of documents matching the query
+     * @example
+     * Get the count of documents with type "test" from entities collection
+     * ```typescript
+     * const result = await client.Count({ collectionname: "entities", query: { "_type": "test" } });
+     * ```
+     * @example
+     * Get the total number of documents in the entities collection
+     * ```typescript
+     * const result = await client.Count({ collectionname: "entities" });
+     * ```
+     */
     async Count(options: CountOptions): Promise<number> {
         const opt: CountOptions = Object.assign(new CountDefaults(), options)
         let message = CountRequest.create(opt as any);
@@ -445,6 +577,18 @@ export class openiap extends EventEmitter {
         const result = CountResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.result;
     }
+    /**
+     * Run an mongodb aggregation pipeline toward the OpenIAP flow database.
+     * See https://docs.mongodb.com/manual/aggregation/ for more information
+     * @param options {@link AggregateOptions}
+     * @returns An array of documents matching the aggregation pipeline
+     * @see https://docs.mongodb.com/manual/aggregation/
+     * @example
+     * Get the count of all documents with type "test" from entities collection
+     * ```typescript
+     * const result = await client.Aggregate({ collectionname: "entities", aggregates: [{ "$match": { "_type": "test" } }, { "$count": "count" }] });
+     * ```
+     */
     async Aggregate<T>(options: AggregateOptions): Promise<T[]> {
         const opt: AggregateOptions = Object.assign(new AggregateDefaults(), options)
         let message = AggregateRequest.create(opt as any);
@@ -454,6 +598,16 @@ export class openiap extends EventEmitter {
         const result = AggregateResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
+    /**
+     * Insert a document into a collection
+     * @param options {@link InsertOneOptions}
+     * @returns The object that was created, including the _id field
+     * @example
+     * Insert a document with type "test" into entities collection
+     * ```typescript
+     * const result = await client.InsertOne({ collectionname: "entities", item: { "_type": "test", name: "find me" } });
+     * ```
+     */
     async InsertOne<T>(options: InsertOneOptions): Promise<T> {
         const opt: InsertOneOptions = Object.assign(new InsertOneDefaults(), options)
         let message = InsertOneRequest.create(opt as any);
@@ -463,6 +617,11 @@ export class openiap extends EventEmitter {
         const result = InsertOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
     }
+    /**
+     * Bulk insert multiple documents into a collection, this is faster than using InsertOne multiple times.
+     * @param options {@link InsertManyOptions}
+     * @returns When skipresults is false, will return an array of the documents that was created, including the _id field
+     */
     async InsertMany<T>(options: InsertManyOptions): Promise<T[]> {
         const opt: InsertManyOptions = Object.assign(new InsertManyDefaults(), options)
         let message = InsertManyRequest.create(opt as any);
@@ -472,6 +631,22 @@ export class openiap extends EventEmitter {
         const result = InsertManyResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
+    /**
+     * Update ( replace ) an existing document in a collection.
+     * Any fields that starts with underscoore will be preserved. This is to prevent the system from overwriting fields that are used by the system.
+     * So if you update a document but leave out any of the existing _ fields, they will be added back to the document.
+     * @param options {@link UpdateOneOptions}
+     * @returns Returns the document that was updated
+     * @example
+     * Update a document with type "test" in entities collection
+     * ```typescript
+     * const result = await client.InsertOne({ item: { "_type": "test", name: "find me" } });
+     * console.log("Inserted document with id: " + result._id + " and name: " + result.name);
+     * result.name = "Can you still find me?"
+     * const updated = await client.UpdateOne({ item: result });
+     * console.log("Updated document with id: " + updated._id + " and name: " + updated.name);
+     * ```
+     */
     async UpdateOne<T>(options: UpdateOneOptions): Promise<T> {
         const opt: UpdateOneOptions = Object.assign(new UpdateOneDefaults(), options)
         let message = UpdateOneRequest.create(opt as any);
@@ -481,6 +656,19 @@ export class openiap extends EventEmitter {
         const result = UpdateOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
     }
+    /**
+     * Run an update command on a collection, to update one or more documents matching a query.
+     * See https://docs.mongodb.com/manual/reference/operator/update/ for more information on the update operators.
+     * @param options {@link UpdateDocumentOptions}
+     * @returns An object with update statistics see {@link UpdateResult}
+     * @see https://docs.mongodb.com/manual/reference/operator/update/
+     * @example
+     * Update all documents with type "test" in entities collection
+     * ```typescript
+     * const result = await client.UpdateDocument({ collectionname: "entities", query: { "_type": "test" }, document: { "$set": { "name": "find me" } } });
+     * console.log("Updated " + result.matchedCount + " documents");
+     * ```
+     */
     async UpdateDocument(options: UpdateDocumentOptions): Promise<UpdateResult> {
         const opt: UpdateDocumentOptions = Object.assign(new UpdateDocumentDefaults(), options)
         let message = UpdateDocumentRequest.create(opt as any);
@@ -526,7 +714,6 @@ export class openiap extends EventEmitter {
         const result = DeleteManyResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.affectedrows;
     }
-    watchids: any = {};
     /**
      * Register a change stream ( watch ) on a collection. Use paths to narrow the scope of the watch.
      * This uses streams to notify client about changes, and is therefore not supported using REST interface.
@@ -613,8 +800,6 @@ export class openiap extends EventEmitter {
         var res = UploadResponse.decode(result.data.value);
         return res;
     }
-    queues: any = {};
-    defaltqueue: string = "";
     /**
      * Register and consume a Message Queue. Queues are registered in the mq collection. 
      * If no queue name is provided, a random queue name is generated.
@@ -694,7 +879,6 @@ export class openiap extends EventEmitter {
         if(this.defaltqueue == opt.queuename) this.defaltqueue = "";
         delete this.queues[opt.queuename];
     }
-    queuecallbacks: any = {};
     /**
      * Send message to queue or exchange. If recevied sends a reply back, set rpc = true to recevied response as return value.
      * Be aware, right now there is no timeout on the wait, so if recevier never sends a reply it will hang for ever
