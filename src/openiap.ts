@@ -128,7 +128,7 @@ export class openiap extends EventEmitter {
      * @example
      * ```typescript
      * var client = new openiap();
-     * client.connect().then((user) => {
+     * client.connect().then(async (user) => {
      *    console.log("Logged in as " + user.username);
      * }).catch((err) => {
      *   console.log("Failed to login: " + err);
@@ -621,6 +621,11 @@ export class openiap extends EventEmitter {
      * Bulk insert multiple documents into a collection, this is faster than using InsertOne multiple times.
      * @param options {@link InsertManyOptions}
      * @returns When skipresults is false, will return an array of the documents that was created, including the _id field
+     * @example
+     * Insert multiple documents with type "test" into entities collection
+     * ```typescript
+     * const result = await client.InsertMany({ collectionname: "entities", items: [{ "_type": "test", name: "find me" }, { "_type": "test", name: "find me too" }] });
+     * ```
      */
     async InsertMany<T>(options: InsertManyOptions): Promise<T[]> {
         const opt: InsertManyOptions = Object.assign(new InsertManyDefaults(), options)
@@ -679,6 +684,22 @@ export class openiap extends EventEmitter {
         const result = UpdateDocumentResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.opresult;
     }
+    /**
+     * Will match a document in a collection on the uniqeness parameters ( _id if left out ) and update it if it exists, or insert it if it does not exist.
+     * Will trhow an error if more than one document exists that matches the uniqeness parameters.
+     * @param options {@link InsertOrUpdateOneOptions}
+     * @returns The updated or inserted document including the _id field
+     * @example
+     * Insert or update a document with invoiceid "1234" in entities collection
+     * ```typescript
+     * const result = await client.InsertOrUpdateOne({ item: { "_type": "invoice", invoiceid: "1234", name: "find me" }, uniqeness: ["invoiceid"] });
+     * console.log("Inserted document with id: " + result._id + " and name: " + result.name);
+     * 
+     * const same_invoice = { "_type": "invoice", invoiceid: "1234", name: "Can you still find me?"}
+     * const updated = await client.InsertOrUpdateOne({ item: same_invoice, uniqeness: ["invoiceid"] });
+     * console.log("Updated document with id: " + updated._id + " and new name: " + updated.name);
+     * ```
+     */
     async InsertOrUpdateOne<T>(options: InsertOrUpdateOneOptions): Promise<T> {
         const opt: InsertOrUpdateOneOptions = Object.assign(new InsertOrUpdateOneDefaults(), options)
         let message = InsertOrUpdateOneRequest.create(opt as any);
@@ -688,6 +709,26 @@ export class openiap extends EventEmitter {
         const result = InsertOrUpdateOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
     }
+    /**
+     * Will match all documents toward a collection using the uniqeness parameters ( _id if left out ) and update it if it exists, or insert it if it does not exist.
+     * Will trhow an error if more than one document exists that matches the uniqeness parameters.
+     * This will use bulk operations to speed up the process.
+     * @param options {@link InsertOrUpdateManyOptions}
+     * @returns  The updated or inserted documents including the _id field
+     * @example
+     * Insert or update multiple invoice documents in entities collection
+     * ```typescript
+     * const invoices = [{ "_type": "invoice", invoiceid: "1234", name: "find me" }, { "_type": "invoice", invoiceid: "1235", name: "find me too" }]
+     * const result = await client.InsertOrUpdateMany({ items: invoices, uniqeness: ["invoiceid"] });
+     * console.log("Inserted document with id: " + result[0]._id + " and name: " + result[0].name);
+     * console.log("Inserted document with id: " + result[1]._id + " and name: " + result[1].name);
+     * 
+     * const same_invoice = [{ "_type": "invoice", invoiceid: "1234", name: "Can you still find me?"}, { "_type": "invoice", invoiceid: "1235", name: "Can you still find me too?"}]
+     * const updated = await client.InsertOrUpdateMany({ items: same_invoice, uniqeness: ["invoiceid"] });
+     * console.log("Updated document with id: " + updated[0]._id + " and new name: " + updated[0].name);
+     * console.log("Updated document with id: " + updated[1]._id + " and new name: " + updated[1].name);
+     * ```
+     */
     async InsertOrUpdateMany<T>(options: InsertOrUpdateManyOptions): Promise<T[]> {
         const opt: InsertOrUpdateManyOptions = Object.assign(new InsertOrUpdateManyDefaults(), options)
         let message = InsertOrUpdateManyRequest.create(opt as any);
@@ -697,6 +738,20 @@ export class openiap extends EventEmitter {
         const result = InsertOrUpdateManyResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
+    /**
+     * Delete one document from a collection.
+     * Will throw an error if document does not exist or you don't have the right permissions.
+     * if recursive is set to true, all asssoicated documents will be deleted as well.
+     * Currently only user and customer objects in the "users" collection are supported for recursive deletion.
+     * @param options {@link DeleteOneOptions}
+     * @returns Number of deleted documents (will always be 1)
+     * @example
+     * Delete a document with id "643917fb153b7c2c1466fb21" in entities collection
+     * ```typescript
+     * const result = await client.DeleteOne({ id: "643917fb153b7c2c1466fb21" } });
+     * console.log("Deleted " + result + " documents");
+     * ```
+     */
     async DeleteOne(options: DeleteOneOptions): Promise<number> {
         const opt: DeleteOneOptions = Object.assign(new DeleteOneDefaults(), options)
         let message = DeleteOneRequest.create(opt as any);
@@ -705,6 +760,23 @@ export class openiap extends EventEmitter {
         const result = DeleteOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.affectedrows;
     }
+    /**
+     * Delete many documents from a collection based on a query.
+     * Will return 0 if no documents are deleted.
+     * @param options {@link DeleteManyOptions}
+     * @returns The number of deleted documents
+     * @example
+     * Delete all documents with name "find me" in entities collection
+     * ```typescript
+     * const result = await client.DeleteMany({ query: { name: "find me" } });
+     * console.log("Deleted " + result + " documents");
+     * ```
+     * Delete all documents with type "invoice" in entities collection
+     * ```typescript
+     * const result = await client.DeleteMany({ query: { _type: "invoice" } });
+     * console.log("Deleted " + result + " documents");
+     * ```
+     */
     async DeleteMany(options: DeleteManyOptions): Promise<number> {
         const opt: DeleteManyOptions = Object.assign(new DeleteManyDefaults(), options)
         let message = DeleteManyRequest.create(opt as any);
@@ -716,6 +788,7 @@ export class openiap extends EventEmitter {
     }
     /**
      * Register a change stream ( watch ) on a collection. Use paths to narrow the scope of the watch.
+     * The callback will be called for each document that matches the paths when ever it is inserted, updated or deleted from the database
      * This uses streams to notify client about changes, and is therefore not supported using REST interface.
      * @param options 
      * @param callback 
@@ -724,7 +797,6 @@ export class openiap extends EventEmitter {
      * const watchid = await db.Watch({ collectionname: "entities", paths: ["$.[?(@._type == 'test')]"] }, (operation, document) => {
      *     console.log(operation + " on " + document.name);
      * });
-     * 
      */
     async Watch(options: WatchOptions, callback: (operation: string, document: any)=> void): Promise<string> {
         if (!callback) return "";
@@ -869,6 +941,15 @@ export class openiap extends EventEmitter {
      * @param options 
      * @see {@link RegisterQueue}
      * @see {@link RegisterExchange}
+     * @example
+     * ```typescript
+     * const queuename = await client.RegisterExchange({ exchange: "myexchange" }, async (msg, payload, user, jwt) => {
+     *   console.log(JSON.stringify(payload, null, 2));
+     *   await client.UnRegisterQueue({ queuename: queuename });
+     *   console.log("unregistered queue " + queuename);
+     * });
+     * console.log("registered exchange myexchange and is consuming it using queue " + queuename);
+     * ```
      */
     async UnRegisterQueue(options: UnRegisterQueueOptions): Promise<void> {
         const opt: UnRegisterQueueOptions = Object.assign(new UnRegisterQueueDefaults(), options)
@@ -1015,7 +1096,6 @@ export class openiap extends EventEmitter {
      * @example
      * Update a workitem
      * ```typescript
-     * 
      * const workitem = await client.PopWorkitem({ wiq: "purchase_orders" }); // Will update the workitem state to processing
      * if(workitem == null) return;
      * await new Promise(resolve => setTimeout(resolve, 1000)); // simulate processing 
@@ -1025,7 +1105,6 @@ export class openiap extends EventEmitter {
      * await client.UpdateWorkitem({ workitem }); // update workitem
      * console.log("Updated workitem with id " + workitem._id);
      * ```
-     * 
      */
     async UpdateWorkitem(options: UpdateWorkitemOptions): Promise<Workitem> {
         const opt: UpdateWorkitemOptions = Object.assign(new UpdateWorkitemDefaults(), options)
@@ -1052,6 +1131,12 @@ export class openiap extends EventEmitter {
         const payload = Envelope.create({ command: "deleteworkitem", data, jwt: opt.jwt });
         await protowrap.RPC(this.client, payload);
     }
+    /**
+     * Run custom commands not defined in the protocol yet.
+     * This is how new functioanlly is added and tested, before it is finally added to the offical proto3 protocol.
+     * @param options 
+     * @returns If command has a result, this will be returned as a string. This will most likely need to be parser as JSON
+     */
     async CustomCommand<T>(options: CustomCommandOptions): Promise<string> {
         const opt: CustomCommandOptions = Object.assign(new CustomCommandDefaults(), options)
         if(opt.data != null && typeof opt.data !== "string") opt.data = JSON.stringify(opt.data)
@@ -1061,6 +1146,11 @@ export class openiap extends EventEmitter {
         const result = CustomCommandResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.result
     }
+    /**
+     * Old command used by nodered "Workflow in" and "assign" nodes for creating a new workflow instance.
+     * @param options 
+     * @returns 
+     */
     async CreateWorkflowInstance(options: CreateWorkflowInstanceOptions): Promise<string> {
         const opt: CreateWorkflowInstanceOptions = Object.assign(new CreateWorkflowInstanceDefaults(), options)
         if(opt.data != null && typeof opt.data !== "string") opt.data = JSON.stringify(opt.data)
