@@ -1047,6 +1047,14 @@ export class openiap extends EventEmitter {
         const data = Any.create({type_url: "type.googleapis.com/openiap.PushWorkitemRequest", "value": PushWorkitemRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "pushworkitem", data, jwt: opt.jwt });
         const result = PushWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        if(result && result.workitem && result.workitem.payload) {
+            if(typeof result.workitem.payload == "string") {
+                try {
+                    result.workitem.payload = JSON.parse(result.workitem.payload)
+                } catch (error) {
+                }
+            }
+        }
         return result.workitem
     }
     /**
@@ -1063,6 +1071,20 @@ export class openiap extends EventEmitter {
         const data = Any.create({type_url: "type.googleapis.com/openiap.PushWorkitemsRequest", "value": PushWorkitemsRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "pushworkitems", data, jwt: opt.jwt });
         const result = PushWorkitemsResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        if(result.workitems) {
+            for(var i = 0; i < result.workitems.length; i++) {
+                const wi = result.workitems[i];
+                if(wi && wi.payload) {
+                    if(typeof wi.payload == "string") {
+                        try {
+                            wi.payload = JSON.parse(wi.payload)
+                        } catch (error) {
+                        }
+                    }
+                }
+        
+            }
+        }
         return result.workitems
     }
     /**
@@ -1113,6 +1135,14 @@ export class openiap extends EventEmitter {
         const data = Any.create({type_url: "type.googleapis.com/openiap.UpdateWorkitemRequest", "value": UpdateWorkitemRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "updateworkitem", data, jwt: opt.jwt });
         const result = UpdateWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        if(result && result.workitem && result.workitem.payload) {
+            if(typeof result.workitem.payload == "string") {
+                try {
+                    result.workitem.payload = JSON.parse(result.workitem.payload)
+                } catch (error) {
+                }
+            }
+        }
         return result.workitem
     }
     /**

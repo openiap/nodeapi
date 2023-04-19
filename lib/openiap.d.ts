@@ -7,31 +7,113 @@ import { QueueEvent, UpdateResult, Workitem } from ".";
  * OpenIAP
  */
 export declare class openiap extends EventEmitter {
-    url: string;
-    jwt: string;
-    client: client;
-    agent: clientAgent;
-    version: string;
-    connected: boolean;
-    connecting: boolean;
-    signedin: boolean;
-    reconnectms: number;
-    pingerhandle: any;
     /**
+     * The internal client object
+     */
+    client: client;
+    private loginresolve;
+    private loginreject;
+    private reconnectms;
+    private pingerhandle;
+    private queuecallbacks;
+    private watchids;
+    private queues;
+    private defaltqueue;
+    /**
+     * Define client type when authenticating toward the server
+     */
+    agent: clientAgent;
+    /**
+     * If false, the client will never give up trying to connect to the server, if true, will give up after 17 seconds
+     */
+    allowconnectgiveup: boolean;
+    /**
+     * Define the version of the client sent to the server
+     */
+    version: string;
+    /**
+     * Define if connected to server
+     */
+    connected: boolean;
+    /**
+     * Define if we are trying to (re)connect
+     */
+    connecting: boolean;
+    /**
+     * If connected, are we also signed in or is server waiting on use to authenticate
+     */
+    signedin: boolean;
+    /**
+     * The URL used when connecting to the server
+     */
+    url: string;
+    /**
+     * The JWT used when authenticating to the server
+     */
+    jwt: string;
+    /**
+     * Create a client for connecting to an OpenIAP flow instace.
+     * By default it loads the apiurl from environment variable apiurl, grpcapiurl or wscapiurl
+     * You can supply username and password in the URL ( remember this needs to e URL encoded ) or you
+     * can supply a JWT token in the jwt environment variable or as the second parameter to the constructor.
+     *
+     * You can connect using one of these protocols
+     * - Using google RPC by using grpc:// as protocol. This require you also supply a port number. Example: `grpc://host.name:port`
+     * For docker or kubernetes deployments this is usually the main domain prefixed with grpc.
+     * for instance if your main domain is `app.openiap.io` then the grpc url would be `grpc://groc.app.openiap.io:443`
+     * For developer installations, the grpc url would be `grpc://localhost:50051`
+     * - Using WebSocket by using ws:// or wss:// as protocol. wss when using certificates. ws when unsecured
+     * For example `wss://app.openiap.io` or `ws://localhost.openiap.io`
+     * - Using named pipes by using pipe:// as protocol. For example `pipe://localhost/testpipe`
+     * - Using TCP sockets by using tcp:// as protocol. For example `tcp://localhost.openiap.io:8080`
+     * - Using HTTP/REST by using http:// or https:// as protocol. https when using certificates. http when unsecured
+     * For example `https://app.openiap.io/api/v2` or `http://localhost.openiap.io/api/v2`
+     *
      * @param url By default we read from environment variable apiurl, grpcapiurl or wscapiurl but can be overriden here
      * @param jwt By default we read from environment variable jwt but can be overriden here
+     * @example
+     * Connect to OpenIAP flow instance
+     * ```typescript
+     * const { openiap } = require("@openiap/nodeapi");
+     * client.connect().then(async client=> {
+     *  console.log("Connected")
+     *  const result = await client.Query({ query: { "_type": "test" } });
+     *  console.log(result);
+     *  client.Close();
+     * }).catch(err => {
+     * console.log("Failed to connect: " + err)
+     * }
+     * ```
+     * @example
+     * Connect to OpenIAP using a connection string.
+     * ```typescript
+     * const { openiap } = require("@openiap/nodeapi");
+     * async function main() {
+     *   const client = new openiap("grpc://grpc.app.openiap.io:443");
+     *   await client.connect();
+     *   const user = client.Signin({username: "henrik", password: "SuperSecret"});
+     * }
+     * main();
+     * ```
+     * @example
+     * Alternatively we can supply credentials in the connection string, then we do not need to call Signin
+     * ```typescript
+     * const { openiap } = require("@openiap/nodeapi");
+     * async function main() {
+     *   const client = new openiap("grpc://henrik:SuperSecret@grpc.app.openiap.io:443");
+     *   await client.connect();
+     * }
+     * main();
+     * ```
      */
     constructor(url?: string, jwt?: string);
-    loginresolve: any;
-    loginreject: any;
-    allowconnectgiveup: boolean;
     /**
      * @param first Should be left out or used as true. Is used internally for controlling retry logic
      * @returns Returns the {@link User} object if login was successful, otherwise throws an error
      * @example
      * ```typescript
      * var client = new openiap();
-     * client.connect().then((user) => {
+     * client.connect().then(async (user) => {
      *    console.log("Logged in as " + user.username);
      * }).catch((err) => {
      *   console.log("Failed to login: " + err);
@@ -46,8 +128,26 @@ export declare class openiap extends EventEmitter {
     /**
      * Override this function to add logic executed when the client has connected to the server.
      * If credentails has been set, the client will automatically login before calling this function
-     * Using EventMitter is also possible .on("connected", (client) => {})
+     * Using EventMitter is also possible using client.on("connected", (client) => {})
      * @param client
+     * @example
+     * using onConnected override
+     * ```typescript
+     * var client = new openiap();
+     * client.onConnected = (client) => {
+     *   console.log("Connected to server");
+     * }
+     * client.connect();
+     * ```
+     * @example
+     * using EventEmitter. Remember to remove the listener when done to avoid memory leaks
+     * ```typescript
+     * var client = new openiap();
+     * client.on("connected", (client) => {
+     *  console.log("Connected to server");
+     * });
+     * client.connect();
+     * ```
      */
     onConnected(client: openiap): Promise<void>;
     private cliOnConnected;
@@ -56,6 +156,24 @@ export declare class openiap extends EventEmitter {
      * Using EventMitter is also possible .on("disconnected", (client, error) => {})
      * @param client Return client instance that disconnected
      * @param error If the disconnect was caused by an error, this will contain the error object
+     * @example
+     * using onConnected override
+     * ```typescript
+     * var client = new openiap();
+     * client.onDisconnected = (client, err) => {
+     *   console.log("Disconnected from server");
+     * }
+     * client.connect();
+     * ```
+     * @example
+     * using EventEmitter. Remember to remove the listener when done to avoid memory leaks
+     * ```typescript
+     * var client = new openiap();
+     * client.on("disconnected", (client, err) => {
+     *  console.log("Disconnected from server");
+     * });
+     * client.connect();
+     * ```
      */
     onDisconnected(client: openiap, error: Error): void;
     private cliOnDisconnected;
@@ -72,7 +190,6 @@ export declare class openiap extends EventEmitter {
      * @param command The command of the message that was received
      * @param message The message that was received
      */
-    onMessage(client: openiap, command: string, message: any): Promise<any>;
     private cliOnMessage;
     /**
      * Used internally to send a ping message to server, to keep the connection alive.
@@ -90,24 +207,24 @@ export declare class openiap extends EventEmitter {
      * But you can also call Signin to login with a username and password or with a jwt token.
      * This function can also be used to validate credentials without changing the current credentials by setting
      * {@link SigninOptions.validateonly} to true.
-     * @param options
+     * @param options {@link SigninOptions}
      * @returns
      */
     Signin(options: SigninOptions): Promise<SigninResponse>;
     /**
      * Returns a list of all known collections. By default filtering out history collectins.
-     * @param options
+     * @param options {@link ListCollectionsOptions}
      * @returns
      */
     ListCollections(options?: ListCollectionsOptions): Promise<any[]>;
     /**
      * Drop a collection removing all data from the collection. Only users with admin rights can drop collections.
-     * @param options
+     * @param options {@link DropCollectionOptions}
      */
     DropCollection(options: DropCollectionOptions): Promise<void>;
     /**
      * Query a collection for data
-     * @param options
+     * @param options {@link QueryOptions}
      * @returns an array of documents matching the query
      * @example
      * Get all documents with type "test" from entities collection
@@ -128,7 +245,7 @@ export declare class openiap extends EventEmitter {
     Query<T>(options: QueryOptions): Promise<T[]>;
     /**
      * Query a collection for data and return the first document
-     * @param options
+     * @param options {@link FindOneOptions}
      * @returns a document matching the query
      * @example
      * Get the first document with type "test" from entities collection
@@ -147,29 +264,184 @@ export declare class openiap extends EventEmitter {
      * ```
      */
     FindOne<T>(options: FindOneOptions): Promise<T>;
+    /**
+     * By default OpenIAP will keep history information about all data in the database.
+     * This function will try and reconstruct the document at it was at a given version.
+     * This can be used to restore data to a previous state or even restore deleted data.
+     * @param options {@link GetDocumentVersionOptions}
+     * @returns The reconstructed document
+     * @example
+     * Get the document with id "643917fb153b7c2c1466fb21" from entities collection at version 1
+     * ```typescript
+     * const result = await client.GetDocumentVersion({ id: "643917fb153b7c2c1466fb21", version: 1 });
+     * ```
+     */
     GetDocumentVersion<T>(options: GetDocumentVersionOptions): Promise<T[]>;
+    /**
+     * Getting the count of documents in a collection can be done using this function.
+     * Leave query empty to get the total count of documents in the collection.
+     * @param options {@link CountOptions}
+     * @returns The number of documents matching the query
+     * @example
+     * Get the count of documents with type "test" from entities collection
+     * ```typescript
+     * const result = await client.Count({ collectionname: "entities", query: { "_type": "test" } });
+     * ```
+     * @example
+     * Get the total number of documents in the entities collection
+     * ```typescript
+     * const result = await client.Count({ collectionname: "entities" });
+     * ```
+     */
     Count(options: CountOptions): Promise<number>;
+    /**
+     * Run an mongodb aggregation pipeline toward the OpenIAP flow database.
+     * See https://docs.mongodb.com/manual/aggregation/ for more information
+     * @param options {@link AggregateOptions}
+     * @returns An array of documents matching the aggregation pipeline
+     * @see https://docs.mongodb.com/manual/aggregation/
+     * @example
+     * Get the count of all documents with type "test" from entities collection
+     * ```typescript
+     * const result = await client.Aggregate({ collectionname: "entities", aggregates: [{ "$match": { "_type": "test" } }, { "$count": "count" }] });
+     * ```
+     */
     Aggregate<T>(options: AggregateOptions): Promise<T[]>;
+    /**
+     * Insert a document into a collection
+     * @param options {@link InsertOneOptions}
+     * @returns The object that was created, including the _id field
+     * @example
+     * Insert a document with type "test" into entities collection
+     * ```typescript
+     * const result = await client.InsertOne({ collectionname: "entities", item: { "_type": "test", name: "find me" } });
+     * ```
+     */
     InsertOne<T>(options: InsertOneOptions): Promise<T>;
+    /**
+     * Bulk insert multiple documents into a collection, this is faster than using InsertOne multiple times.
+     * @param options {@link InsertManyOptions}
+     * @returns When skipresults is false, will return an array of the documents that was created, including the _id field
+     * @example
+     * Insert multiple documents with type "test" into entities collection
+     * ```typescript
+     * const result = await client.InsertMany({ collectionname: "entities", items: [{ "_type": "test", name: "find me" }, { "_type": "test", name: "find me too" }] });
+     * ```
+     */
     InsertMany<T>(options: InsertManyOptions): Promise<T[]>;
+    /**
+     * Update ( replace ) an existing document in a collection.
+     * Any fields that starts with underscoore will be preserved. This is to prevent the system from overwriting fields that are used by the system.
+     * So if you update a document but leave out any of the existing _ fields, they will be added back to the document.
+     * @param options {@link UpdateOneOptions}
+     * @returns Returns the document that was updated
+     * @example
+     * Update a document with type "test" in entities collection
+     * ```typescript
+     * const result = await client.InsertOne({ item: { "_type": "test", name: "find me" } });
+     * console.log("Inserted document with id: " + result._id + " and name: " + result.name);
+     * result.name = "Can you still find me?"
+     * const updated = await client.UpdateOne({ item: result });
+     * console.log("Updated document with id: " + updated._id + " and name: " + updated.name);
+     * ```
+     */
     UpdateOne<T>(options: UpdateOneOptions): Promise<T>;
+    /**
+     * Run an update command on a collection, to update one or more documents matching a query.
+     * See https://docs.mongodb.com/manual/reference/operator/update/ for more information on the update operators.
+     * @param options {@link UpdateDocumentOptions}
+     * @returns An object with update statistics see {@link UpdateResult}
+     * @see https://docs.mongodb.com/manual/reference/operator/update/
+     * @example
+     * Update all documents with type "test" in entities collection
+     * ```typescript
+     * const result = await client.UpdateDocument({ collectionname: "entities", query: { "_type": "test" }, document: { "$set": { "name": "find me" } } });
+     * console.log("Updated " + result.matchedCount + " documents");
+     * ```
+     */
     UpdateDocument(options: UpdateDocumentOptions): Promise<UpdateResult>;
+    /**
+     * Will match a document in a collection on the uniqeness parameters ( _id if left out ) and update it if it exists, or insert it if it does not exist.
+     * Will trhow an error if more than one document exists that matches the uniqeness parameters.
+     * @param options {@link InsertOrUpdateOneOptions}
+     * @returns The updated or inserted document including the _id field
+     * @example
+     * Insert or update a document with invoiceid "1234" in entities collection
+     * ```typescript
+     * const result = await client.InsertOrUpdateOne({ item: { "_type": "invoice", invoiceid: "1234", name: "find me" }, uniqeness: ["invoiceid"] });
+     * console.log("Inserted document with id: " + result._id + " and name: " + result.name);
+     *
+     * const same_invoice = { "_type": "invoice", invoiceid: "1234", name: "Can you still find me?"}
+     * const updated = await client.InsertOrUpdateOne({ item: same_invoice, uniqeness: ["invoiceid"] });
+     * console.log("Updated document with id: " + updated._id + " and new name: " + updated.name);
+     * ```
+     */
     InsertOrUpdateOne<T>(options: InsertOrUpdateOneOptions): Promise<T>;
+    /**
+     * Will match all documents toward a collection using the uniqeness parameters ( _id if left out ) and update it if it exists, or insert it if it does not exist.
+     * Will trhow an error if more than one document exists that matches the uniqeness parameters.
+     * This will use bulk operations to speed up the process.
+     * @param options {@link InsertOrUpdateManyOptions}
+     * @returns  The updated or inserted documents including the _id field
+     * @example
+     * Insert or update multiple invoice documents in entities collection
+     * ```typescript
+     * const invoices = [{ "_type": "invoice", invoiceid: "1234", name: "find me" }, { "_type": "invoice", invoiceid: "1235", name: "find me too" }]
+     * const result = await client.InsertOrUpdateMany({ items: invoices, uniqeness: ["invoiceid"] });
+     * console.log("Inserted document with id: " + result[0]._id + " and name: " + result[0].name);
+     * console.log("Inserted document with id: " + result[1]._id + " and name: " + result[1].name);
+     *
+     * const same_invoice = [{ "_type": "invoice", invoiceid: "1234", name: "Can you still find me?"}, { "_type": "invoice", invoiceid: "1235", name: "Can you still find me too?"}]
+     * const updated = await client.InsertOrUpdateMany({ items: same_invoice, uniqeness: ["invoiceid"] });
+     * console.log("Updated document with id: " + updated[0]._id + " and new name: " + updated[0].name);
+     * console.log("Updated document with id: " + updated[1]._id + " and new name: " + updated[1].name);
+     * ```
+     */
     InsertOrUpdateMany<T>(options: InsertOrUpdateManyOptions): Promise<T[]>;
+    /**
+     * Delete one document from a collection.
+     * Will throw an error if document does not exist or you don't have the right permissions.
+     * if recursive is set to true, all asssoicated documents will be deleted as well.
+     * Currently only user and customer objects in the "users" collection are supported for recursive deletion.
+     * @param options {@link DeleteOneOptions}
+     * @returns Number of deleted documents (will always be 1)
+     * @example
+     * Delete a document with id "643917fb153b7c2c1466fb21" in entities collection
+     * ```typescript
+     * const result = await client.DeleteOne({ id: "643917fb153b7c2c1466fb21" } });
+     * console.log("Deleted " + result + " documents");
+     * ```
+     */
     DeleteOne(options: DeleteOneOptions): Promise<number>;
+    /**
+     * Delete many documents from a collection based on a query.
+     * Will return 0 if no documents are deleted.
+     * @param options {@link DeleteManyOptions}
+     * @returns The number of deleted documents
+     * @example
+     * Delete all documents with name "find me" in entities collection
+     * ```typescript
+     * const result = await client.DeleteMany({ query: { name: "find me" } });
+     * console.log("Deleted " + result + " documents");
+     * ```
+     * Delete all documents with type "invoice" in entities collection
+     * ```typescript
+     * const result = await client.DeleteMany({ query: { _type: "invoice" } });
+     * console.log("Deleted " + result + " documents");
+     * ```
+     */
     DeleteMany(options: DeleteManyOptions): Promise<number>;
-    watchids: any;
     /**
      * Register a change stream ( watch ) on a collection. Use paths to narrow the scope of the watch.
+     * The callback will be called for each document that matches the paths when ever it is inserted, updated or deleted from the database
      * This uses streams to notify client about changes, and is therefore not supported using REST interface.
      * @param options
      * @param callback
      * @returns server id assigned to the watch. Used with {@link UnWatch} to stop receiving notifications from the watch.
      * @example
      * const watchid = await db.Watch({ collectionname: "entities", paths: ["$.[?(@._type == 'test')]"] }, (operation, document) => {
-     *     console.log(operation, document);
+     *     console.log(operation + " on " + document.name);
      * });
-     *
      */
     Watch(options: WatchOptions, callback: (operation: string, document: any) => void): Promise<string>;
     /**
@@ -194,11 +466,17 @@ export declare class openiap extends EventEmitter {
      * Upload a file to OpenIAP flow database.
      * This uses streams to download file content, and is therefore not supported using REST interface.
      * @param options
-     * @returns
+     * @returns Server response, including the file id
+     * @see {@link UploadResponse}
+     * @see {@link UploadFileOptions}
+     * @example
+     * Upload test.txt from current folder to OpenIAP flow database
+     * ```typescript
+     * const res = await client.UploadFile({ filename: "test.txt" });
+     * console.log("file upladed with id " + res.id);
+     * ```
      */
     UploadFile(options: UploadFileOptions): Promise<UploadResponse>;
-    queues: any;
-    defaltqueue: string;
     /**
      * Register and consume a Message Queue. Queues are registered in the mq collection.
      * If no queue name is provided, a random queue name is generated.
@@ -210,7 +488,7 @@ export declare class openiap extends EventEmitter {
      * @see {@link UnRegisterQueue}
      * @example
      * ```typescript
-     * const queuename = await db.RegisterQueue({ queuename: "myqueue" }, (msg, payload, user, jwt) => {
+     * const queuename = await client.RegisterQueue({ queuename: "myqueue" }, (msg, payload, user, jwt) => {
      *   console.log(JSON.stringify(payload, null, 2));
      *   if(payload == null) payload = {}
      *   payload.result = true
@@ -227,21 +505,136 @@ export declare class openiap extends EventEmitter {
      * @param options
      * @param callback
      * @returns Returns the queue name, used to consume the exchange. Use this when unregistering the exchange with {@link UnRegisterQueue }
+     * @see {@link QueueMessage}
+     * @see {@link UnRegisterQueue}
+     * @example
+     * ```typescript
+     * const queuename = await client.RegisterExchange({ exchange: "myexchange" }, (msg, payload, user, jwt) => {
+     *   console.log(JSON.stringify(payload, null, 2));
+     * });
+     * console.log("registered exchange myexchange and is consuming it using queue " + queuename);
+     * ```
      */
     RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any): Promise<string>;
     /**
      * Tell server to close queue and stop receving message from the queue ( or queue consuming an exchange )
      * @param options
+     * @see {@link RegisterQueue}
+     * @see {@link RegisterExchange}
+     * @example
+     * ```typescript
+     * const queuename = await client.RegisterExchange({ exchange: "myexchange" }, async (msg, payload, user, jwt) => {
+     *   console.log(JSON.stringify(payload, null, 2));
+     *   await client.UnRegisterQueue({ queuename: queuename });
+     *   console.log("unregistered queue " + queuename);
+     * });
+     * console.log("registered exchange myexchange and is consuming it using queue " + queuename);
+     * ```
      */
     UnRegisterQueue(options: UnRegisterQueueOptions): Promise<void>;
-    queuecallbacks: any;
+    /**
+     * Send message to queue or exchange. If recevied sends a reply back, set rpc = true to recevied response as return value.
+     * Be aware, right now there is no timeout on the wait, so if recevier never sends a reply it will hang for ever
+     * @param options
+     * @param rpc
+     * @returns If rpc is trye, will return the reply from the queue. If rpc is false, will return null when server has received the message
+     * @see {@link RegisterQueue}
+     * @see {@link RegisterExchange}
+     * @example
+     * Send message to myqueue and wait for reply, then dump the result to console
+     * ```typescript
+     * const result = await client.QueueMessage({ queuename: "myqueue", data: { "hello": "world" } }, true);
+     * console.log("result from queue " + JSON.stringify(result, null, 2));
+     * ```
+     * @example
+     * Send message to myexchange
+     * ```typescript
+     * await client.QueueMessage({ exchangename: "myexchange", data: { "hello": "world" } }, false);
+     * ```
+     */
     QueueMessage(options: QueueMessageOptions, rpc?: boolean): Promise<any>;
+    /**
+     * Push a workitem to a workqueue. Workitem can be processed by a worker after calling {@link PopWorkitem}
+     * @param options
+     * @returns Returns the workitem that was pushed, including the workitem id
+     * @see {@link PopWorkitem}
+     * @see {@link PushWorkitems}
+     * @example
+     * Push a workitem to myworkqueue
+     * ```typescript
+     * const workitem = await client.PushWorkitem({ wiq: "myworkqueue", payload: { "hello": "world" } });
+     * console.log("Pushed workitem with id " + workitem._id);
+     * ```
+     * @example
+     * Push a workitem with a file to myworkqueue
+     * ```typescript
+     * import * as path  from 'path';
+     * import * as fs  from "fs";
+     * import * as pako from 'pako';
+     * // ....
+     * const filepath = "/path/data.csv";
+     * const filename = path.basename(filepath);
+     * const workitem = await client.PushWorkitem({
+     *  payload: {"name": "test " + filename}, wiq: "q2", name: "file test " + filename,
+     *   files: [{ _id:"", filename, compressed: true, file: pako.deflate(fs.readFileSync(filepath, null)) }]});
+     * console.log("Pushed workitem with id " + workitem._id);
+     */
     PushWorkitem(options: PushWorkitemOptions): Promise<Workitem>;
+    /**
+     * Push multiple workitems to a workqueue. Workitems can be processed by a worker after calling {@link PopWorkitem}
+     * @param options
+     * @returns an array of workitems that was pushed, including the workitem id's
+     */
     PushWorkitems(options: PushWorkitemsOptions): Promise<Workitem[]>;
+    /**
+     * Pop an item of a workitem queue. An items aviailable in the queue will be determined by it's status, retry time and runat time steamp.
+     * If multiple items are available, the items will be fatched based on each wrkitem's priority field.
+     * @param options
+     * @returns If no workitem is available, this will return null.
+     */
     PopWorkitem(options: PopWorkitemOptions): Promise<Workitem | undefined>;
+    /**
+     * Update an existing workitem. Workitem can be fetched using {@link PopWorkitem}. Use this to update the status of a workitem.
+     * You can also update the payload, and update or add files to the workitem.
+     * @param options
+     * @returns Returns the updated workitem
+     * @see {@link PopWorkitem}
+     * @example
+     * Update a workitem
+     * ```typescript
+     * const workitem = await client.PopWorkitem({ wiq: "purchase_orders" }); // Will update the workitem state to processing
+     * if(workitem == null) return;
+     * await new Promise(resolve => setTimeout(resolve, 1000)); // simulate processing
+     * if(workitem.payload == null) workitem.payload = {}
+     * workitem.payload.transaction = "ID45434" // update payload
+     * workitem.status = "successful" // must be successful, processing or retry
+     * await client.UpdateWorkitem({ workitem }); // update workitem
+     * console.log("Updated workitem with id " + workitem._id);
+     * ```
+     */
     UpdateWorkitem(options: UpdateWorkitemOptions): Promise<Workitem>;
+    /**
+     * Delete one workitem and all associated files from a workitem queue.
+     * @param options
+     * @example
+     * Delete a workitem
+     * ```typescript
+     * client.DeleteWorkitem({ id: "64366f12cffb7419a89d5e10" });
+     * ```
+     */
     DeleteWorkitem(options: DeleteWorkitemOptions): Promise<void>;
+    /**
+     * Run custom commands not defined in the protocol yet.
+     * This is how new functioanlly is added and tested, before it is finally added to the offical proto3 protocol.
+     * @param options
+     * @returns If command has a result, this will be returned as a string. This will most likely need to be parser as JSON
+     */
     CustomCommand<T>(options: CustomCommandOptions): Promise<string>;
+    /**
+     * Old command used by nodered "Workflow in" and "assign" nodes for creating a new workflow instance.
+     * @param options
+     * @returns
+     */
     CreateWorkflowInstance(options: CreateWorkflowInstanceOptions): Promise<string>;
 }
 export type SigninOptions = {
@@ -437,8 +830,17 @@ export type PopWorkitemOptions = {
     jwt?: string;
 };
 export type UpdateWorkitemOptions = {
+    /**
+     * Workitem to update
+     */
     workitem: Workitem;
+    /**
+     * If workitem has reached the max number of retryes and this is set to true, the workitem will be updated it to retry anyway
+     */
     ignoremaxretries?: boolean;
+    /**
+     * Override who the request should run as, using a customer jwt
+     */
     jwt?: string;
 };
 export type DeleteWorkitemOptions = {
