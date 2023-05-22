@@ -132,6 +132,10 @@ export class protowrap {
         return "openiap.DropCollectionRequest";
       case "dropcollectionreply":
         return "openiap.DropCollectionResponse";
+      case "createcollection":
+        return "openiap.CreateCollectionRequest";
+      case "createcollectionreply":
+        return "openiap.CreateCollectionResponse";
       case "query":
         return "openiap.QueryRequest";
       case "queryreply":
