@@ -228,6 +228,12 @@ async function main() {
             }
           }
         })(process.stdout.write);
+      } else if (str == "dc") {
+        try {
+          await c.DropCollection({collectionname: "testcollection"});
+        } catch (error) {
+        }
+        await c.CreateCollection({ collectionname: "testcollection", timeseries: { timeField: "timestamp", metaField: "metadata" } } )
       } else if (str == "c") {
         payload.command = "console";
         var Readable = require('stream').Readable;

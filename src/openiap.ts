@@ -8,6 +8,7 @@ import { EventEmitter } from "events";
 import { CustomCommandRequest, CustomCommandResponse, DownloadResponse, Envelope, GetElementRequest, GetElementResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
 import { AggregateRequest, AggregateResponse, CountRequest, CountResponse, DeleteManyRequest, DeleteManyResponse, DeleteOneRequest, DeleteOneResponse, DeleteWorkitemRequest, DeleteWorkitemResponse, DropCollectionRequest, GetDocumentVersionRequest, GetDocumentVersionResponse, InsertManyRequest, InsertManyResponse, InsertOneRequest, InsertOneResponse, InsertOrUpdateManyRequest, InsertOrUpdateManyResponse, InsertOrUpdateOneRequest, InsertOrUpdateOneResponse, ListCollectionsRequest, ListCollectionsResponse, PopWorkitemRequest, PopWorkitemResponse, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse, QueryRequest, QueryResponse, QueueEvent, QueueMessageRequest, RegisterExchangeRequest, RegisterExchangeResponse, RegisterQueueRequest, RegisterQueueResponse, UnRegisterQueueRequest, UnWatchRequest, UpdateDocumentRequest, UpdateDocumentResponse, UpdateOneRequest, UpdateOneResponse, UpdateResult, UpdateWorkitemRequest, UpdateWorkitemResponse, WatchEvent, WatchRequest, WatchResponse, Workitem } from ".";
 import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from "./proto/queues";
+import { CreateCollectionRequest } from "./proto/querys";
 
 /**
  * OpenIAP
@@ -463,6 +464,17 @@ export class openiap extends EventEmitter {
         let message = DropCollectionRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.DropCollectionRequest", "value": DropCollectionRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "dropcollection", data, jwt: opt.jwt });
+        const result = await protowrap.RPC(this.client, payload);
+    }
+    /**
+     * Create a collection removing all data from the collection. Only users with admin rights can Create collections.
+     * @param options {@link CreateCollectionOptions}
+     */
+    async CreateCollection(options: CreateCollectionOptions): Promise<void> {
+        const opt: CreateCollectionOptions = Object.assign(new CreateCollectionDefaults(), options)
+        let message = CreateCollectionRequest.create(opt as any);
+        const data = Any.create({type_url: "type.googleapis.com/openiap.CreateCollectionRequest", "value": CreateCollectionRequest.encode(message).finish()})
+        const payload = Envelope.create({ command: "createcollection", data, jwt: opt.jwt });
         const result = await protowrap.RPC(this.client, payload);
     }
     /**
@@ -1219,6 +1231,42 @@ export type DropCollectionOptions = {
 }
 class DropCollectionDefaults {
 }
+export type col_timeseries_granularity = "seconds" | "minutes" | "hours"; //  | "days" | "weeks" | "months" | "years";
+export type col_validationLevel = "off" | "strict" | "moderate";
+export type col_validationAction = "error" | "warn";
+export type col_collation = {
+   locale?: string,
+   caseLevel?: boolean,
+   caseFirst?: string,
+   strength?: number,
+   numericOrdering?: boolean,
+   alternate?: string,
+   maxVariable?: string,
+   backwards?: boolean
+};
+export type col_timeseries = {
+    timeField: string,
+    metaField?: string,
+    granularity?: col_timeseries_granularity,
+};
+export type CreateCollectionOptions = {
+    jwt?: string;
+    collectionname: string,
+    timeseries?: col_timeseries;
+  
+    expireAfterSeconds?: number,
+    changeStreamPreAndPostImages?: boolean,
+    size?: number, // Optional. Specify a maximum size in bytes for a capped collection.
+    max?: number, // Optional. The maximum number of documents allowed in the capped collection. 
+    validator?: object, // Optional. Specify validation rules for documents in a collection.
+    validationLevel?: col_validationLevel, // Optional. Specify how strictly MongoDB applies the validation rules to existing documents during an update.
+    validationAction?: col_validationAction, // Optional. Specify whether to error on invalid documents or just warn about the violations but allow invalid documents to be inserted.
+    collation?: col_collation,
+    capped?: boolean,
+}
+class CreateCollectionDefaults {
+}
+
 export type FindOneOptions = {
     collectionname?: string;
     query?: object;

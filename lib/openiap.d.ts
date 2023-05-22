@@ -223,6 +223,11 @@ export declare class openiap extends EventEmitter {
      */
     DropCollection(options: DropCollectionOptions): Promise<void>;
     /**
+     * Create a collection removing all data from the collection. Only users with admin rights can Create collections.
+     * @param options {@link CreateCollectionOptions}
+     */
+    CreateCollection(options: CreateCollectionOptions): Promise<void>;
+    /**
      * Query a collection for data
      * @param options {@link QueryOptions}
      * @returns an array of documents matching the query
@@ -654,6 +659,38 @@ export type ListCollectionsOptions = {
 export type DropCollectionOptions = {
     collectionname: string;
     jwt?: string;
+};
+export type col_timeseries_granularity = "seconds" | "minutes" | "hours";
+export type col_validationLevel = "off" | "strict" | "moderate";
+export type col_validationAction = "error" | "warn";
+export type col_collation = {
+    locale?: string;
+    caseLevel?: boolean;
+    caseFirst?: string;
+    strength?: number;
+    numericOrdering?: boolean;
+    alternate?: string;
+    maxVariable?: string;
+    backwards?: boolean;
+};
+export type col_timeseries = {
+    timeField: string;
+    metaField?: string;
+    granularity?: col_timeseries_granularity;
+};
+export type CreateCollectionOptions = {
+    jwt?: string;
+    collectionname: string;
+    timeseries?: col_timeseries;
+    expireAfterSeconds?: number;
+    changeStreamPreAndPostImages?: boolean;
+    size?: number;
+    max?: number;
+    validator?: object;
+    validationLevel?: col_validationLevel;
+    validationAction?: col_validationAction;
+    collation?: col_collation;
+    capped?: boolean;
 };
 export type FindOneOptions = {
     collectionname?: string;

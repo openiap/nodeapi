@@ -79,6 +79,150 @@ export namespace DropCollectionResponse {
   }
 }
 
+export class col_timeseries extends jspb.Message {
+  getTimefield(): string;
+  setTimefield(value: string): void;
+
+  getMetafield(): string;
+  setMetafield(value: string): void;
+
+  getGranularity(): string;
+  setGranularity(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): col_timeseries.AsObject;
+  static toObject(includeInstance: boolean, msg: col_timeseries): col_timeseries.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: col_timeseries, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): col_timeseries;
+  static deserializeBinaryFromReader(message: col_timeseries, reader: jspb.BinaryReader): col_timeseries;
+}
+
+export namespace col_timeseries {
+  export type AsObject = {
+    timefield: string,
+    metafield: string,
+    granularity: string,
+  }
+}
+
+export class col_collation extends jspb.Message {
+  getLocale(): string;
+  setLocale(value: string): void;
+
+  getCaselevel(): boolean;
+  setCaselevel(value: boolean): void;
+
+  getCasefirst(): string;
+  setCasefirst(value: string): void;
+
+  getStrength(): number;
+  setStrength(value: number): void;
+
+  getNumericordering(): boolean;
+  setNumericordering(value: boolean): void;
+
+  getAlternate(): string;
+  setAlternate(value: string): void;
+
+  getMaxvariable(): string;
+  setMaxvariable(value: string): void;
+
+  getBackwards(): boolean;
+  setBackwards(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): col_collation.AsObject;
+  static toObject(includeInstance: boolean, msg: col_collation): col_collation.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: col_collation, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): col_collation;
+  static deserializeBinaryFromReader(message: col_collation, reader: jspb.BinaryReader): col_collation;
+}
+
+export namespace col_collation {
+  export type AsObject = {
+    locale: string,
+    caselevel: boolean,
+    casefirst: string,
+    strength: number,
+    numericordering: boolean,
+    alternate: string,
+    maxvariable: string,
+    backwards: boolean,
+  }
+}
+
+export class CreateCollectionRequest extends jspb.Message {
+  getCollectionname(): string;
+  setCollectionname(value: string): void;
+
+  hasCollation(): boolean;
+  clearCollation(): void;
+  getCollation(): col_collation | undefined;
+  setCollation(value?: col_collation): void;
+
+  hasTimeseries(): boolean;
+  clearTimeseries(): void;
+  getTimeseries(): col_timeseries | undefined;
+  setTimeseries(value?: col_timeseries): void;
+
+  getExpireafterseconds(): number;
+  setExpireafterseconds(value: number): void;
+
+  getChangestreampreandpostimages(): boolean;
+  setChangestreampreandpostimages(value: boolean): void;
+
+  getCapped(): boolean;
+  setCapped(value: boolean): void;
+
+  getMax(): number;
+  setMax(value: number): void;
+
+  getSize(): number;
+  setSize(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CreateCollectionRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateCollectionRequest): CreateCollectionRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CreateCollectionRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateCollectionRequest;
+  static deserializeBinaryFromReader(message: CreateCollectionRequest, reader: jspb.BinaryReader): CreateCollectionRequest;
+}
+
+export namespace CreateCollectionRequest {
+  export type AsObject = {
+    collectionname: string,
+    collation?: col_collation.AsObject,
+    timeseries?: col_timeseries.AsObject,
+    expireafterseconds: number,
+    changestreampreandpostimages: boolean,
+    capped: boolean,
+    max: number,
+    size: number,
+  }
+}
+
+export class CreateCollectionResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CreateCollectionResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateCollectionResponse): CreateCollectionResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CreateCollectionResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateCollectionResponse;
+  static deserializeBinaryFromReader(message: CreateCollectionResponse, reader: jspb.BinaryReader): CreateCollectionResponse;
+}
+
+export namespace CreateCollectionResponse {
+  export type AsObject = {
+  }
+}
+
 export class QueryRequest extends jspb.Message {
   getQuery(): string;
   setQuery(value: string): void;
