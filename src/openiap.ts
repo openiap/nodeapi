@@ -1211,7 +1211,7 @@ export class openiap extends EventEmitter {
         const opt: EnsureCustomerOptions = Object.assign(new EnsureCustomerDefaults(), options)
         let message = EnsureCustomerRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.EnsureCustomerRequest", "value": EnsureCustomerRequest.encode(message).finish()})
-        const payload = Envelope.create({ command: "EnsureCustomer", data, jwt: opt.jwt });
+        const payload = Envelope.create({ command: "ensurecustomer", data, jwt: opt.jwt });
         const result = await protowrap.RPC(this.client, payload);
     }
 }
