@@ -1,8 +1,9 @@
 /// <reference types="node" />
 import { client, clientAgent } from "./client";
 import { EventEmitter } from "events";
-import { DownloadResponse, SigninResponse, UploadResponse, User } from "./proto/base";
+import { Customer, DownloadResponse, SigninResponse, UploadResponse, User } from "./proto/base";
 import { QueueEvent, UpdateResult, Workitem } from ".";
+import { StripeCustomer } from "./proto/stripe";
 /**
  * OpenIAP
  */
@@ -641,6 +642,11 @@ export declare class openiap extends EventEmitter {
      * @returns
      */
     CreateWorkflowInstance(options: CreateWorkflowInstanceOptions): Promise<string>;
+    /**
+     * Create a collection removing all data from the collection. Only users with admin rights can Create collections.
+     * @param options {@link EnsureCustomerOptions}
+     */
+    EnsureCustomer(options: EnsureCustomerOptions): Promise<void>;
 }
 export type SigninOptions = {
     username?: string;
@@ -898,5 +904,11 @@ export type CreateWorkflowInstanceOptions = {
     resultqueue: string;
     data: any;
     initialrun: boolean;
+    jwt?: string;
+};
+export type EnsureCustomerOptions = {
+    customer: Customer;
+    stripe?: StripeCustomer;
+    ensureas?: string;
     jwt?: string;
 };

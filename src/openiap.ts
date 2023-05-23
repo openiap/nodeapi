@@ -5,10 +5,11 @@ const { info, err, warn }  = config;
 import { Any } from "./proto/google/protobuf/any";
 // import events = require("events");
 import { EventEmitter } from "events";
-import { CustomCommandRequest, CustomCommandResponse, DownloadResponse, Envelope, GetElementRequest, GetElementResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
+import { CustomCommandRequest, CustomCommandResponse, Customer, DownloadResponse, EnsureCustomerRequest, Envelope, GetElementRequest, GetElementResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
 import { AggregateRequest, AggregateResponse, CountRequest, CountResponse, DeleteManyRequest, DeleteManyResponse, DeleteOneRequest, DeleteOneResponse, DeleteWorkitemRequest, DeleteWorkitemResponse, DropCollectionRequest, GetDocumentVersionRequest, GetDocumentVersionResponse, InsertManyRequest, InsertManyResponse, InsertOneRequest, InsertOneResponse, InsertOrUpdateManyRequest, InsertOrUpdateManyResponse, InsertOrUpdateOneRequest, InsertOrUpdateOneResponse, ListCollectionsRequest, ListCollectionsResponse, PopWorkitemRequest, PopWorkitemResponse, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse, QueryRequest, QueryResponse, QueueEvent, QueueMessageRequest, RegisterExchangeRequest, RegisterExchangeResponse, RegisterQueueRequest, RegisterQueueResponse, UnRegisterQueueRequest, UnWatchRequest, UpdateDocumentRequest, UpdateDocumentResponse, UpdateOneRequest, UpdateOneResponse, UpdateResult, UpdateWorkitemRequest, UpdateWorkitemResponse, WatchEvent, WatchRequest, WatchResponse, Workitem } from ".";
 import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from "./proto/queues";
 import { CreateCollectionRequest } from "./proto/querys";
+import { StripeCustomer } from "./proto/stripe";
 
 /**
  * OpenIAP
@@ -1202,6 +1203,17 @@ export class openiap extends EventEmitter {
         const result = CreateWorkflowInstanceResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.instanceid;
     }
+    /**
+     * Create a collection removing all data from the collection. Only users with admin rights can Create collections.
+     * @param options {@link EnsureCustomerOptions}
+     */
+    async EnsureCustomer(options: EnsureCustomerOptions): Promise<void> {
+        const opt: EnsureCustomerOptions = Object.assign(new EnsureCustomerDefaults(), options)
+        let message = EnsureCustomerRequest.create(opt as any);
+        const data = Any.create({type_url: "type.googleapis.com/openiap.EnsureCustomerRequest", "value": EnsureCustomerRequest.encode(message).finish()})
+        const payload = Envelope.create({ command: "EnsureCustomer", data, jwt: opt.jwt });
+        const result = await protowrap.RPC(this.client, payload);
+    }
 }
 export type SigninOptions = {
     username?: string;
@@ -1565,3 +1577,13 @@ export type CreateWorkflowInstanceOptions = {
 class CreateWorkflowInstanceDefaults {
     initialrun: boolean = false;
 }
+
+export type EnsureCustomerOptions = {
+    customer: Customer;
+    stripe?: StripeCustomer;
+    ensureas?: string;
+    jwt?: string;
+}
+class EnsureCustomerDefaults {
+}
+

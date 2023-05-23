@@ -10,7 +10,7 @@
     "watch": "tsc -w",
     "agent": "ts-node src/agent.ts",
     "updateproto": "npm uninstall @openiap/proto && npm --save-dev i openiap/proto",
-    "generate": "mkdir -p src/proto && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_out='service=grpc-node,mode=grpc-js:./src/proto' --ts_proto_opt=snakeToCamel=false --proto_path=proto --ts_proto_out=./src/proto proto/base.proto proto/ace.proto proto/querys.proto proto/queues.proto proto/watch.proto proto/workitems.proto",
+    "generate": "mkdir -p src/proto && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_out='service=grpc-node,mode=grpc-js:./src/proto' --ts_proto_opt=snakeToCamel=false --proto_path=proto --ts_proto_out=./src/proto proto/base.proto proto/ace.proto proto/querys.proto proto/queues.proto proto/watch.proto proto/workitems.proto proto/stripe.proto",
     "docs": "npx typedoc src/index.ts",
     "mddocs": "npx typedoc src/index.ts --plugin typedoc-plugin-markdown"
   },

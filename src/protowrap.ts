@@ -246,10 +246,12 @@ export class protowrap {
         return "openiap.CreateWorkflowInstanceRequest";
       case "createworkflowinstancereply":
         return "openiap.CreateWorkflowInstanceResponse";
-      case "":
-        return "openiap.";
-      case "":
-        return "openiap.";
+      case "ensurecustomerrequest":
+        return "openiap.EnsureCustomerRequest";
+      case "ensurecustomer":
+        return "openiap.EnsureCustomerRequest";
+      case "ensurecustomerreply":
+        return "openiap.EnsureCustomerResponse";
       case "":
         return "openiap.";
       case "":

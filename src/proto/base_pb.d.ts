@@ -8,6 +8,7 @@ import * as querys_pb from "./querys_pb";
 import * as queues_pb from "./queues_pb";
 import * as watch_pb from "./watch_pb";
 import * as workitems_pb from "./workitems_pb";
+import * as stripe_pb from "./stripe_pb";
 
 export class Envelope extends jspb.Message {
   getCommand(): string;
@@ -658,6 +659,200 @@ export namespace User {
     username: string,
     email: string,
     rolesList: Array<Role.AsObject>,
+  }
+}
+
+export class Customer extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getType(): string;
+  setType(value: string): void;
+
+  getStripeid(): string;
+  setStripeid(value: string): void;
+
+  getUserid(): string;
+  setUserid(value: string): void;
+
+  getName(): string;
+  setName(value: string): void;
+
+  getCountry(): string;
+  setCountry(value: string): void;
+
+  getEmail(): string;
+  setEmail(value: string): void;
+
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getVattype(): string;
+  setVattype(value: string): void;
+
+  getVatnumber(): string;
+  setVatnumber(value: string): void;
+
+  getTaxrate(): string;
+  setTaxrate(value: string): void;
+
+  getTax(): number;
+  setTax(value: number): void;
+
+  getCoupon(): string;
+  setCoupon(value: string): void;
+
+  getHascard(): boolean;
+  setHascard(value: boolean): void;
+
+  getMemory(): string;
+  setMemory(value: string): void;
+
+  getOpenflowuserplan(): string;
+  setOpenflowuserplan(value: string): void;
+
+  getSupportplan(): string;
+  setSupportplan(value: string): void;
+
+  getSupporthourplan(): string;
+  setSupporthourplan(value: string): void;
+
+  getSubscriptionid(): string;
+  setSubscriptionid(value: string): void;
+
+  getAdmins(): string;
+  setAdmins(value: string): void;
+
+  getUsers(): string;
+  setUsers(value: string): void;
+
+  getCustomattr1(): string;
+  setCustomattr1(value: string): void;
+
+  getCustomattr2(): string;
+  setCustomattr2(value: string): void;
+
+  getCustomattr3(): string;
+  setCustomattr3(value: string): void;
+
+  getCustomattr4(): string;
+  setCustomattr4(value: string): void;
+
+  getCustomattr5(): string;
+  setCustomattr5(value: string): void;
+
+  clearDomainsList(): void;
+  getDomainsList(): Array<string>;
+  setDomainsList(value: Array<string>): void;
+  addDomains(value: string, index?: number): string;
+
+  getDbusage(): number;
+  setDbusage(value: number): void;
+
+  getDblocked(): boolean;
+  setDblocked(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Customer.AsObject;
+  static toObject(includeInstance: boolean, msg: Customer): Customer.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Customer, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Customer;
+  static deserializeBinaryFromReader(message: Customer, reader: jspb.BinaryReader): Customer;
+}
+
+export namespace Customer {
+  export type AsObject = {
+    id: string,
+    type: string,
+    stripeid: string,
+    userid: string,
+    name: string,
+    country: string,
+    email: string,
+    address: string,
+    vattype: string,
+    vatnumber: string,
+    taxrate: string,
+    tax: number,
+    coupon: string,
+    hascard: boolean,
+    memory: string,
+    openflowuserplan: string,
+    supportplan: string,
+    supporthourplan: string,
+    subscriptionid: string,
+    admins: string,
+    users: string,
+    customattr1: string,
+    customattr2: string,
+    customattr3: string,
+    customattr4: string,
+    customattr5: string,
+    domainsList: Array<string>,
+    dbusage: number,
+    dblocked: boolean,
+  }
+}
+
+export class EnsureCustomerRequest extends jspb.Message {
+  hasCustomer(): boolean;
+  clearCustomer(): void;
+  getCustomer(): Customer | undefined;
+  setCustomer(value?: Customer): void;
+
+  hasStripe(): boolean;
+  clearStripe(): void;
+  getStripe(): stripe_pb.StripeCustomer | undefined;
+  setStripe(value?: stripe_pb.StripeCustomer): void;
+
+  getEnsureas(): string;
+  setEnsureas(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EnsureCustomerRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: EnsureCustomerRequest): EnsureCustomerRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EnsureCustomerRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EnsureCustomerRequest;
+  static deserializeBinaryFromReader(message: EnsureCustomerRequest, reader: jspb.BinaryReader): EnsureCustomerRequest;
+}
+
+export namespace EnsureCustomerRequest {
+  export type AsObject = {
+    customer?: Customer.AsObject,
+    stripe?: stripe_pb.StripeCustomer.AsObject,
+    ensureas: string,
+  }
+}
+
+export class EnsureCustomerResponse extends jspb.Message {
+  hasCustomer(): boolean;
+  clearCustomer(): void;
+  getCustomer(): Customer | undefined;
+  setCustomer(value?: Customer): void;
+
+  hasStripe(): boolean;
+  clearStripe(): void;
+  getStripe(): stripe_pb.StripeCustomer | undefined;
+  setStripe(value?: stripe_pb.StripeCustomer): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EnsureCustomerResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: EnsureCustomerResponse): EnsureCustomerResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EnsureCustomerResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EnsureCustomerResponse;
+  static deserializeBinaryFromReader(message: EnsureCustomerResponse, reader: jspb.BinaryReader): EnsureCustomerResponse;
+}
+
+export namespace EnsureCustomerResponse {
+  export type AsObject = {
+    customer?: Customer.AsObject,
+    stripe?: stripe_pb.StripeCustomer.AsObject,
   }
 }
 

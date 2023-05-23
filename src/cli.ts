@@ -10,7 +10,7 @@ import { clientType } from "./client";
 const rl = readline.createInterface({ input, output });
 import * as pako from 'pako';
 import { openiap } from "./openiap";
-import { Envelope, PingRequest, Stream } from "./proto/base";
+import { Customer, Envelope, PingRequest, Stream } from "./proto/base";
 import { Any } from "./proto/google/protobuf/any";
 import { WatchEvent } from "./proto/watch";
 import { Workitem } from "./proto/workitems";
@@ -234,6 +234,10 @@ async function main() {
         } catch (error) {
         }
         await c.CreateCollection({ collectionname: "testcollection", timeseries: { timeField: "timestamp", metaField: "metadata" } } )
+      } else if (str == "ec") {
+        var ensureresult = await c.EnsureCustomer({ customer: Customer.create({ name: "testcustomer" }) })
+        console.log(ensureresult);  
+
       } else if (str == "c") {
         payload.command = "console";
         var Readable = require('stream').Readable;

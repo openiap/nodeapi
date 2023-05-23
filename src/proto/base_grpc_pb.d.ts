@@ -18,6 +18,7 @@ interface IFlowServiceService extends grpc.ServiceDefinition<grpc.UntypedService
   customCommand: grpc.MethodDefinition<base_pb.CustomCommandRequest, base_pb.CustomCommandResponse>;
   listCollections: grpc.MethodDefinition<querys_pb.ListCollectionsRequest, querys_pb.ListCollectionsResponse>;
   dropCollection: grpc.MethodDefinition<querys_pb.DropCollectionRequest, querys_pb.DropCollectionResponse>;
+  createCollection: grpc.MethodDefinition<querys_pb.CreateCollectionRequest, querys_pb.CreateCollectionResponse>;
   query: grpc.MethodDefinition<querys_pb.QueryRequest, querys_pb.QueryResponse>;
   getDocumentVersion: grpc.MethodDefinition<querys_pb.GetDocumentVersionRequest, querys_pb.GetDocumentVersionResponse>;
   aggregate: grpc.MethodDefinition<querys_pb.AggregateRequest, querys_pb.AggregateResponse>;
@@ -42,6 +43,7 @@ interface IFlowServiceService extends grpc.ServiceDefinition<grpc.UntypedService
   popWorkitem: grpc.MethodDefinition<workitems_pb.PopWorkitemRequest, workitems_pb.PopWorkitemResponse>;
   deleteWorkitem: grpc.MethodDefinition<workitems_pb.DeleteWorkitemRequest, workitems_pb.DeleteWorkitemResponse>;
   addWorkItemQueue: grpc.MethodDefinition<workitems_pb.AddWorkItemQueueRequest, workitems_pb.AddWorkItemQueueResponse>;
+  ensureCustomer: grpc.MethodDefinition<base_pb.EnsureCustomerRequest, base_pb.EnsureCustomerResponse>;
 }
 
 export const FlowServiceService: IFlowServiceService;
@@ -54,6 +56,7 @@ export interface IFlowServiceServer extends grpc.UntypedServiceImplementation {
   customCommand: grpc.handleUnaryCall<base_pb.CustomCommandRequest, base_pb.CustomCommandResponse>;
   listCollections: grpc.handleUnaryCall<querys_pb.ListCollectionsRequest, querys_pb.ListCollectionsResponse>;
   dropCollection: grpc.handleUnaryCall<querys_pb.DropCollectionRequest, querys_pb.DropCollectionResponse>;
+  createCollection: grpc.handleUnaryCall<querys_pb.CreateCollectionRequest, querys_pb.CreateCollectionResponse>;
   query: grpc.handleUnaryCall<querys_pb.QueryRequest, querys_pb.QueryResponse>;
   getDocumentVersion: grpc.handleUnaryCall<querys_pb.GetDocumentVersionRequest, querys_pb.GetDocumentVersionResponse>;
   aggregate: grpc.handleUnaryCall<querys_pb.AggregateRequest, querys_pb.AggregateResponse>;
@@ -78,6 +81,7 @@ export interface IFlowServiceServer extends grpc.UntypedServiceImplementation {
   popWorkitem: grpc.handleUnaryCall<workitems_pb.PopWorkitemRequest, workitems_pb.PopWorkitemResponse>;
   deleteWorkitem: grpc.handleUnaryCall<workitems_pb.DeleteWorkitemRequest, workitems_pb.DeleteWorkitemResponse>;
   addWorkItemQueue: grpc.handleUnaryCall<workitems_pb.AddWorkItemQueueRequest, workitems_pb.AddWorkItemQueueResponse>;
+  ensureCustomer: grpc.handleUnaryCall<base_pb.EnsureCustomerRequest, base_pb.EnsureCustomerResponse>;
 }
 
 export class FlowServiceClient extends grpc.Client {
@@ -102,6 +106,9 @@ export class FlowServiceClient extends grpc.Client {
   dropCollection(argument: querys_pb.DropCollectionRequest, callback: grpc.requestCallback<querys_pb.DropCollectionResponse>): grpc.ClientUnaryCall;
   dropCollection(argument: querys_pb.DropCollectionRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<querys_pb.DropCollectionResponse>): grpc.ClientUnaryCall;
   dropCollection(argument: querys_pb.DropCollectionRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<querys_pb.DropCollectionResponse>): grpc.ClientUnaryCall;
+  createCollection(argument: querys_pb.CreateCollectionRequest, callback: grpc.requestCallback<querys_pb.CreateCollectionResponse>): grpc.ClientUnaryCall;
+  createCollection(argument: querys_pb.CreateCollectionRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<querys_pb.CreateCollectionResponse>): grpc.ClientUnaryCall;
+  createCollection(argument: querys_pb.CreateCollectionRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<querys_pb.CreateCollectionResponse>): grpc.ClientUnaryCall;
   query(argument: querys_pb.QueryRequest, callback: grpc.requestCallback<querys_pb.QueryResponse>): grpc.ClientUnaryCall;
   query(argument: querys_pb.QueryRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<querys_pb.QueryResponse>): grpc.ClientUnaryCall;
   query(argument: querys_pb.QueryRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<querys_pb.QueryResponse>): grpc.ClientUnaryCall;
@@ -174,4 +181,7 @@ export class FlowServiceClient extends grpc.Client {
   addWorkItemQueue(argument: workitems_pb.AddWorkItemQueueRequest, callback: grpc.requestCallback<workitems_pb.AddWorkItemQueueResponse>): grpc.ClientUnaryCall;
   addWorkItemQueue(argument: workitems_pb.AddWorkItemQueueRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<workitems_pb.AddWorkItemQueueResponse>): grpc.ClientUnaryCall;
   addWorkItemQueue(argument: workitems_pb.AddWorkItemQueueRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<workitems_pb.AddWorkItemQueueResponse>): grpc.ClientUnaryCall;
+  ensureCustomer(argument: base_pb.EnsureCustomerRequest, callback: grpc.requestCallback<base_pb.EnsureCustomerResponse>): grpc.ClientUnaryCall;
+  ensureCustomer(argument: base_pb.EnsureCustomerRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.EnsureCustomerResponse>): grpc.ClientUnaryCall;
+  ensureCustomer(argument: base_pb.EnsureCustomerRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.EnsureCustomerResponse>): grpc.ClientUnaryCall;
 }
