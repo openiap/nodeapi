@@ -235,7 +235,7 @@ async function main() {
         }
         await c.CreateCollection({ collectionname: "testcollection", timeseries: { timeField: "timestamp", metaField: "metadata" } } )
       } else if (str == "ec") {
-        var ensureresult = await c.EnsureCustomer({ customer: Customer.create({ name: "testcustomer" }) })
+        var ensureresult = await c.EnsureCustomer({ customer: Customer.create({ name: "testcustomer" }), ensureas: "641f36c88ecd2bbbbd3a52b3" })
         console.log(ensureresult);  
 
       } else if (str == "c") {
