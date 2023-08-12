@@ -45,7 +45,8 @@ export class protowrap {
         pings to be sent even if there are no calls in flight.
     For more details, check: https://github.com/grpc/grpc/blob/master/doc/keepalive.md
   */
-  static grpc_server_options:grpc.ChannelOptions = {'grpc.keepalive_time_ms': 20000 * 1000,
+  static grpc_server_options:grpc.ChannelOptions = {
+  'grpc.keepalive_time_ms': 20000 * 1000,
   'grpc.keepalive_timeout_ms': 1000,
   'grpc.http2.min_ping_interval_without_data_ms': 5000,
   'grpc.max_connection_idle_ms': 71992547,
