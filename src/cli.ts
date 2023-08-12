@@ -271,7 +271,8 @@ async function main() {
         files: [{ _id:"", filename, compressed: true, file: pako.deflate(fs.readFileSync(filepath, null)) }]});
         items.push(wi1)
         items.push(wi2)
-        await c.PushWorkitems({ items, wiq: "q2"})
+        var results = await c.PushWorkitems({ items, wiq: "q2"})
+        console.log(results);
       } else if (str == "push") {
         let filepath = nextfilename();
         let filename = path.basename(filepath);
