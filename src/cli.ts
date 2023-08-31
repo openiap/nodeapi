@@ -109,7 +109,7 @@ async function main() {
         await c.PushWorkitem({wiq: "ExampleQueue", payload: {name: "test", state: "new"}});
         console.log(data2);
       } else if (str == "n") {
-        var data = await c.QueueMessage({ queuename: "findme555", data: {"text": "Hej smukke"}, striptoken: true}, true);
+        var data = await c.QueueMessage({ expiration: 10, queuename: "findme555", data: {"text": "Hej smukke"}, striptoken: true}, true);
         console.log("QueueMessage REPLY", data);
       } else if (str == "nn") {
         var data2 = await c.RegisterQueue({queuename: "findme555"}, async (msg, payload, user, jwt)=> {

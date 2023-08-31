@@ -117,6 +117,9 @@ export class QueueMessageRequest extends jspb.Message {
   getStriptoken(): boolean;
   setStriptoken(value: boolean): void;
 
+  getExpiration(): number;
+  setExpiration(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueueMessageRequest.AsObject;
   static toObject(includeInstance: boolean, msg: QueueMessageRequest): QueueMessageRequest.AsObject;
@@ -136,6 +139,7 @@ export namespace QueueMessageRequest {
     exchangename: string,
     data: string,
     striptoken: boolean,
+    expiration: number,
   }
 }
 
