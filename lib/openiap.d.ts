@@ -215,22 +215,26 @@ export declare class openiap extends EventEmitter {
     /**
      * Returns a list of all known collections. By default filtering out history collectins.
      * @param options {@link ListCollectionsOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns
      */
     ListCollections(options?: ListCollectionsOptions, priority?: number): Promise<any[]>;
     /**
      * Drop a collection removing all data from the collection. Only users with admin rights can drop collections.
      * @param options {@link DropCollectionOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     DropCollection(options: DropCollectionOptions, priority?: number): Promise<void>;
     /**
      * Create a collection removing all data from the collection. Only users with admin rights can Create collections.
      * @param options {@link CreateCollectionOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     CreateCollection(options: CreateCollectionOptions, priority?: number): Promise<void>;
     /**
      * Query a collection for data
      * @param options {@link QueryOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns an array of documents matching the query
      * @example
      * Get all documents with type "test" from entities collection
@@ -252,6 +256,7 @@ export declare class openiap extends EventEmitter {
     /**
      * Query a collection for data and return the first document
      * @param options {@link FindOneOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns a document matching the query
      * @example
      * Get the first document with type "test" from entities collection
@@ -275,6 +280,7 @@ export declare class openiap extends EventEmitter {
      * This function will try and reconstruct the document at it was at a given version.
      * This can be used to restore data to a previous state or even restore deleted data.
      * @param options {@link GetDocumentVersionOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns The reconstructed document
      * @example
      * Get the document with id "643917fb153b7c2c1466fb21" from entities collection at version 1
@@ -287,6 +293,7 @@ export declare class openiap extends EventEmitter {
      * Getting the count of documents in a collection can be done using this function.
      * Leave query empty to get the total count of documents in the collection.
      * @param options {@link CountOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns The number of documents matching the query
      * @example
      * Get the count of documents with type "test" from entities collection
@@ -304,6 +311,7 @@ export declare class openiap extends EventEmitter {
      * Run an mongodb aggregation pipeline toward the OpenIAP flow database.
      * See https://docs.mongodb.com/manual/aggregation/ for more information
      * @param options {@link AggregateOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns An array of documents matching the aggregation pipeline
      * @see https://docs.mongodb.com/manual/aggregation/
      * @example
@@ -316,6 +324,7 @@ export declare class openiap extends EventEmitter {
     /**
      * Insert a document into a collection
      * @param options {@link InsertOneOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns The object that was created, including the _id field
      * @example
      * Insert a document with type "test" into entities collection
@@ -327,6 +336,7 @@ export declare class openiap extends EventEmitter {
     /**
      * Bulk insert multiple documents into a collection, this is faster than using InsertOne multiple times.
      * @param options {@link InsertManyOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns When skipresults is false, will return an array of the documents that was created, including the _id field
      * @example
      * Insert multiple documents with type "test" into entities collection
@@ -340,6 +350,7 @@ export declare class openiap extends EventEmitter {
      * Any fields that starts with underscoore will be preserved. This is to prevent the system from overwriting fields that are used by the system.
      * So if you update a document but leave out any of the existing _ fields, they will be added back to the document.
      * @param options {@link UpdateOneOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns Returns the document that was updated
      * @example
      * Update a document with type "test" in entities collection
@@ -356,6 +367,7 @@ export declare class openiap extends EventEmitter {
      * Run an update command on a collection, to update one or more documents matching a query.
      * See https://docs.mongodb.com/manual/reference/operator/update/ for more information on the update operators.
      * @param options {@link UpdateDocumentOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns An object with update statistics see {@link UpdateResult}
      * @see https://docs.mongodb.com/manual/reference/operator/update/
      * @example
@@ -370,6 +382,7 @@ export declare class openiap extends EventEmitter {
      * Will match a document in a collection on the uniqeness parameters ( _id if left out ) and update it if it exists, or insert it if it does not exist.
      * Will trhow an error if more than one document exists that matches the uniqeness parameters.
      * @param options {@link InsertOrUpdateOneOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns The updated or inserted document including the _id field
      * @example
      * Insert or update a document with invoiceid "1234" in entities collection
@@ -388,6 +401,7 @@ export declare class openiap extends EventEmitter {
      * Will trhow an error if more than one document exists that matches the uniqeness parameters.
      * This will use bulk operations to speed up the process.
      * @param options {@link InsertOrUpdateManyOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns  The updated or inserted documents including the _id field
      * @example
      * Insert or update multiple invoice documents in entities collection
@@ -410,6 +424,7 @@ export declare class openiap extends EventEmitter {
      * if recursive is set to true, all asssoicated documents will be deleted as well.
      * Currently only user and customer objects in the "users" collection are supported for recursive deletion.
      * @param options {@link DeleteOneOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns Number of deleted documents (will always be 1)
      * @example
      * Delete a document with id "643917fb153b7c2c1466fb21" in entities collection
@@ -423,6 +438,7 @@ export declare class openiap extends EventEmitter {
      * Delete many documents from a collection based on a query.
      * Will return 0 if no documents are deleted.
      * @param options {@link DeleteManyOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns The number of deleted documents
      * @example
      * Delete all documents with name "find me" in entities collection
@@ -442,6 +458,7 @@ export declare class openiap extends EventEmitter {
      * The callback will be called for each document that matches the paths when ever it is inserted, updated or deleted from the database
      * This uses streams to notify client about changes, and is therefore not supported using REST interface.
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @param callback
      * @returns server id assigned to the watch. Used with {@link UnWatch} to stop receiving notifications from the watch.
      * @example
@@ -453,6 +470,7 @@ export declare class openiap extends EventEmitter {
     /**
      * Unregister a change stream ( watch ) created with {@link Watch } to stop receiving notifications from the watch.
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     UnWatch(options: UnWatchOptions, priority?: number): Promise<void>;
     /**
@@ -509,6 +527,7 @@ export declare class openiap extends EventEmitter {
      * Register an exchange and a message queue and consume it. Exchange's are registered in the mq collection.
      * This uses streams to notify client about messages, and is therefore not supported using REST interface.
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @param callback
      * @returns Returns the queue name, used to consume the exchange. Use this when unregistering the exchange with {@link UnRegisterQueue }
      * @see {@link QueueMessage}
@@ -525,6 +544,7 @@ export declare class openiap extends EventEmitter {
     /**
      * Tell server to close queue and stop receving message from the queue ( or queue consuming an exchange )
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @see {@link RegisterQueue}
      * @see {@link RegisterExchange}
      * @example
@@ -542,6 +562,7 @@ export declare class openiap extends EventEmitter {
      * Send message to queue or exchange. If recevied sends a reply back, set rpc = true to recevied response as return value.
      * Be aware, right now there is no timeout on the wait, so if recevier never sends a reply it will hang for ever
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @param rpc
      * @returns If rpc is trye, will return the reply from the queue. If rpc is false, will return null when server has received the message
      * @see {@link RegisterQueue}
@@ -562,6 +583,7 @@ export declare class openiap extends EventEmitter {
     /**
      * Push a workitem to a workqueue. Workitem can be processed by a worker after calling {@link PopWorkitem}
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns Returns the workitem that was pushed, including the workitem id
      * @see {@link PopWorkitem}
      * @see {@link PushWorkitems}
@@ -589,6 +611,7 @@ export declare class openiap extends EventEmitter {
     /**
      * Push multiple workitems to a workqueue. Workitems can be processed by a worker after calling {@link PopWorkitem}
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns an array of workitems that was pushed, including the workitem id's
      */
     PushWorkitems(options: PushWorkitemsOptions, priority?: number): Promise<Workitem[]>;
@@ -596,6 +619,7 @@ export declare class openiap extends EventEmitter {
      * Pop an item of a workitem queue. An items aviailable in the queue will be determined by it's status, retry time and runat time steamp.
      * If multiple items are available, the items will be fatched based on each wrkitem's priority field.
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns If no workitem is available, this will return null.
      */
     PopWorkitem(options: PopWorkitemOptions, priority?: number): Promise<Workitem | undefined>;
@@ -603,6 +627,7 @@ export declare class openiap extends EventEmitter {
      * Update an existing workitem. Workitem can be fetched using {@link PopWorkitem}. Use this to update the status of a workitem.
      * You can also update the payload, and update or add files to the workitem.
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns Returns the updated workitem
      * @see {@link PopWorkitem}
      * @example
@@ -622,6 +647,7 @@ export declare class openiap extends EventEmitter {
     /**
      * Delete one workitem and all associated files from a workitem queue.
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @example
      * Delete a workitem
      * ```typescript
@@ -633,18 +659,21 @@ export declare class openiap extends EventEmitter {
      * Run custom commands not defined in the protocol yet.
      * This is how new functioanlly is added and tested, before it is finally added to the offical proto3 protocol.
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns If command has a result, this will be returned as a string. This will most likely need to be parser as JSON
      */
     CustomCommand<T>(options: CustomCommandOptions, priority?: number): Promise<string>;
     /**
      * Old command used by nodered "Workflow in" and "assign" nodes for creating a new workflow instance.
      * @param options
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns
      */
     CreateWorkflowInstance(options: CreateWorkflowInstanceOptions, priority?: number): Promise<string>;
     /**
      * Create a collection removing all data from the collection. Only users with admin rights can Create collections.
      * @param options {@link EnsureCustomerOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     EnsureCustomer(options: EnsureCustomerOptions, priority?: number): Promise<void>;
 }
@@ -837,6 +866,7 @@ export type QueueMessageOptions = {
     exchangename?: string;
     data: object;
     striptoken?: boolean;
+    expiration?: number;
     jwt?: string;
 };
 export type PushWorkitemOptions = {
