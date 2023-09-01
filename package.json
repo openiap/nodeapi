@@ -1,6 +1,6 @@
 {
   "name": "@openiap/nodeapi",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -31,6 +31,7 @@
   "funding": "https://github.com/sponsors/skadefro",
   "dependencies": {
     "@grpc/grpc-js": "^1.8.8",
+    "@opentelemetry/api": "^1.4.1",
     "adm-zip": "^0.5.10",
     "pako": "^2.1.0",
     "protobufjs": "^7.1.2",

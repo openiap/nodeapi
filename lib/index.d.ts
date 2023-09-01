@@ -22,3 +22,4 @@ export { config } from "./config";
 export { AggregateOptions, CountOptions, CreateWorkflowInstanceOptions, CustomCommandOptions, DeleteManyOptions, DeleteOneOptions, DeleteWorkitemOptions, DownloadFileOptions, DropCollectionOptions, FindOneOptions, GetDocumentVersionOptions, InsertManyOptions, InsertOneOptions, InsertOrUpdateManyOptions, InsertOrUpdateOneOptions, ListCollectionsOptions, PopWorkitemOptions, PushWorkitemOptions, PushWorkitemsOptions, QueryOptions, QueueMessageOptions, RegisterExchangeOptions, RegisterQueueOptions, SigninOptions, UnRegisterQueueOptions, UnWatchOptions, UpdateDocumentOptions, UpdateOneOptions, UpdateWorkitemOptions, UploadFileOptions, WatchOptions } from "./openiap";
 export { iclient, clientAgent, clientType, changestream } from "./client";
 export { Stat } from "./proto/base";
+export { apiinstrumentation } from "./apiinstrumentation";

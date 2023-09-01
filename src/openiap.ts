@@ -10,6 +10,8 @@ import { AggregateRequest, AggregateResponse, CountRequest, CountResponse, Delet
 import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from "./proto/queues";
 import { CreateCollectionRequest } from "./proto/querys";
 import { StripeCustomer } from "./proto/stripe";
+import { apiinstrumentation } from "./apiinstrumentation";
+import { context } from "@opentelemetry/api";
 
 /**
  * OpenIAP
@@ -362,8 +364,16 @@ export class openiap extends EventEmitter {
             delete data.__jwt;
             we.data = JSON.stringify(data);
             if(this.queuecallbacks[we.correlationId] && (we.replyto == "" || we.replyto == null)) {
-                this.queuecallbacks[we.correlationId](data, user);
-                delete this.queuecallbacks[we.correlationId];
+                await apiinstrumentation.With("queueevent", message.traceid, message.spanid, undefined, async (span)=> {
+                    if (config.doDumpRPCTraceIds) {
+                        let ctx = span?.spanContext();
+                        if (ctx != null) {
+                            info("cliOnMessage: " + message.command + " traceId: " + ctx.traceId + " spanId: " + ctx.spanId);
+                        }
+                    }
+                    await this.queuecallbacks[we.correlationId](data, user);
+                    delete this.queuecallbacks[we.correlationId];
+                });
             } else if (this.queues[we.queuename]) {
                 try {
                     var reply2 = await this.queues[we.queuename](we, data, user, jwt);

@@ -29,3 +29,4 @@ export { AggregateOptions, CountOptions, CreateWorkflowInstanceOptions, CustomCo
 
 export { iclient, clientAgent, clientType, changestream } from "./client";
 export { Stat } from "./proto/base";
+export { apiinstrumentation  } from "./apiinstrumentation";

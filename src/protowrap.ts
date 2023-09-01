@@ -24,6 +24,8 @@ import { client, clientType, iclient } from "./client";
 import { Any } from "./proto/google/protobuf/any";
 import { Envelope, ErrorResponse, DownloadRequest, DownloadResponse, UploadRequest, UploadResponse, BeginStream, Stream } from "./proto/base";
 
+import opentelemetry, { ROOT_CONTEXT, trace, context } from '@opentelemetry/api';
+
 export class protowrap {
   /*
   // https://github.com/grpc/grpc/blob/117457a76780e49b599b393b471feee894ced4a8/examples/python/keep_alive/greeter_server.py
@@ -325,7 +327,15 @@ export class protowrap {
       const command = payload.command;
       var _payload = { ...payload };
       delete _payload.id;
-      client.replies[id] = { resolve, reject, dt, command };
+      let ctx = trace.getSpan(context.active())?.spanContext();
+      if(ctx != null) {
+        if(_payload.traceid == null || _payload.traceid == "") _payload.traceid = ctx.traceId;
+        if(_payload.spanid == null || _payload.spanid == "") _payload.spanid = ctx.spanId;
+      }      
+      if(config.doDumpRPCTraceIds && _payload.traceid != null && _payload.traceid != "") {
+        info("RPC: " + command + " traceId: " + _payload.traceid + " spanId: " + _payload.spanid);
+      }
+    client.replies[id] = { resolve, reject, dt, command };
       this.sendMesssag(client, { id, ..._payload }, id, true);
     });
     return [id, promise];

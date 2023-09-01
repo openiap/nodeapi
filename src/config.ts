@@ -16,6 +16,7 @@ export class config {
   public static doDumpMessageHexBytesPerLine:number = 16 * 2;
   public static DoDumpToConsole:boolean = false;
   public static doDumpToFile:boolean = false;
+  public static doDumpRPCTraceIds:boolean = false;
   public static defaultsocketport:number = 8080;
   public static defaultwebport:number = 8080;
   public static defaultgrpcport:number = 50051; // 50051;

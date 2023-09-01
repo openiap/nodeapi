@@ -15,6 +15,7 @@ export declare class config {
     static doDumpMessageHexBytesPerLine: number;
     static DoDumpToConsole: boolean;
     static doDumpToFile: boolean;
+    static doDumpRPCTraceIds: boolean;
     static defaultsocketport: number;
     static defaultwebport: number;
     static defaultgrpcport: number;
