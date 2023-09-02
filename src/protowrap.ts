@@ -333,7 +333,7 @@ export class protowrap {
         if(_payload.spanid == null || _payload.spanid == "") _payload.spanid = ctx.spanId;
       }      
       if(config.doDumpRPCTraceIds && _payload.traceid != null && _payload.traceid != "") {
-        info("RPC: " + command + " traceId: " + _payload.traceid + " spanId: " + _payload.spanid);
+        // info("RPC: " + command + " traceId: " + _payload.traceid + " spanId: " + _payload.spanid);
       }
     client.replies[id] = { resolve, reject, dt, command };
       this.sendMesssag(client, { id, ..._payload }, id, true);
@@ -1107,7 +1107,7 @@ export class protowrap {
     } else if (protocol == "grpc") {
       //const SetupStream = async (call, respond, e3) => {
       const SetupStream = async (call: any, respond:any) => {
-        info("New streaming grpc client connected");
+        // info("New streaming grpc client connected");
         var clientresult: client = new clientConstructor();
         clientresult.id = Math.random().toString(36).substring(2, 11);
         clientresult.protocol = protocol; clientresult.connected = true;

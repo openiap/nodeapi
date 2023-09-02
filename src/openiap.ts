@@ -368,7 +368,7 @@ export class openiap extends EventEmitter {
                     if (config.doDumpRPCTraceIds) {
                         let ctx = span?.spanContext();
                         if (ctx != null) {
-                            info("cliOnMessage: " + message.command + " traceId: " + ctx.traceId + " spanId: " + ctx.spanId);
+                            // info("cliOnMessage: " + message.command + " traceId: " + ctx.traceId + " spanId: " + ctx.spanId);
                         }
                     }
                     await this.queuecallbacks[we.correlationId](data, user);
@@ -445,7 +445,7 @@ export class openiap extends EventEmitter {
             throw new Error("Login seem to have failed, nu user object returned");            
         }
         if(options.validateonly) {
-            info("Validated " + result.user.name);
+            // info("Validated " + result.user.name);
             return result;
         }
         info("Signed in as " +result.user.name);
