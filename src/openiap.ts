@@ -150,7 +150,7 @@ export class openiap extends EventEmitter {
             if(u.protocol == "grpc:") {
                 await protowrap.init()
             }
-            if (this.loginresolve == null) {
+            if (this.loginresolve == null && first == true) {
                 this.loginresolve = resolve;
                 this.loginreject = reject;
             }
@@ -305,7 +305,8 @@ export class openiap extends EventEmitter {
             var message: string = (error.message || error as any);
             try {
                 if (message && !message.startsWith("Disconnected from server")) {
-                    err(new Error("Disconnected from server " + message));
+                    // err(new Error("Disconnected from server " + message));
+                    err("Disconnected from server " + message);
                 }
             } catch (_error) {
                 err(error);
@@ -319,7 +320,10 @@ export class openiap extends EventEmitter {
             err(error)
         }
         this.emit("disconnected", this, error)
-        this.connect(false);
+        try {
+            this.connect(false);
+        } catch (error) {            
+        }
     }
     /**
      * Used to generate a unique identifier, used for example when creating new packages.
@@ -395,6 +399,7 @@ export class openiap extends EventEmitter {
      * Only used if server require pings, or if the client is configured to send pings using {@link config.DoPing}
      */
     async Ping(): Promise<void> {
+        if(!this.connected || !this.signedin) return;
         let message = PingRequest.create();
         const data = Any.create({type_url : "type.googleapis.com/openiap.PingRequest", value: PingRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "ping", data });
@@ -428,6 +433,7 @@ export class openiap extends EventEmitter {
      * @returns 
      */    
     async Signin(options: SigninOptions): Promise<SigninResponse> {
+        if(!this.connected) throw new Error("Not connected to server");
         const opt: SigninOptions = Object.assign(new SigninDefaults(), options)
         if(opt.agent == null || opt.agent == "") opt.agent = this.agent;
         if(opt.version == null || opt.version == "") opt.version = this.version;
@@ -462,6 +468,8 @@ export class openiap extends EventEmitter {
      * @returns 
      */
     async ListCollections(options: ListCollectionsOptions = {}, priority: number = 2): Promise<any[]> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: ListCollectionsOptions = Object.assign(new ListCollectionsDefaults(), options)
         let message = ListCollectionsRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.ListCollectionsRequest", "value": ListCollectionsRequest.encode(message).finish()})
@@ -476,6 +484,8 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     async DropCollection(options: DropCollectionOptions, priority: number = 2): Promise<void> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: DropCollectionOptions = Object.assign(new DropCollectionDefaults(), options)
         let message = DropCollectionRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.DropCollectionRequest", "value": DropCollectionRequest.encode(message).finish()})
@@ -489,6 +499,8 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     async CreateCollection(options: CreateCollectionOptions, priority: number = 2): Promise<void> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: CreateCollectionOptions = Object.assign(new CreateCollectionDefaults(), options)
         let message = CreateCollectionRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.CreateCollectionRequest", "value": CreateCollectionRequest.encode(message).finish()})
@@ -518,6 +530,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async Query<T>(options: QueryOptions, priority: number = 2): Promise<T[]> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: QueryOptions = Object.assign(new QueryDefaults(), options)
         let message = QueryRequest.create(opt as any);
         if (typeof message.query == "object") message.query = this.stringify(message.query);
@@ -551,6 +565,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async FindOne<T>(options: FindOneOptions, priority: number = 2): Promise<T> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: FindOneOptions = Object.assign(new FindOneDefaults(), options)
         let message = QueryRequest.create(opt as any);
         message.top = 1;
@@ -581,6 +597,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async GetDocumentVersion<T>(options: GetDocumentVersionOptions, priority: number = 2): Promise<T[]> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: GetDocumentVersionOptions = Object.assign(new GetDocumentVersionDefaults(), options)
         let message = GetDocumentVersionRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.GetDocumentVersionRequest", "value": GetDocumentVersionRequest.encode(message).finish()})
@@ -607,6 +625,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async Count(options: CountOptions, priority: number = 2): Promise<number> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: CountOptions = Object.assign(new CountDefaults(), options)
         let message = CountRequest.create(opt as any);
         if (typeof message.query == "object") message.query = this.stringify(message.query);
@@ -630,6 +650,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async Aggregate<T>(options: AggregateOptions, priority: number = 2): Promise<T[]> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: AggregateOptions = Object.assign(new AggregateDefaults(), options)
         let message = AggregateRequest.create(opt as any);
         if (typeof message.aggregates == "object") message.aggregates = this.stringify(message.aggregates);
@@ -651,6 +673,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async InsertOne<T>(options: InsertOneOptions, priority: number = 2): Promise<T> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertOneOptions = Object.assign(new InsertOneDefaults(), options)
         let message = InsertOneRequest.create(opt as any);
         if (typeof message.item == "object") message.item = JSON.stringify(message.item);
@@ -672,6 +696,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async InsertMany<T>(options: InsertManyOptions, priority: number = 2): Promise<T[]> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertManyOptions = Object.assign(new InsertManyDefaults(), options)
         let message = InsertManyRequest.create(opt as any);
         if (typeof message.items == "object") message.items = JSON.stringify(message.items);
@@ -699,6 +725,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async UpdateOne<T>(options: UpdateOneOptions, priority: number = 2): Promise<T> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: UpdateOneOptions = Object.assign(new UpdateOneDefaults(), options)
         let message = UpdateOneRequest.create(opt as any);
         if (typeof message.item == "object") message.item = JSON.stringify(message.item);
@@ -723,6 +751,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async UpdateDocument(options: UpdateDocumentOptions, priority: number = 2): Promise<UpdateResult> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: UpdateDocumentOptions = Object.assign(new UpdateDocumentDefaults(), options)
         let message = UpdateDocumentRequest.create(opt as any);
         if (typeof message.document == "object") message.document = this.stringify(message.document);
@@ -751,6 +781,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async InsertOrUpdateOne<T>(options: InsertOrUpdateOneOptions, priority: number = 2): Promise<T> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertOrUpdateOneOptions = Object.assign(new InsertOrUpdateOneDefaults(), options)
         let message = InsertOrUpdateOneRequest.create(opt as any);
         if (typeof message.item == "object") message.item = JSON.stringify(message.item);
@@ -782,6 +814,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async InsertOrUpdateMany<T>(options: InsertOrUpdateManyOptions, priority: number = 2): Promise<T[]> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertOrUpdateManyOptions = Object.assign(new InsertOrUpdateManyDefaults(), options)
         let message = InsertOrUpdateManyRequest.create(opt as any);
         if (typeof message.items == "object") message.items = JSON.stringify(message.items);
@@ -807,6 +841,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async DeleteOne(options: DeleteOneOptions, priority: number = 2): Promise<number> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteOneOptions = Object.assign(new DeleteOneDefaults(), options)
         let message = DeleteOneRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.DeleteOneRequest", "value": DeleteOneRequest.encode(message).finish()})
@@ -834,6 +870,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async DeleteMany(options: DeleteManyOptions, priority: number = 2): Promise<number> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteManyOptions = Object.assign(new DeleteManyDefaults(), options)
         let message = DeleteManyRequest.create(opt as any);
         if (typeof message.query == "object") message.query = this.stringify(message.query);
@@ -858,6 +896,8 @@ export class openiap extends EventEmitter {
      */
     async Watch(options: WatchOptions, callback: (operation: string, document: any)=> void, priority: number = 2): Promise<string> {
         if (!callback) return "";
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: WatchOptions = Object.assign(new WatchDefaults(), options)
         if(opt.paths) {
             if(Array.isArray(opt.paths)) {
@@ -883,6 +923,8 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     async UnWatch(options: UnWatchOptions, priority: number = 2): Promise<void> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: UnWatchOptions = Object.assign(new UnWatchDefaults(), options)
         delete this.watchids[opt.id];
         let message = UnWatchRequest.create(opt as any);
@@ -910,6 +952,8 @@ export class openiap extends EventEmitter {
      * @returns 
      */
     async DownloadFile(options: DownloadFileOptions): Promise<DownloadResponse> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: DownloadFileOptions = Object.assign(new DownloadFileDefaults(), options)
         return await protowrap.DownloadFile(this.client, opt.id, opt.filename, opt.folder, config.SendFileHighWaterMark);
     }
@@ -928,6 +972,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async UploadFile(options: UploadFileOptions): Promise<UploadResponse> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: UploadFileOptions = Object.assign(new UploadFileDefaults(), options)
         const result:Envelope = await protowrap.UploadFile(this.client, opt.filename, opt.jwt) as any;
         var res = UploadResponse.decode(result.data.value);
@@ -956,6 +1002,8 @@ export class openiap extends EventEmitter {
      */
     async RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt:string)=> any, priority: number = 2 ): Promise<string> {
         if (!callback) return "";
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: RegisterQueueOptions = Object.assign(new RegisterQueueDefaults(), options)
         let message = RegisterQueueRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.RegisterQueueRequest", "value": RegisterQueueRequest.encode(message).finish()})
@@ -989,6 +1037,8 @@ export class openiap extends EventEmitter {
      */
     async RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt:string)=> any, priority: number = 2): Promise<string> {
         if (!callback) return "";
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: RegisterExchangeOptions = Object.assign(new RegisterExchangeDefaults(), options)
         let message = RegisterExchangeRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.RegisterExchangeRequest", "value": RegisterExchangeRequest.encode(message).finish()})
@@ -1017,6 +1067,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async UnRegisterQueue(options: UnRegisterQueueOptions, priority: number = 2): Promise<void> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: UnRegisterQueueOptions = Object.assign(new UnRegisterQueueDefaults(), options)
         let message = UnRegisterQueueRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.UnRegisterQueueRequest", "value": UnRegisterQueueRequest.encode(message).finish()})
@@ -1048,6 +1100,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async QueueMessage(options: QueueMessageOptions, rpc: boolean = false, priority: number = 2) {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         return new Promise<any>(async (resolve, reject)=> {
             try {
                 const opt: QueueMessageOptions = Object.assign(new QueueMessageDefaults(), options)
@@ -1110,6 +1164,8 @@ export class openiap extends EventEmitter {
      * console.log("Pushed workitem with id " + workitem._id);
      */
     async PushWorkitem(options: PushWorkitemOptions, priority: number = 2): Promise<Workitem> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: PushWorkitemOptions = Object.assign(new PushWorkitemDefaults(), options)
         if(typeof opt.payload !== 'string') opt.payload = JSON.stringify(opt.payload);
         let message = PushWorkitemRequest.create(opt as any);
@@ -1134,6 +1190,8 @@ export class openiap extends EventEmitter {
      * @returns an array of workitems that was pushed, including the workitem id's
      */
     async PushWorkitems(options: PushWorkitemsOptions, priority: number = 2): Promise<Workitem[]> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: PushWorkitemsOptions = Object.assign(new PushWorkitemsDefaults(), options)
         opt.items.forEach(wi => {
             if(typeof wi.payload !== 'string') wi.payload = JSON.stringify(wi.payload);
@@ -1167,6 +1225,8 @@ export class openiap extends EventEmitter {
      * @returns If no workitem is available, this will return null. 
      */
     async PopWorkitem(options: PopWorkitemOptions, priority: number = 2): Promise<Workitem | undefined> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: PopWorkitemOptions = Object.assign(new PopWorkitemDefaults(), options)
         let message = PopWorkitemRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.PopWorkitemRequest", "value": PopWorkitemRequest.encode(message).finish()})
@@ -1204,6 +1264,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async UpdateWorkitem(options: UpdateWorkitemOptions, priority: number = 2): Promise<Workitem> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: UpdateWorkitemOptions = Object.assign(new UpdateWorkitemDefaults(), options)
         if(typeof opt.workitem.payload !== 'string') opt.workitem.payload = JSON.stringify(opt.workitem.payload);
         let message = UpdateWorkitemRequest.create(opt as any);
@@ -1232,6 +1294,8 @@ export class openiap extends EventEmitter {
      * ```
      */
     async DeleteWorkitem(options: DeleteWorkitemOptions, priority: number = 2): Promise<void> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteWorkitemOptions = Object.assign(new DeleteWorkitemDefaults(), options)
         let message = DeleteWorkitemRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.DeleteWorkitemRequest", "value": DeleteWorkitemRequest.encode(message).finish()})
@@ -1247,6 +1311,8 @@ export class openiap extends EventEmitter {
      * @returns If command has a result, this will be returned as a string. This will most likely need to be parser as JSON
      */
     async CustomCommand<T>(options: CustomCommandOptions, priority: number = 2): Promise<string> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: CustomCommandOptions = Object.assign(new CustomCommandDefaults(), options)
         if(opt.data != null && typeof opt.data !== "string") opt.data = JSON.stringify(opt.data)
         let message = CustomCommandRequest.create(opt as any);
@@ -1263,6 +1329,8 @@ export class openiap extends EventEmitter {
      * @returns 
      */
     async CreateWorkflowInstance(options: CreateWorkflowInstanceOptions, priority: number = 2): Promise<string> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: CreateWorkflowInstanceOptions = Object.assign(new CreateWorkflowInstanceDefaults(), options)
         if(opt.data != null && typeof opt.data !== "string") opt.data = JSON.stringify(opt.data)
         let message = CreateWorkflowInstanceRequest.create(opt as any);
@@ -1278,6 +1346,8 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     async EnsureCustomer(options: EnsureCustomerOptions, priority: number = 2): Promise<void> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
         const opt: EnsureCustomerOptions = Object.assign(new EnsureCustomerDefaults(), options)
         let message = EnsureCustomerRequest.create(opt as any);
         const data = Any.create({type_url: "type.googleapis.com/openiap.EnsureCustomerRequest", "value": EnsureCustomerRequest.encode(message).finish()})

@@ -1,5 +1,5 @@
 import { config } from "./config";
-const { info, err, warn }  = config;
+const { info, err, warn } = config;
 
 import { messageParser } from "./message-parser";
 // import { messageParser } from "./message-parser.buffer.concat";
@@ -47,17 +47,17 @@ export class protowrap {
         pings to be sent even if there are no calls in flight.
     For more details, check: https://github.com/grpc/grpc/blob/master/doc/keepalive.md
   */
-  static grpc_server_options:grpc.ChannelOptions = {
-  'grpc.keepalive_time_ms': 20000 * 1000,
-  'grpc.keepalive_timeout_ms': 1000,
-  'grpc.http2.min_ping_interval_without_data_ms': 5000,
-  'grpc.max_connection_idle_ms': 71992547,
-  'grpc.max_connection_age_ms': 71992547,
-  'grpc.max_connection_age_grace_ms': 71992547,
-  'grpc.http2.max_pings_without_data': 71992547,
-  'grpc.keepalive_permit_without_calls': 1,
-  'grpc.max_receive_message_length': 1024 * 1024 * 1024,
-  'grpc.max_send_message_length': 1024 * 1024 * 1024,
+  static grpc_server_options: grpc.ChannelOptions = {
+    'grpc.keepalive_time_ms': 20000 * 1000,
+    'grpc.keepalive_timeout_ms': 1000,
+    'grpc.http2.min_ping_interval_without_data_ms': 5000,
+    'grpc.max_connection_idle_ms': 71992547,
+    'grpc.max_connection_age_ms': 71992547,
+    'grpc.max_connection_age_grace_ms': 71992547,
+    'grpc.http2.max_pings_without_data': 71992547,
+    'grpc.keepalive_permit_without_calls': 1,
+    'grpc.max_receive_message_length': 1024 * 1024 * 1024,
+    'grpc.max_send_message_length': 1024 * 1024 * 1024,
   }
 
   static defaultprotocol: clientType = "pipe" // pipe, socket, ws, grpc, rest
@@ -66,7 +66,7 @@ export class protowrap {
   // static Envelope: any; // = new protobuf.Type("envelope");
   static protoRoot: any;
   static async init() {
-    var paths:string[] = [];
+    var paths: string[] = [];
     paths.push(path.join(__dirname, "../proto/base.proto"));
     paths.push(path.join(__dirname, "../proto/ace.proto"));
     paths.push(path.join(__dirname, "../proto/querys.proto"));
@@ -271,15 +271,15 @@ export class protowrap {
     }
   }
   static pack(command, payload) {
-    if (payload == null)  return null;
+    if (payload == null) return null;
     const protomsg = this.protoRoot.lookupType(this.CommandToProto(command));
-    if (protomsg == null)  return null;
+    if (protomsg == null) return null;
     if (typeof payload == "string") {
       payload = JSON.parse(payload);
     }
     var type_url = "type.googleapis.com/" + this.CommandToProto(command);
     var value = protomsg.encode(payload).finish()
-    return {type_url, value}
+    return { type_url, value }
   }
   static unpack(message: any) {
     const { command, data } = message;
@@ -292,12 +292,12 @@ export class protowrap {
       } else if (data != null) {
         try {
           if (data.type_url != null) {
-            if(data.value.data) { // REST, so json parsed buffer {type: 'Buffer', data: [...]}
+            if (data.value.data) { // REST, so json parsed buffer {type: 'Buffer', data: [...]}
               msg = protomsg.decode(data.value.data)
             } else {
               msg = protomsg.decode(data.value)
             }
-            
+
           } else {
             msg = protomsg.decode(data)
           }
@@ -328,14 +328,14 @@ export class protowrap {
       var _payload = { ...payload };
       delete _payload.id;
       let ctx = trace.getSpan(context.active())?.spanContext();
-      if(ctx != null) {
-        if(_payload.traceid == null || _payload.traceid == "") _payload.traceid = ctx.traceId;
-        if(_payload.spanid == null || _payload.spanid == "") _payload.spanid = ctx.spanId;
-      }      
-      if(config.doDumpRPCTraceIds && _payload.traceid != null && _payload.traceid != "") {
+      if (ctx != null) {
+        if (_payload.traceid == null || _payload.traceid == "") _payload.traceid = ctx.traceId;
+        if (_payload.spanid == null || _payload.spanid == "") _payload.spanid = ctx.spanId;
+      }
+      if (config.doDumpRPCTraceIds && _payload.traceid != null && _payload.traceid != "") {
         // info("RPC: " + command + " traceId: " + _payload.traceid + " spanId: " + _payload.spanid);
       }
-    client.replies[id] = { resolve, reject, dt, command };
+      client.replies[id] = { resolve, reject, dt, command };
       this.sendMesssag(client, { id, ..._payload }, id, true);
     });
     return [id, promise];
@@ -357,14 +357,14 @@ export class protowrap {
       this.sendMesssag(client, _payload, id, true);
     });
   }
-  static DownloadFile(client: client, id: string, filename: string, folder: string, highWaterMark: number | undefined):Promise<DownloadResponse> {
+  static DownloadFile(client: client, id: string, filename: string, folder: string, highWaterMark: number | undefined): Promise<DownloadResponse> {
     return new Promise<any>(async (resolve, reject) => {
       let temp: boolean = false
-      if(filename == null || filename == "") {
+      if (filename == null || filename == "") {
         temp = true
         filename = Math.random().toString(36).substring(2, 11) + ".tmp";
       }
-      if(folder != null && folder != "") {
+      if (folder != null && folder != "") {
         filename = path.join(folder, filename);
       }
       var name = filename;
@@ -397,12 +397,12 @@ export class protowrap {
         var test = await promise;
         var msg = DownloadResponse.decode(test.data.value);
         s.filename = msg.filename
-        if(temp) {
-          if(folder != null && folder != "") {
+        if (temp) {
+          if (folder != null && folder != "") {
             fs.renameSync(filename, path.join(folder, msg.filename))
           } else {
             fs.renameSync(filename, msg.filename)
-          }          
+          }
         }
         s.bytes = ws.bytesWritten;
         s.bytesWritten = ws.bytesWritten;
@@ -529,9 +529,9 @@ export class protowrap {
       client.lastheartbeat = new Date();
       client.lastheartbeatstr = client.lastheartbeat.toISOString();
       client.lastheartbeatsec = (client.lastheartbeat.getTime() / 1000).toString();
-      if(payload.command == "ping" || payload.command == "pong") {
+      if (payload.command == "ping" || payload.command == "pong") {
         return true
-      } 
+      }
       const rid = payload.rid;
       config.dumpmessage("RCV", payload);
       if (rid == null || rid == "") return false;
@@ -540,7 +540,7 @@ export class protowrap {
         if (resolve) {
           try {
             // @ts-ignore // REST HACK
-            if(payload.data && payload.data.value && payload.data.value.data) {
+            if (payload.data && payload.data.value && payload.data.value.data) {
               // @ts-ignore
               payload.data.value = payload.data.value.data;
             }
@@ -703,17 +703,17 @@ export class protowrap {
           try {
             var payload = data;
             try {
-              if(data.indexOf("{") > -1) payload = JSON.parse(data);
-            } catch (error) {            
+              if (data.indexOf("{") > -1) payload = JSON.parse(data);
+            } catch (error) {
             }
             if (payload && payload.data && payload.data.type && payload.data.type.toLowerCase() == "buffer") {
               payload.data = Buffer.from(payload.data.data);
             }
             this.IsPendingReply(client, payload);
           } catch (error) {
-            err(error);            
+            err(error);
           }
-      }).catch((error) => {
+        }).catch((error) => {
           err(error);
         });
       } else {
@@ -826,7 +826,7 @@ export class protowrap {
           }
           // this.IsPendingReply(payload);
         } catch (error) {
-          this.ClientCleanup(result, result.onDisconnected, error);  
+          this.ClientCleanup(result, result.onDisconnected, error);
         }
       }).catch((e) => {
         this.ClientCleanup(result, result.onDisconnected, e);
@@ -845,7 +845,7 @@ export class protowrap {
         let host = url.host.split(":")[0];
 
         if (url.port == "443") {
-          var options = { ...protowrap.grpc_server_options, 'grpc.ssl_target_name_override': host};
+          var options = { ...protowrap.grpc_server_options, 'grpc.ssl_target_name_override': host };
           // @ts-ignore
           result.grpc = new this.openiap_proto.FlowService(url.host, grpc.credentials.createSsl(), options);
         } else {
@@ -1106,7 +1106,7 @@ export class protowrap {
       return result;
     } else if (protocol == "grpc") {
       //const SetupStream = async (call, respond, e3) => {
-      const SetupStream = async (call: any, respond:any) => {
+      const SetupStream = async (call: any, respond: any) => {
         // info("New streaming grpc client connected");
         var clientresult: client = new clientConstructor();
         clientresult.id = Math.random().toString(36).substring(2, 11);
