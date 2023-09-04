@@ -252,7 +252,7 @@ export class openiap extends EventEmitter {
             this.emit("connected", this)
         } catch (error) {
             this.loginresolve = null;
-            this.loginreject(error);
+            if(this.loginreject != null) this.loginreject(error);
         }
     }
     /**
