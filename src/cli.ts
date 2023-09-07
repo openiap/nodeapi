@@ -70,10 +70,16 @@ async function readln(q) {
 
 
 async function main() {
-  config.DoPing = false; config.doDumpMesssages = true;
+  config.DoPing = false; 
+  config.doDumpMesssages = true;
+  config.DoDumpToConsole = true;
   var c = new openiap(url);
   try {
     // c.onMessage = onMessage;
+    c.onConnectGaveUp = async () => {
+      info("Connection gave up");
+      process.exit();
+    };
     await c.connect();
 
     cleanup()
@@ -177,6 +183,11 @@ async function main() {
       } else if (str == "cc") {
         const result = await c.Count({query: {"_type": "user"}, collectionname: "users"})
         info(result.toString() + " users");
+      } else if (str == "ccc") {
+        const result = await c.CustomCommand({command: "createindex", data: JSON.stringify(
+          { "collectionname": "azureperf", index: {"metadata.id": 1, "metadata.name": 1, timestamp: -1} }
+          )})
+        info("Index created as " + result);
       } else if (str == "qq") {
         const results = await c.Query<any>({query: {"_type": "user"}, collectionname: "users"})
         for(var i = 0; i < results.length; i++) {

@@ -177,6 +177,7 @@ export declare class openiap extends EventEmitter {
      * ```
      */
     onDisconnected(client: openiap, error: Error): void;
+    onConnectGaveUp(client: openiap): void;
     private cliOnDisconnected;
     /**
      * Used to generate a unique identifier, used for example when creating new packages.

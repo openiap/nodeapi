@@ -281,6 +281,8 @@ export class openiap extends EventEmitter {
      */
     public onDisconnected(client:openiap, error: Error) {
     }
+    public onConnectGaveUp(client:openiap) {
+    }    
     private cliOnDisconnected(client:client, error: Error) {
         this.connected = false;
         this.connecting = false;
@@ -296,6 +298,8 @@ export class openiap extends EventEmitter {
             } else {
                 err(new Error("Giving up, not responding"));
             }
+            this.onConnectGaveUp(this);
+            this.emit("gaveup", this)        
             return;
         } else if(this.reconnectms > 2500) {
             this.reconnectms = 2500
