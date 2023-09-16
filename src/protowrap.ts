@@ -155,6 +155,10 @@ export class protowrap {
         return "openiap.CountRequest";
       case "countreply":
         return "openiap.CountResponse";
+      case "distinct":
+        return "openiap.DistinctRequest";
+      case "distinctreply":
+        return "openiap.DistinctResponse";
       case "insertone":
         return "openiap.InsertOneRequest";
       case "insertonereply":

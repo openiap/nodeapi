@@ -439,6 +439,64 @@ export namespace CountResponse {
   }
 }
 
+export class DistinctRequest extends jspb.Message {
+  getCollectionname(): string;
+  setCollectionname(value: string): void;
+
+  getField(): string;
+  setField(value: string): void;
+
+  getQuery(): string;
+  setQuery(value: string): void;
+
+  getQueryas(): string;
+  setQueryas(value: string): void;
+
+  getOptions(): string;
+  setOptions(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DistinctRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: DistinctRequest): DistinctRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DistinctRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DistinctRequest;
+  static deserializeBinaryFromReader(message: DistinctRequest, reader: jspb.BinaryReader): DistinctRequest;
+}
+
+export namespace DistinctRequest {
+  export type AsObject = {
+    collectionname: string,
+    field: string,
+    query: string,
+    queryas: string,
+    options: string,
+  }
+}
+
+export class DistinctResponse extends jspb.Message {
+  clearResultsList(): void;
+  getResultsList(): Array<string>;
+  setResultsList(value: Array<string>): void;
+  addResults(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DistinctResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: DistinctResponse): DistinctResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DistinctResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DistinctResponse;
+  static deserializeBinaryFromReader(message: DistinctResponse, reader: jspb.BinaryReader): DistinctResponse;
+}
+
+export namespace DistinctResponse {
+  export type AsObject = {
+    resultsList: Array<string>,
+  }
+}
+
 export class InsertOneRequest extends jspb.Message {
   getCollectionname(): string;
   setCollectionname(value: string): void;

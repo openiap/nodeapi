@@ -309,6 +309,23 @@ export declare class openiap extends EventEmitter {
      */
     Count(options: CountOptions, priority?: number): Promise<number>;
     /**
+ * Finds the distinct values for a specified field across a single collection
+ * @param options {@link DistinctOptions}
+ * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+ * @returns returns the results in an array
+ * @example
+ * Get the distinct name of all documents with type "test"
+ * ```typescript
+ * const result = await client.Distinct({ collectionname: "entities", field: "name", query: { "_type": "test" } });
+ * ```
+ * @example
+ * Get the distinct types in the entities collection
+ * ```typescript
+ * const result = await client.Distinct({ collectionname: "entities", field: "_type" });
+ * ```
+ */
+    Distinct(options: DistinctOptions, priority?: number): Promise<string[]>;
+    /**
      * Run an mongodb aggregation pipeline toward the OpenIAP flow database.
      * See https://docs.mongodb.com/manual/aggregation/ for more information
      * @param options {@link AggregateOptions}
@@ -759,6 +776,14 @@ export type CountOptions = {
     projection?: Object;
     orderby?: Object | string;
     queryas?: string;
+    jwt?: string;
+};
+export type DistinctOptions = {
+    collectionname?: string;
+    field: string;
+    query?: object;
+    queryas?: string;
+    options?: object;
     jwt?: string;
 };
 export type AggregateOptions = {

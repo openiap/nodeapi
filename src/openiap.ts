@@ -8,7 +8,7 @@ import { EventEmitter } from "events";
 import { CustomCommandRequest, CustomCommandResponse, Customer, DownloadResponse, EnsureCustomerRequest, Envelope, GetElementRequest, GetElementResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
 import { AggregateRequest, AggregateResponse, CountRequest, CountResponse, DeleteManyRequest, DeleteManyResponse, DeleteOneRequest, DeleteOneResponse, DeleteWorkitemRequest, DeleteWorkitemResponse, DropCollectionRequest, GetDocumentVersionRequest, GetDocumentVersionResponse, InsertManyRequest, InsertManyResponse, InsertOneRequest, InsertOneResponse, InsertOrUpdateManyRequest, InsertOrUpdateManyResponse, InsertOrUpdateOneRequest, InsertOrUpdateOneResponse, ListCollectionsRequest, ListCollectionsResponse, PopWorkitemRequest, PopWorkitemResponse, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse, QueryRequest, QueryResponse, QueueEvent, QueueMessageRequest, RegisterExchangeRequest, RegisterExchangeResponse, RegisterQueueRequest, RegisterQueueResponse, UnRegisterQueueRequest, UnWatchRequest, UpdateDocumentRequest, UpdateDocumentResponse, UpdateOneRequest, UpdateOneResponse, UpdateResult, UpdateWorkitemRequest, UpdateWorkitemResponse, WatchEvent, WatchRequest, WatchResponse, Workitem } from ".";
 import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from "./proto/queues";
-import { CreateCollectionRequest } from "./proto/querys";
+import { CreateCollectionRequest, DistinctRequest, DistinctResponse } from "./proto/querys";
 import { StripeCustomer } from "./proto/stripe";
 import { apiinstrumentation } from "./apiinstrumentation";
 import { context } from "@opentelemetry/api";
@@ -639,6 +639,34 @@ export class openiap extends EventEmitter {
         payload.priority = priority;
         const result = CountResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.result;
+    }
+        /**
+     * Finds the distinct values for a specified field across a single collection
+     * @param options {@link DistinctOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns returns the results in an array
+     * @example
+     * Get the distinct name of all documents with type "test" 
+     * ```typescript
+     * const result = await client.Distinct({ collectionname: "entities", field: "name", query: { "_type": "test" } });
+     * ```
+     * @example
+     * Get the distinct types in the entities collection
+     * ```typescript
+     * const result = await client.Distinct({ collectionname: "entities", field: "_type" });
+     * ```
+     */
+    async Distinct(options: DistinctOptions, priority: number = 2): Promise<string[]> {
+        if(!this.connected) throw new Error("Not connected to server");
+        if(!this.signedin) throw new Error("Not signed in to server");
+        const opt: DistinctOptions = Object.assign(new DistinctDefaults(), options)
+        let message = DistinctRequest.create(opt as any);
+        if (typeof message.query == "object") message.query = this.stringify(message.query);
+        const data = Any.create({type_url: "type.googleapis.com/openiap.DistinctRequest", "value": DistinctRequest.encode(message).finish()})
+        const payload = Envelope.create({ command: "distinct", data, jwt: opt.jwt });
+        payload.priority = priority;
+        const result = DistinctResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        return result.results;
     }
     /**
      * Run an mongodb aggregation pipeline toward the OpenIAP flow database.
@@ -1473,6 +1501,18 @@ export type CountOptions = {
     jwt?: string;
 }
 class CountDefaults {
+    collectionname: string = "entities";
+    query: object = {};
+}
+export type DistinctOptions = {
+    collectionname?: string;
+    field: string;
+    query?: object;
+    queryas?: string;
+    options?: object;
+    jwt?: string;
+}
+class DistinctDefaults {
     collectionname: string = "entities";
     query: object = {};
 }

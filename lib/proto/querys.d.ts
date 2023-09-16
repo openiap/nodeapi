@@ -76,6 +76,16 @@ export interface CountRequest {
 export interface CountResponse {
     result: number;
 }
+export interface DistinctRequest {
+    collectionname: string;
+    field: string;
+    query: string;
+    queryas: string;
+    options: string;
+}
+export interface DistinctResponse {
+    results: string[];
+}
 export interface InsertOneRequest {
     collectionname: string;
     item: string;
@@ -596,6 +606,54 @@ export declare const CountResponse: {
     } & {
         result?: number;
     } & { [K_1 in Exclude<keyof I_1, "result">]: never; }>(object: I_1): CountResponse;
+};
+export declare const DistinctRequest: {
+    encode(message: DistinctRequest, writer?: _m0.Writer): _m0.Writer;
+    decode(input: _m0.Reader | Uint8Array, length?: number): DistinctRequest;
+    fromJSON(object: any): DistinctRequest;
+    toJSON(message: DistinctRequest): unknown;
+    create<I extends {
+        collectionname?: string;
+        field?: string;
+        query?: string;
+        queryas?: string;
+        options?: string;
+    } & {
+        collectionname?: string;
+        field?: string;
+        query?: string;
+        queryas?: string;
+        options?: string;
+    } & { [K in Exclude<keyof I, keyof DistinctRequest>]: never; }>(base?: I): DistinctRequest;
+    fromPartial<I_1 extends {
+        collectionname?: string;
+        field?: string;
+        query?: string;
+        queryas?: string;
+        options?: string;
+    } & {
+        collectionname?: string;
+        field?: string;
+        query?: string;
+        queryas?: string;
+        options?: string;
+    } & { [K_1 in Exclude<keyof I_1, keyof DistinctRequest>]: never; }>(object: I_1): DistinctRequest;
+};
+export declare const DistinctResponse: {
+    encode(message: DistinctResponse, writer?: _m0.Writer): _m0.Writer;
+    decode(input: _m0.Reader | Uint8Array, length?: number): DistinctResponse;
+    fromJSON(object: any): DistinctResponse;
+    toJSON(message: DistinctResponse): unknown;
+    create<I extends {
+        results?: string[];
+    } & {
+        results?: string[] & string[] & { [K in Exclude<keyof I["results"], keyof string[]>]: never; };
+    } & { [K_1 in Exclude<keyof I, "results">]: never; }>(base?: I): DistinctResponse;
+    fromPartial<I_1 extends {
+        results?: string[];
+    } & {
+        results?: string[] & string[] & { [K_2 in Exclude<keyof I_1["results"], keyof string[]>]: never; };
+    } & { [K_3 in Exclude<keyof I_1, "results">]: never; }>(object: I_1): DistinctResponse;
 };
 export declare const InsertOneRequest: {
     encode(message: InsertOneRequest, writer?: _m0.Writer): _m0.Writer;

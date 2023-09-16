@@ -196,6 +196,22 @@ async function main() {
         if(results.length == 0) {
           warn("No users found");
         }
+      } else if (str == "d") {
+        const results = await c.Distinct({query: {"_type": "user"}, field: "username", queryas: "62319c029881888eabe510e4", collectionname: "users"})
+        for(var i = 0; i < results.length; i++) {
+          info(results[i]);
+        }
+        const results2 = await c.Distinct({query: {"username": "testuser"}, field: "username", collectionname: "users"})
+        for(var i = 0; i < results2.length; i++) {
+          info(results2[i]);
+        }
+        const results3 = await c.Distinct({field: "username", collectionname: "users"})
+        for(var i = 0; i < results3.length; i++) {
+          info(results3[i]);
+        }
+        if(results.length == 0) {
+          warn("None found");
+        }
       } else if (str == "aa") {
         const results = await c.Aggregate<any>({  aggregates: [{"$match": {"_type": "user"}}, {"$project": {"name": 1}}], collectionname: "users"})
         for(var i = 0; i < results.length; i++) {

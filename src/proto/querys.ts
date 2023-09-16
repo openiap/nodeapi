@@ -95,6 +95,18 @@ export interface CountResponse {
   result: number;
 }
 
+export interface DistinctRequest {
+  collectionname: string;
+  field: string;
+  query: string;
+  queryas: string;
+  options: string;
+}
+
+export interface DistinctResponse {
+  results: string[];
+}
+
 export interface InsertOneRequest {
   collectionname: string;
   item: string;
@@ -1302,6 +1314,150 @@ export const CountResponse = {
   fromPartial<I extends Exact<DeepPartial<CountResponse>, I>>(object: I): CountResponse {
     const message = createBaseCountResponse();
     message.result = object.result ?? 0;
+    return message;
+  },
+};
+
+function createBaseDistinctRequest(): DistinctRequest {
+  return { collectionname: "", field: "", query: "", queryas: "", options: "" };
+}
+
+export const DistinctRequest = {
+  encode(message: DistinctRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.collectionname !== "") {
+      writer.uint32(10).string(message.collectionname);
+    }
+    if (message.field !== "") {
+      writer.uint32(26).string(message.field);
+    }
+    if (message.query !== "") {
+      writer.uint32(34).string(message.query);
+    }
+    if (message.queryas !== "") {
+      writer.uint32(42).string(message.queryas);
+    }
+    if (message.options !== "") {
+      writer.uint32(50).string(message.options);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DistinctRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDistinctRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.collectionname = reader.string();
+          break;
+        case 3:
+          message.field = reader.string();
+          break;
+        case 4:
+          message.query = reader.string();
+          break;
+        case 5:
+          message.queryas = reader.string();
+          break;
+        case 6:
+          message.options = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DistinctRequest {
+    return {
+      collectionname: isSet(object.collectionname) ? String(object.collectionname) : "",
+      field: isSet(object.field) ? String(object.field) : "",
+      query: isSet(object.query) ? String(object.query) : "",
+      queryas: isSet(object.queryas) ? String(object.queryas) : "",
+      options: isSet(object.options) ? String(object.options) : "",
+    };
+  },
+
+  toJSON(message: DistinctRequest): unknown {
+    const obj: any = {};
+    message.collectionname !== undefined && (obj.collectionname = message.collectionname);
+    message.field !== undefined && (obj.field = message.field);
+    message.query !== undefined && (obj.query = message.query);
+    message.queryas !== undefined && (obj.queryas = message.queryas);
+    message.options !== undefined && (obj.options = message.options);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DistinctRequest>, I>>(base?: I): DistinctRequest {
+    return DistinctRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<DistinctRequest>, I>>(object: I): DistinctRequest {
+    const message = createBaseDistinctRequest();
+    message.collectionname = object.collectionname ?? "";
+    message.field = object.field ?? "";
+    message.query = object.query ?? "";
+    message.queryas = object.queryas ?? "";
+    message.options = object.options ?? "";
+    return message;
+  },
+};
+
+function createBaseDistinctResponse(): DistinctResponse {
+  return { results: [] };
+}
+
+export const DistinctResponse = {
+  encode(message: DistinctResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.results) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DistinctResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDistinctResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.results.push(reader.string());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DistinctResponse {
+    return { results: Array.isArray(object?.results) ? object.results.map((e: any) => String(e)) : [] };
+  },
+
+  toJSON(message: DistinctResponse): unknown {
+    const obj: any = {};
+    if (message.results) {
+      obj.results = message.results.map((e) => e);
+    } else {
+      obj.results = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DistinctResponse>, I>>(base?: I): DistinctResponse {
+    return DistinctResponse.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<DistinctResponse>, I>>(object: I): DistinctResponse {
+    const message = createBaseDistinctResponse();
+    message.results = object.results?.map((e) => e) || [];
     return message;
   },
 };
