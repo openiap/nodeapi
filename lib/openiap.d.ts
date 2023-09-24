@@ -20,6 +20,7 @@ export declare class openiap extends EventEmitter {
     private watchids;
     private queues;
     private defaltqueue;
+    flowconfig: any;
     /**
      * Define client type when authenticating toward the server
      */

@@ -29,6 +29,7 @@ export class openiap extends EventEmitter {
     private watchids: any = {};
     private queues: any = {};
     private defaltqueue: string = "";
+    public flowconfig: any = {};
     /**
      * Define client type when authenticating toward the server
      */
@@ -457,6 +458,12 @@ export class openiap extends EventEmitter {
         if(options.validateonly) {
             // info("Validated " + result.user.name);
             return result;
+        }
+        if(result.config != null && result.config != "") {
+            try {
+                this.flowconfig = JSON.parse(result.config);
+            } catch (error) {                
+            }
         }
         info("Signed in as " +result.user.name);
         this.signedin = true;

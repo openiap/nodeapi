@@ -553,6 +553,9 @@ export class SigninResponse extends jspb.Message {
   getUser(): User | undefined;
   setUser(value?: User): void;
 
+  getConfig(): string;
+  setConfig(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SigninResponse.AsObject;
   static toObject(includeInstance: boolean, msg: SigninResponse): SigninResponse.AsObject;
@@ -567,6 +570,7 @@ export namespace SigninResponse {
   export type AsObject = {
     jwt: string,
     user?: User.AsObject,
+    config: string,
   }
 }
 
