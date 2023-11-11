@@ -269,7 +269,7 @@ async function main() {
         var wiqresult = await c.AddWorkItemQueue({ workitemqueue: WorkItemQueue.create({ name: "testq1" })})
         console.log(wiqresult);  
       } else if (str == "uwq") {
-        var wiqresult = await c.UpdateWorkItemQueue({ workitemqueue: WorkItemQueue.create({ name: "testq1" })})
+        var wiqresult = await c.UpdateWorkItemQueue({ workitemqueue: WorkItemQueue.create({ name: "testq1", maxretries: 5 })})
         console.log(wiqresult);  
       } else if (str == "dwq") {
         await c.DeleteWorkItemQueue({ wiq: "testq1" })
