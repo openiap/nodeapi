@@ -1353,7 +1353,7 @@ export class openiap extends EventEmitter {
         const opt: AddWorkItemQueueOptions = Object.assign(new AddWorkItemQueueDefaults(), options)
         let message = AddWorkItemQueueRequest.create(opt as any);
         const data = Any.create({ type_url: "type.googleapis.com/openiap.AddWorkItemQueueRequest", "value": AddWorkItemQueueRequest.encode(message).finish() })
-        const payload = Envelope.create({ command: "AddWorkItemQueue", data, jwt: opt.jwt });
+        const payload = Envelope.create({ command: "addworkitemqueue", data, jwt: opt.jwt });
         payload.priority = priority;
         // const result = await protowrap.RPC(this.client, payload);
         const result = AddWorkItemQueueResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -1370,7 +1370,7 @@ export class openiap extends EventEmitter {
         const opt: UpdateWorkItemQueueOptions = Object.assign(new UpdateWorkItemQueueDefaults(), options)
         let message = UpdateWorkItemQueueRequest.create(opt as any);
         const data = Any.create({ type_url: "type.googleapis.com/openiap.UpdateWorkItemQueueRequest", "value": UpdateWorkItemQueueRequest.encode(message).finish() })
-        const payload = Envelope.create({ command: "UpdateWorkItemQueue", data, jwt: opt.jwt });
+        const payload = Envelope.create({ command: "updateworkitemqueue", data, jwt: opt.jwt });
         payload.priority = priority;
         // const result = await protowrap.RPC(this.client, payload);
         const result = UpdateWorkItemQueueResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -1387,7 +1387,7 @@ export class openiap extends EventEmitter {
             const opt: DeleteWorkItemQueueOptions = Object.assign(new DeleteWorkItemQueueDefaults(), options)
             let message = DeleteWorkItemQueueRequest.create(opt as any);
             const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteWorkItemQueueRequest", "value": DeleteWorkItemQueueRequest.encode(message).finish() })
-            const payload = Envelope.create({ command: "DeleteWorkItemQueue", data, jwt: opt.jwt });
+            const payload = Envelope.create({ command: "deleteworkitemqueue", data, jwt: opt.jwt });
             payload.priority = priority;
             await protowrap.RPC(this.client, payload);
         }
