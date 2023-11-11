@@ -518,6 +518,9 @@ export class WorkItemQueue extends jspb.Message {
   getVersion(): number;
   setVersion(value: number): void;
 
+  getPackageid(): string;
+  setPackageid(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WorkItemQueue.AsObject;
   static toObject(includeInstance: boolean, msg: WorkItemQueue): WorkItemQueue.AsObject;
@@ -552,50 +555,18 @@ export namespace WorkItemQueue {
     modifiedby: string,
     modified?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     version: number,
+    packageid: string,
   }
 }
 
 export class AddWorkItemQueueRequest extends jspb.Message {
-  getName(): string;
-  setName(value: string): void;
-
-  getRobotqueue(): string;
-  setRobotqueue(value: string): void;
-
-  getAmqpqueue(): string;
-  setAmqpqueue(value: string): void;
-
-  getProjectid(): string;
-  setProjectid(value: string): void;
+  hasWorkitemqueue(): boolean;
+  clearWorkitemqueue(): void;
+  getWorkitemqueue(): WorkItemQueue | undefined;
+  setWorkitemqueue(value?: WorkItemQueue): void;
 
   getSkiprole(): boolean;
   setSkiprole(value: boolean): void;
-
-  getMaxretries(): number;
-  setMaxretries(value: number): void;
-
-  getInitialdelay(): number;
-  setInitialdelay(value: number): void;
-
-  getRetrydelay(): number;
-  setRetrydelay(value: number): void;
-
-  getSuccessWiqid(): string;
-  setSuccessWiqid(value: string): void;
-
-  getFailedWiqid(): string;
-  setFailedWiqid(value: string): void;
-
-  getSuccessWiq(): string;
-  setSuccessWiq(value: string): void;
-
-  getFailedWiq(): string;
-  setFailedWiq(value: string): void;
-
-  clearAclList(): void;
-  getAclList(): Array<ace_pb.Ace>;
-  setAclList(value: Array<ace_pb.Ace>): void;
-  addAcl(value?: ace_pb.Ace, index?: number): ace_pb.Ace;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AddWorkItemQueueRequest.AsObject;
@@ -609,19 +580,8 @@ export class AddWorkItemQueueRequest extends jspb.Message {
 
 export namespace AddWorkItemQueueRequest {
   export type AsObject = {
-    name: string,
-    robotqueue: string,
-    amqpqueue: string,
-    projectid: string,
+    workitemqueue?: WorkItemQueue.AsObject,
     skiprole: boolean,
-    maxretries: number,
-    initialdelay: number,
-    retrydelay: number,
-    successWiqid: string,
-    failedWiqid: string,
-    successWiq: string,
-    failedWiq: string,
-    aclList: Array<ace_pb.Ace.AsObject>,
   }
 }
 
@@ -644,6 +604,102 @@ export class AddWorkItemQueueResponse extends jspb.Message {
 export namespace AddWorkItemQueueResponse {
   export type AsObject = {
     workitemqueue?: WorkItemQueue.AsObject,
+  }
+}
+
+export class UpdateWorkItemQueueRequest extends jspb.Message {
+  hasWorkitemqueue(): boolean;
+  clearWorkitemqueue(): void;
+  getWorkitemqueue(): WorkItemQueue | undefined;
+  setWorkitemqueue(value?: WorkItemQueue): void;
+
+  getSkiprole(): boolean;
+  setSkiprole(value: boolean): void;
+
+  getPurge(): boolean;
+  setPurge(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateWorkItemQueueRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateWorkItemQueueRequest): UpdateWorkItemQueueRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateWorkItemQueueRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateWorkItemQueueRequest;
+  static deserializeBinaryFromReader(message: UpdateWorkItemQueueRequest, reader: jspb.BinaryReader): UpdateWorkItemQueueRequest;
+}
+
+export namespace UpdateWorkItemQueueRequest {
+  export type AsObject = {
+    workitemqueue?: WorkItemQueue.AsObject,
+    skiprole: boolean,
+    purge: boolean,
+  }
+}
+
+export class UpdateWorkItemQueueResponse extends jspb.Message {
+  hasWorkitemqueue(): boolean;
+  clearWorkitemqueue(): void;
+  getWorkitemqueue(): WorkItemQueue | undefined;
+  setWorkitemqueue(value?: WorkItemQueue): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): UpdateWorkItemQueueResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: UpdateWorkItemQueueResponse): UpdateWorkItemQueueResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: UpdateWorkItemQueueResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): UpdateWorkItemQueueResponse;
+  static deserializeBinaryFromReader(message: UpdateWorkItemQueueResponse, reader: jspb.BinaryReader): UpdateWorkItemQueueResponse;
+}
+
+export namespace UpdateWorkItemQueueResponse {
+  export type AsObject = {
+    workitemqueue?: WorkItemQueue.AsObject,
+  }
+}
+
+export class DeleteWorkItemQueueRequest extends jspb.Message {
+  getWiq(): string;
+  setWiq(value: string): void;
+
+  getWiqid(): string;
+  setWiqid(value: string): void;
+
+  getPurge(): boolean;
+  setPurge(value: boolean): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DeleteWorkItemQueueRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: DeleteWorkItemQueueRequest): DeleteWorkItemQueueRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DeleteWorkItemQueueRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeleteWorkItemQueueRequest;
+  static deserializeBinaryFromReader(message: DeleteWorkItemQueueRequest, reader: jspb.BinaryReader): DeleteWorkItemQueueRequest;
+}
+
+export namespace DeleteWorkItemQueueRequest {
+  export type AsObject = {
+    wiq: string,
+    wiqid: string,
+    purge: boolean,
+  }
+}
+
+export class DeleteWorkItemQueueResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DeleteWorkItemQueueResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: DeleteWorkItemQueueResponse): DeleteWorkItemQueueResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DeleteWorkItemQueueResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeleteWorkItemQueueResponse;
+  static deserializeBinaryFromReader(message: DeleteWorkItemQueueResponse, reader: jspb.BinaryReader): DeleteWorkItemQueueResponse;
+}
+
+export namespace DeleteWorkItemQueueResponse {
+  export type AsObject = {
   }
 }
 

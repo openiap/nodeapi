@@ -13,7 +13,7 @@ import { openiap } from "./openiap";
 import { Customer, Envelope, PingRequest, Stream } from "./proto/base";
 import { Any } from "./proto/google/protobuf/any";
 import { WatchEvent } from "./proto/watch";
-import { Workitem } from "./proto/workitems";
+import { WorkItemQueue, Workitem } from "./proto/workitems";
 
 // kill $(ps aux | grep 'client.js' | awk '{print $2}')
 let url: string = process.argv[2] as any || process.env.apiurl;
@@ -262,9 +262,18 @@ async function main() {
         }
         await c.CreateCollection({ collectionname: "testcollection", timeseries: { timeField: "timestamp", metaField: "metadata" } } )
       } else if (str == "ec") {
-        var ensureresult = await c.EnsureCustomer({ customer: Customer.create({ name: "testcustomer" }), ensureas: "641f36c88ecd2bbbbd3a52b3" })
+        // var ensureresult = await c.EnsureCustomer({ customer: Customer.create({ name: "testcustomer" }), ensureas: "641f36c88ecd2bbbbd3a52b3" })
+        var ensureresult = await c.EnsureCustomer({ customer: Customer.create({ name: "testcustomer2" })})
         console.log(ensureresult);  
-
+      } else if (str == "awq") {
+        var wiqresult = await c.AddWorkItemQueue({ workitemqueue: WorkItemQueue.create({ name: "testq1" })})
+        console.log(wiqresult);  
+      } else if (str == "uwq") {
+        var wiqresult = await c.UpdateWorkItemQueue({ workitemqueue: WorkItemQueue.create({ name: "testq1" })})
+        console.log(wiqresult);  
+      } else if (str == "dwq") {
+        await c.DeleteWorkItemQueue({ wiq: "testq1" })
+        console.log("testq1 deleted");
       } else if (str == "c") {
         payload.command = "console";
         var Readable = require('stream').Readable;

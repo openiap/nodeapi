@@ -43,6 +43,8 @@ interface IFlowServiceService extends grpc.ServiceDefinition<grpc.UntypedService
   popWorkitem: grpc.MethodDefinition<workitems_pb.PopWorkitemRequest, workitems_pb.PopWorkitemResponse>;
   deleteWorkitem: grpc.MethodDefinition<workitems_pb.DeleteWorkitemRequest, workitems_pb.DeleteWorkitemResponse>;
   addWorkItemQueue: grpc.MethodDefinition<workitems_pb.AddWorkItemQueueRequest, workitems_pb.AddWorkItemQueueResponse>;
+  updateWorkItemQueue: grpc.MethodDefinition<workitems_pb.UpdateWorkItemQueueRequest, workitems_pb.UpdateWorkItemQueueResponse>;
+  deleteWorkItemQueue: grpc.MethodDefinition<workitems_pb.DeleteWorkItemQueueRequest, workitems_pb.DeleteWorkItemQueueResponse>;
   ensureCustomer: grpc.MethodDefinition<base_pb.EnsureCustomerRequest, base_pb.EnsureCustomerResponse>;
 }
 
@@ -81,6 +83,8 @@ export interface IFlowServiceServer extends grpc.UntypedServiceImplementation {
   popWorkitem: grpc.handleUnaryCall<workitems_pb.PopWorkitemRequest, workitems_pb.PopWorkitemResponse>;
   deleteWorkitem: grpc.handleUnaryCall<workitems_pb.DeleteWorkitemRequest, workitems_pb.DeleteWorkitemResponse>;
   addWorkItemQueue: grpc.handleUnaryCall<workitems_pb.AddWorkItemQueueRequest, workitems_pb.AddWorkItemQueueResponse>;
+  updateWorkItemQueue: grpc.handleUnaryCall<workitems_pb.UpdateWorkItemQueueRequest, workitems_pb.UpdateWorkItemQueueResponse>;
+  deleteWorkItemQueue: grpc.handleUnaryCall<workitems_pb.DeleteWorkItemQueueRequest, workitems_pb.DeleteWorkItemQueueResponse>;
   ensureCustomer: grpc.handleUnaryCall<base_pb.EnsureCustomerRequest, base_pb.EnsureCustomerResponse>;
 }
 
@@ -181,6 +185,12 @@ export class FlowServiceClient extends grpc.Client {
   addWorkItemQueue(argument: workitems_pb.AddWorkItemQueueRequest, callback: grpc.requestCallback<workitems_pb.AddWorkItemQueueResponse>): grpc.ClientUnaryCall;
   addWorkItemQueue(argument: workitems_pb.AddWorkItemQueueRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<workitems_pb.AddWorkItemQueueResponse>): grpc.ClientUnaryCall;
   addWorkItemQueue(argument: workitems_pb.AddWorkItemQueueRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<workitems_pb.AddWorkItemQueueResponse>): grpc.ClientUnaryCall;
+  updateWorkItemQueue(argument: workitems_pb.UpdateWorkItemQueueRequest, callback: grpc.requestCallback<workitems_pb.UpdateWorkItemQueueResponse>): grpc.ClientUnaryCall;
+  updateWorkItemQueue(argument: workitems_pb.UpdateWorkItemQueueRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<workitems_pb.UpdateWorkItemQueueResponse>): grpc.ClientUnaryCall;
+  updateWorkItemQueue(argument: workitems_pb.UpdateWorkItemQueueRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<workitems_pb.UpdateWorkItemQueueResponse>): grpc.ClientUnaryCall;
+  deleteWorkItemQueue(argument: workitems_pb.DeleteWorkItemQueueRequest, callback: grpc.requestCallback<workitems_pb.DeleteWorkItemQueueResponse>): grpc.ClientUnaryCall;
+  deleteWorkItemQueue(argument: workitems_pb.DeleteWorkItemQueueRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<workitems_pb.DeleteWorkItemQueueResponse>): grpc.ClientUnaryCall;
+  deleteWorkItemQueue(argument: workitems_pb.DeleteWorkItemQueueRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<workitems_pb.DeleteWorkItemQueueResponse>): grpc.ClientUnaryCall;
   ensureCustomer(argument: base_pb.EnsureCustomerRequest, callback: grpc.requestCallback<base_pb.EnsureCustomerResponse>): grpc.ClientUnaryCall;
   ensureCustomer(argument: base_pb.EnsureCustomerRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.EnsureCustomerResponse>): grpc.ClientUnaryCall;
   ensureCustomer(argument: base_pb.EnsureCustomerRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.EnsureCustomerResponse>): grpc.ClientUnaryCall;

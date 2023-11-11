@@ -5,7 +5,7 @@ import { AggregateRequest, AggregateResponse, CountRequest, CountResponse, Creat
 import { QueueMessageRequest, QueueMessageResponse, RegisterExchangeRequest, RegisterExchangeResponse, RegisterQueueRequest, RegisterQueueResponse, UnRegisterQueueRequest, UnRegisterQueueResponse } from "./queues";
 import { StripeCustomer } from "./stripe";
 import { UnWatchRequest, UnWatchResponse, WatchRequest, WatchResponse } from "./watch";
-import { AddWorkItemQueueRequest, AddWorkItemQueueResponse, DeleteWorkitemRequest, DeleteWorkitemResponse, PopWorkitemRequest, PopWorkitemResponse, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse, UpdateWorkitemRequest, UpdateWorkitemResponse } from "./workitems";
+import { AddWorkItemQueueRequest, AddWorkItemQueueResponse, DeleteWorkItemQueueRequest, DeleteWorkItemQueueResponse, DeleteWorkitemRequest, DeleteWorkitemResponse, PopWorkitemRequest, PopWorkitemResponse, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse, UpdateWorkItemQueueRequest, UpdateWorkItemQueueResponse, UpdateWorkitemRequest, UpdateWorkitemResponse } from "./workitems";
 export declare const protobufPackage = "openiap";
 export interface Envelope {
     command: string;
@@ -13336,6 +13336,8 @@ export interface FlowService {
     PopWorkitem(request: PopWorkitemRequest): Promise<PopWorkitemResponse>;
     DeleteWorkitem(request: DeleteWorkitemRequest): Promise<DeleteWorkitemResponse>;
     AddWorkItemQueue(request: AddWorkItemQueueRequest): Promise<AddWorkItemQueueResponse>;
+    UpdateWorkItemQueue(request: UpdateWorkItemQueueRequest): Promise<UpdateWorkItemQueueResponse>;
+    DeleteWorkItemQueue(request: DeleteWorkItemQueueRequest): Promise<DeleteWorkItemQueueResponse>;
     EnsureCustomer(request: EnsureCustomerRequest): Promise<EnsureCustomerResponse>;
 }
 export declare class FlowServiceClientImpl implements FlowService {
@@ -13376,6 +13378,8 @@ export declare class FlowServiceClientImpl implements FlowService {
     PopWorkitem(request: PopWorkitemRequest): Promise<PopWorkitemResponse>;
     DeleteWorkitem(request: DeleteWorkitemRequest): Promise<DeleteWorkitemResponse>;
     AddWorkItemQueue(request: AddWorkItemQueueRequest): Promise<AddWorkItemQueueResponse>;
+    UpdateWorkItemQueue(request: UpdateWorkItemQueueRequest): Promise<UpdateWorkItemQueueResponse>;
+    DeleteWorkItemQueue(request: DeleteWorkItemQueueRequest): Promise<DeleteWorkItemQueueResponse>;
     EnsureCustomer(request: EnsureCustomerRequest): Promise<EnsureCustomerResponse>;
 }
 interface Rpc {

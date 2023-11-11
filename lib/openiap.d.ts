@@ -1,8 +1,8 @@
 /// <reference types="node" />
 import { client, clientAgent } from "./client";
 import { EventEmitter } from "events";
-import { Customer, DownloadResponse, SigninResponse, UploadResponse, User } from "./proto/base";
-import { QueueEvent, UpdateResult, Workitem } from ".";
+import { Customer, DownloadResponse, EnsureCustomerResponse, SigninResponse, UploadResponse, User } from "./proto/base";
+import { QueueEvent, UpdateResult, WorkItemQueue, Workitem } from ".";
 import { StripeCustomer } from "./proto/stripe";
 /**
  * OpenIAP
@@ -675,6 +675,24 @@ export declare class openiap extends EventEmitter {
      */
     DeleteWorkitem(options: DeleteWorkitemOptions, priority?: number): Promise<void>;
     /**
+    * Create a new workitem queue. Workitem queues are registered in the wiq collection.
+    * @param options {@link AddWorkItemQueueOptions}
+    * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+    */
+    AddWorkItemQueue(options: AddWorkItemQueueOptions, priority?: number): Promise<WorkItemQueue>;
+    /**
+    * Create a new workitem queue. Workitem queues are registered in the wiq collection. To delete all items from qyueue, set purge to true.
+    * @param options {@link UpdateWorkItemQueueOptions}
+    * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+    */
+    UpdateWorkItemQueue(options: UpdateWorkItemQueueOptions, priority?: number): Promise<WorkItemQueue>;
+    /**
+    * Delete a workitem queue. Workitem queues are registered in the wiq collection. If queue has workitems in it, the request will fail, unless purge is set to true.
+    * @param options {@link DeleteWorkItemQueueOptions}
+    * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+    */
+    DeleteWorkItemQueue(options: DeleteWorkItemQueueOptions, priority?: number): Promise<void>;
+    /**
      * Run custom commands not defined in the protocol yet.
      * This is how new functioanlly is added and tested, before it is finally added to the offical proto3 protocol.
      * @param options
@@ -694,7 +712,7 @@ export declare class openiap extends EventEmitter {
      * @param options {@link EnsureCustomerOptions}
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
-    EnsureCustomer(options: EnsureCustomerOptions, priority?: number): Promise<void>;
+    EnsureCustomer(options: EnsureCustomerOptions, priority?: number): Promise<EnsureCustomerResponse>;
 }
 export type SigninOptions = {
     username?: string;
@@ -967,5 +985,21 @@ export type EnsureCustomerOptions = {
     customer: Customer;
     stripe?: StripeCustomer;
     ensureas?: string;
+    jwt?: string;
+};
+export type AddWorkItemQueueOptions = {
+    workitemqueue: WorkItemQueue;
+    skiprole?: boolean;
+    jwt?: string;
+};
+export type UpdateWorkItemQueueOptions = {
+    workitemqueue: WorkItemQueue;
+    skiprole?: boolean;
+    purge?: boolean;
+    jwt?: string;
+};
+export type DeleteWorkItemQueueOptions = {
+    wiq?: string;
+    wiqid?: string;
     jwt?: string;
 };

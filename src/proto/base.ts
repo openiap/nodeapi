@@ -51,6 +51,8 @@ import { UnWatchRequest, UnWatchResponse, WatchRequest, WatchResponse } from "./
 import {
   AddWorkItemQueueRequest,
   AddWorkItemQueueResponse,
+  DeleteWorkItemQueueRequest,
+  DeleteWorkItemQueueResponse,
   DeleteWorkitemRequest,
   DeleteWorkitemResponse,
   PopWorkitemRequest,
@@ -59,6 +61,8 @@ import {
   PushWorkitemResponse,
   PushWorkitemsRequest,
   PushWorkitemsResponse,
+  UpdateWorkItemQueueRequest,
+  UpdateWorkItemQueueResponse,
   UpdateWorkitemRequest,
   UpdateWorkitemResponse,
 } from "./workitems";
@@ -2390,6 +2394,8 @@ export interface FlowService {
   PopWorkitem(request: PopWorkitemRequest): Promise<PopWorkitemResponse>;
   DeleteWorkitem(request: DeleteWorkitemRequest): Promise<DeleteWorkitemResponse>;
   AddWorkItemQueue(request: AddWorkItemQueueRequest): Promise<AddWorkItemQueueResponse>;
+  UpdateWorkItemQueue(request: UpdateWorkItemQueueRequest): Promise<UpdateWorkItemQueueResponse>;
+  DeleteWorkItemQueue(request: DeleteWorkItemQueueRequest): Promise<DeleteWorkItemQueueResponse>;
   EnsureCustomer(request: EnsureCustomerRequest): Promise<EnsureCustomerResponse>;
 }
 
@@ -2431,6 +2437,8 @@ export class FlowServiceClientImpl implements FlowService {
     this.PopWorkitem = this.PopWorkitem.bind(this);
     this.DeleteWorkitem = this.DeleteWorkitem.bind(this);
     this.AddWorkItemQueue = this.AddWorkItemQueue.bind(this);
+    this.UpdateWorkItemQueue = this.UpdateWorkItemQueue.bind(this);
+    this.DeleteWorkItemQueue = this.DeleteWorkItemQueue.bind(this);
     this.EnsureCustomer = this.EnsureCustomer.bind(this);
   }
   SetupStream(request: Observable<Envelope>): Observable<Envelope> {
@@ -2623,6 +2631,18 @@ export class FlowServiceClientImpl implements FlowService {
     const data = AddWorkItemQueueRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "AddWorkItemQueue", data);
     return promise.then((data) => AddWorkItemQueueResponse.decode(new _m0.Reader(data)));
+  }
+
+  UpdateWorkItemQueue(request: UpdateWorkItemQueueRequest): Promise<UpdateWorkItemQueueResponse> {
+    const data = UpdateWorkItemQueueRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "UpdateWorkItemQueue", data);
+    return promise.then((data) => UpdateWorkItemQueueResponse.decode(new _m0.Reader(data)));
+  }
+
+  DeleteWorkItemQueue(request: DeleteWorkItemQueueRequest): Promise<DeleteWorkItemQueueResponse> {
+    const data = DeleteWorkItemQueueRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "DeleteWorkItemQueue", data);
+    return promise.then((data) => DeleteWorkItemQueueResponse.decode(new _m0.Reader(data)));
   }
 
   EnsureCustomer(request: EnsureCustomerRequest): Promise<EnsureCustomerResponse> {

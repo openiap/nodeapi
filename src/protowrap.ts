@@ -249,6 +249,14 @@ export class protowrap {
         return "openiap.AddWorkItemQueueRequest";
       case "addworkitemqueuereply":
         return "openiap.AddWorkItemQueueResponse";
+      case "updateworkitemqueue":
+        return "openiap.UpdateWorkItemQueueRequest";
+      case "updateworkitemqueuereply":
+        return "openiap.UpdateWorkItemQueueResponse";
+      case "deleteworkitemqueue":
+        return "openiap.DeleteWorkItemQueueRequest";
+      case "deleteworkitemqueuereply":
+        return "openiap.DeleteWorkItemQueueResponse";    
       case "createworkflowinstance":
         return "openiap.CreateWorkflowInstanceRequest";
       case "createworkflowinstancereply":

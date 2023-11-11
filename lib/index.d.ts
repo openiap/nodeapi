@@ -16,6 +16,7 @@ export { WatchEvent, WatchRequest, WatchResponse, UnWatchRequest, UnWatchRespons
 export { Workitem, WorkitemFile, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse } from "./proto/workitems";
 export { UpdateWorkitemRequest, UpdateWorkitemResponse, PopWorkitemRequest, PopWorkitemResponse, DeleteWorkitemRequest, DeleteWorkitemResponse } from "./proto/workitems";
 export { WorkItemQueue, AddWorkItemQueueRequest, AddWorkItemQueueResponse } from "./proto/workitems";
+export { UpdateWorkItemQueueRequest, UpdateWorkItemQueueResponse, DeleteWorkItemQueueRequest, DeleteWorkItemQueueResponse } from "./proto/workitems";
 export { RegisterExchangeRequest, RegisterExchangeResponse, RegisterQueueRequest, RegisterQueueResponse, UnRegisterQueueRequest, UnRegisterQueueResponse } from "./proto/queues";
 export { QueueEvent, QueueMessageRequest, QueueMessageResponse } from "./proto/queues";
 export { config } from "./config";

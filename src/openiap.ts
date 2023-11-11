@@ -5,8 +5,8 @@ const { info, err, warn }  = config;
 import { Any } from "./proto/google/protobuf/any";
 // import events = require("events");
 import { EventEmitter } from "events";
-import { CustomCommandRequest, CustomCommandResponse, Customer, DownloadResponse, EnsureCustomerRequest, Envelope, GetElementRequest, GetElementResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
-import { AggregateRequest, AggregateResponse, CountRequest, CountResponse, DeleteManyRequest, DeleteManyResponse, DeleteOneRequest, DeleteOneResponse, DeleteWorkitemRequest, DeleteWorkitemResponse, DropCollectionRequest, GetDocumentVersionRequest, GetDocumentVersionResponse, InsertManyRequest, InsertManyResponse, InsertOneRequest, InsertOneResponse, InsertOrUpdateManyRequest, InsertOrUpdateManyResponse, InsertOrUpdateOneRequest, InsertOrUpdateOneResponse, ListCollectionsRequest, ListCollectionsResponse, PopWorkitemRequest, PopWorkitemResponse, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse, QueryRequest, QueryResponse, QueueEvent, QueueMessageRequest, RegisterExchangeRequest, RegisterExchangeResponse, RegisterQueueRequest, RegisterQueueResponse, UnRegisterQueueRequest, UnWatchRequest, UpdateDocumentRequest, UpdateDocumentResponse, UpdateOneRequest, UpdateOneResponse, UpdateResult, UpdateWorkitemRequest, UpdateWorkitemResponse, WatchEvent, WatchRequest, WatchResponse, Workitem } from ".";
+import { CustomCommandRequest, CustomCommandResponse, Customer, DownloadResponse, EnsureCustomerRequest, EnsureCustomerResponse, Envelope, GetElementRequest, GetElementResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
+import { AddWorkItemQueueRequest, AddWorkItemQueueResponse, AggregateRequest, AggregateResponse, CountRequest, CountResponse, DeleteManyRequest, DeleteManyResponse, DeleteOneRequest, DeleteOneResponse, DeleteWorkItemQueueRequest, DeleteWorkItemQueueResponse, DeleteWorkitemRequest, DeleteWorkitemResponse, DropCollectionRequest, GetDocumentVersionRequest, GetDocumentVersionResponse, InsertManyRequest, InsertManyResponse, InsertOneRequest, InsertOneResponse, InsertOrUpdateManyRequest, InsertOrUpdateManyResponse, InsertOrUpdateOneRequest, InsertOrUpdateOneResponse, ListCollectionsRequest, ListCollectionsResponse, PopWorkitemRequest, PopWorkitemResponse, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse, QueryRequest, QueryResponse, QueueEvent, QueueMessageRequest, RegisterExchangeRequest, RegisterExchangeResponse, RegisterQueueRequest, RegisterQueueResponse, UnRegisterQueueRequest, UnWatchRequest, UpdateDocumentRequest, UpdateDocumentResponse, UpdateOneRequest, UpdateOneResponse, UpdateResult, UpdateWorkItemQueueRequest, UpdateWorkItemQueueResponse, UpdateWorkitemRequest, UpdateWorkitemResponse, WatchEvent, WatchRequest, WatchResponse, WorkItemQueue, Workitem } from ".";
 import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from "./proto/queues";
 import { CreateCollectionRequest, DistinctRequest, DistinctResponse } from "./proto/querys";
 import { StripeCustomer } from "./proto/stripe";
@@ -1343,6 +1343,55 @@ export class openiap extends EventEmitter {
         await protowrap.RPC(this.client, payload);
     }
     /**
+    * Create a new workitem queue. Workitem queues are registered in the wiq collection.
+    * @param options {@link AddWorkItemQueueOptions}
+    * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+    */
+    async AddWorkItemQueue(options: AddWorkItemQueueOptions, priority: number = 2): Promise<WorkItemQueue> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: AddWorkItemQueueOptions = Object.assign(new AddWorkItemQueueDefaults(), options)
+        let message = AddWorkItemQueueRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.AddWorkItemQueueRequest", "value": AddWorkItemQueueRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "AddWorkItemQueue", data, jwt: opt.jwt });
+        payload.priority = priority;
+        // const result = await protowrap.RPC(this.client, payload);
+        const result = AddWorkItemQueueResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        return result.workitemqueue;
+    }
+    /**
+    * Create a new workitem queue. Workitem queues are registered in the wiq collection. To delete all items from qyueue, set purge to true.
+    * @param options {@link UpdateWorkItemQueueOptions}
+    * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+    */
+    async UpdateWorkItemQueue(options: UpdateWorkItemQueueOptions, priority: number = 2): Promise<WorkItemQueue> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: UpdateWorkItemQueueOptions = Object.assign(new UpdateWorkItemQueueDefaults(), options)
+        let message = UpdateWorkItemQueueRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.UpdateWorkItemQueueRequest", "value": UpdateWorkItemQueueRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "UpdateWorkItemQueue", data, jwt: opt.jwt });
+        payload.priority = priority;
+        // const result = await protowrap.RPC(this.client, payload);
+        const result = UpdateWorkItemQueueResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        return result.workitemqueue;
+    }
+    /**
+    * Delete a workitem queue. Workitem queues are registered in the wiq collection. If queue has workitems in it, the request will fail, unless purge is set to true.
+    * @param options {@link DeleteWorkItemQueueOptions}
+    * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+    */
+        async DeleteWorkItemQueue(options: DeleteWorkItemQueueOptions, priority: number = 2): Promise<void> {
+            if (!this.connected) throw new Error("Not connected to server");
+            if (!this.signedin) throw new Error("Not signed in to server");
+            const opt: DeleteWorkItemQueueOptions = Object.assign(new DeleteWorkItemQueueDefaults(), options)
+            let message = DeleteWorkItemQueueRequest.create(opt as any);
+            const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteWorkItemQueueRequest", "value": DeleteWorkItemQueueRequest.encode(message).finish() })
+            const payload = Envelope.create({ command: "DeleteWorkItemQueue", data, jwt: opt.jwt });
+            payload.priority = priority;
+            await protowrap.RPC(this.client, payload);
+        }
+    /**
      * Run custom commands not defined in the protocol yet.
      * This is how new functioanlly is added and tested, before it is finally added to the offical proto3 protocol.
      * @param options 
@@ -1384,7 +1433,7 @@ export class openiap extends EventEmitter {
      * @param options {@link EnsureCustomerOptions}
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
-    async EnsureCustomer(options: EnsureCustomerOptions, priority: number = 2): Promise<void> {
+    async EnsureCustomer(options: EnsureCustomerOptions, priority: number = 2): Promise<EnsureCustomerResponse> {
         if(!this.connected) throw new Error("Not connected to server");
         if(!this.signedin) throw new Error("Not signed in to server");
         const opt: EnsureCustomerOptions = Object.assign(new EnsureCustomerDefaults(), options)
@@ -1392,7 +1441,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({type_url: "type.googleapis.com/openiap.EnsureCustomerRequest", "value": EnsureCustomerRequest.encode(message).finish()})
         const payload = Envelope.create({ command: "ensurecustomer", data, jwt: opt.jwt });
         payload.priority = priority;
-        const result = await protowrap.RPC(this.client, payload);
+        // const result = await protowrap.RPC(this.client, payload);
+        const result = EnsureCustomerResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        return result;
     }
 }
 export type SigninOptions = {
@@ -1779,4 +1830,29 @@ export type EnsureCustomerOptions = {
 }
 class EnsureCustomerDefaults {
 }
-
+export type AddWorkItemQueueOptions = {
+    workitemqueue: WorkItemQueue;
+    skiprole?: boolean;
+    jwt?: string;
+}
+class AddWorkItemQueueDefaults {
+    skiprole: boolean = false;
+}
+export type UpdateWorkItemQueueOptions = {
+    workitemqueue: WorkItemQueue;
+    skiprole?: boolean;
+    purge?: boolean;
+    jwt?: string;
+}
+class UpdateWorkItemQueueDefaults {
+    skiprole: boolean = true;
+    purge: boolean = false;
+}
+export type DeleteWorkItemQueueOptions = {
+    wiq?: string;
+    wiqid?: string;
+    jwt?: string;
+}
+class DeleteWorkItemQueueDefaults {
+    purge: boolean = false;
+}
