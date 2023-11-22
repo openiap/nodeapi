@@ -8,6 +8,7 @@ import * as querys_pb from "./querys_pb";
 import * as queues_pb from "./queues_pb";
 import * as watch_pb from "./watch_pb";
 import * as workitems_pb from "./workitems_pb";
+import * as agent_pb from "./agent_pb";
 import * as grpc from "@grpc/grpc-js";
 
 interface IFlowServiceService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
@@ -46,6 +47,15 @@ interface IFlowServiceService extends grpc.ServiceDefinition<grpc.UntypedService
   updateWorkItemQueue: grpc.MethodDefinition<workitems_pb.UpdateWorkItemQueueRequest, workitems_pb.UpdateWorkItemQueueResponse>;
   deleteWorkItemQueue: grpc.MethodDefinition<workitems_pb.DeleteWorkItemQueueRequest, workitems_pb.DeleteWorkItemQueueResponse>;
   ensureCustomer: grpc.MethodDefinition<base_pb.EnsureCustomerRequest, base_pb.EnsureCustomerResponse>;
+  invokeOpenRPA: grpc.MethodDefinition<queues_pb.InvokeOpenRPARequest, queues_pb.InvokeOpenRPAResponse>;
+  startAgent: grpc.MethodDefinition<agent_pb.StartAgentRequest, agent_pb.StartAgentResponse>;
+  stopAgent: grpc.MethodDefinition<agent_pb.StopAgentRequest, agent_pb.StopAgentResponse>;
+  getAgentLog: grpc.MethodDefinition<agent_pb.GetAgentLogRequest, agent_pb.GetAgentLogResponse>;
+  getAgentPods: grpc.MethodDefinition<agent_pb.GetAgentPodsRequest, agent_pb.GetAgentPodsResponse>;
+  deleteAgentPod: grpc.MethodDefinition<agent_pb.DeleteAgentPodRequest, agent_pb.DeleteAgentPodResponse>;
+  deleteAgent: grpc.MethodDefinition<agent_pb.DeleteAgentRequest, agent_pb.DeleteAgentResponse>;
+  createIndex: grpc.MethodDefinition<base_pb.CreateIndexRequest, base_pb.CreateIndexResponse>;
+  deletePackage: grpc.MethodDefinition<base_pb.DeletePackageRequest, base_pb.DeletePackageResponse>;
 }
 
 export const FlowServiceService: IFlowServiceService;
@@ -86,6 +96,15 @@ export interface IFlowServiceServer extends grpc.UntypedServiceImplementation {
   updateWorkItemQueue: grpc.handleUnaryCall<workitems_pb.UpdateWorkItemQueueRequest, workitems_pb.UpdateWorkItemQueueResponse>;
   deleteWorkItemQueue: grpc.handleUnaryCall<workitems_pb.DeleteWorkItemQueueRequest, workitems_pb.DeleteWorkItemQueueResponse>;
   ensureCustomer: grpc.handleUnaryCall<base_pb.EnsureCustomerRequest, base_pb.EnsureCustomerResponse>;
+  invokeOpenRPA: grpc.handleUnaryCall<queues_pb.InvokeOpenRPARequest, queues_pb.InvokeOpenRPAResponse>;
+  startAgent: grpc.handleUnaryCall<agent_pb.StartAgentRequest, agent_pb.StartAgentResponse>;
+  stopAgent: grpc.handleUnaryCall<agent_pb.StopAgentRequest, agent_pb.StopAgentResponse>;
+  getAgentLog: grpc.handleUnaryCall<agent_pb.GetAgentLogRequest, agent_pb.GetAgentLogResponse>;
+  getAgentPods: grpc.handleUnaryCall<agent_pb.GetAgentPodsRequest, agent_pb.GetAgentPodsResponse>;
+  deleteAgentPod: grpc.handleUnaryCall<agent_pb.DeleteAgentPodRequest, agent_pb.DeleteAgentPodResponse>;
+  deleteAgent: grpc.handleUnaryCall<agent_pb.DeleteAgentRequest, agent_pb.DeleteAgentResponse>;
+  createIndex: grpc.handleUnaryCall<base_pb.CreateIndexRequest, base_pb.CreateIndexResponse>;
+  deletePackage: grpc.handleUnaryCall<base_pb.DeletePackageRequest, base_pb.DeletePackageResponse>;
 }
 
 export class FlowServiceClient extends grpc.Client {
@@ -194,4 +213,31 @@ export class FlowServiceClient extends grpc.Client {
   ensureCustomer(argument: base_pb.EnsureCustomerRequest, callback: grpc.requestCallback<base_pb.EnsureCustomerResponse>): grpc.ClientUnaryCall;
   ensureCustomer(argument: base_pb.EnsureCustomerRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.EnsureCustomerResponse>): grpc.ClientUnaryCall;
   ensureCustomer(argument: base_pb.EnsureCustomerRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.EnsureCustomerResponse>): grpc.ClientUnaryCall;
+  invokeOpenRPA(argument: queues_pb.InvokeOpenRPARequest, callback: grpc.requestCallback<queues_pb.InvokeOpenRPAResponse>): grpc.ClientUnaryCall;
+  invokeOpenRPA(argument: queues_pb.InvokeOpenRPARequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<queues_pb.InvokeOpenRPAResponse>): grpc.ClientUnaryCall;
+  invokeOpenRPA(argument: queues_pb.InvokeOpenRPARequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<queues_pb.InvokeOpenRPAResponse>): grpc.ClientUnaryCall;
+  startAgent(argument: agent_pb.StartAgentRequest, callback: grpc.requestCallback<agent_pb.StartAgentResponse>): grpc.ClientUnaryCall;
+  startAgent(argument: agent_pb.StartAgentRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.StartAgentResponse>): grpc.ClientUnaryCall;
+  startAgent(argument: agent_pb.StartAgentRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.StartAgentResponse>): grpc.ClientUnaryCall;
+  stopAgent(argument: agent_pb.StopAgentRequest, callback: grpc.requestCallback<agent_pb.StopAgentResponse>): grpc.ClientUnaryCall;
+  stopAgent(argument: agent_pb.StopAgentRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.StopAgentResponse>): grpc.ClientUnaryCall;
+  stopAgent(argument: agent_pb.StopAgentRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.StopAgentResponse>): grpc.ClientUnaryCall;
+  getAgentLog(argument: agent_pb.GetAgentLogRequest, callback: grpc.requestCallback<agent_pb.GetAgentLogResponse>): grpc.ClientUnaryCall;
+  getAgentLog(argument: agent_pb.GetAgentLogRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.GetAgentLogResponse>): grpc.ClientUnaryCall;
+  getAgentLog(argument: agent_pb.GetAgentLogRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.GetAgentLogResponse>): grpc.ClientUnaryCall;
+  getAgentPods(argument: agent_pb.GetAgentPodsRequest, callback: grpc.requestCallback<agent_pb.GetAgentPodsResponse>): grpc.ClientUnaryCall;
+  getAgentPods(argument: agent_pb.GetAgentPodsRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.GetAgentPodsResponse>): grpc.ClientUnaryCall;
+  getAgentPods(argument: agent_pb.GetAgentPodsRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.GetAgentPodsResponse>): grpc.ClientUnaryCall;
+  deleteAgentPod(argument: agent_pb.DeleteAgentPodRequest, callback: grpc.requestCallback<agent_pb.DeleteAgentPodResponse>): grpc.ClientUnaryCall;
+  deleteAgentPod(argument: agent_pb.DeleteAgentPodRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.DeleteAgentPodResponse>): grpc.ClientUnaryCall;
+  deleteAgentPod(argument: agent_pb.DeleteAgentPodRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.DeleteAgentPodResponse>): grpc.ClientUnaryCall;
+  deleteAgent(argument: agent_pb.DeleteAgentRequest, callback: grpc.requestCallback<agent_pb.DeleteAgentResponse>): grpc.ClientUnaryCall;
+  deleteAgent(argument: agent_pb.DeleteAgentRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.DeleteAgentResponse>): grpc.ClientUnaryCall;
+  deleteAgent(argument: agent_pb.DeleteAgentRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<agent_pb.DeleteAgentResponse>): grpc.ClientUnaryCall;
+  createIndex(argument: base_pb.CreateIndexRequest, callback: grpc.requestCallback<base_pb.CreateIndexResponse>): grpc.ClientUnaryCall;
+  createIndex(argument: base_pb.CreateIndexRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.CreateIndexResponse>): grpc.ClientUnaryCall;
+  createIndex(argument: base_pb.CreateIndexRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.CreateIndexResponse>): grpc.ClientUnaryCall;
+  deletePackage(argument: base_pb.DeletePackageRequest, callback: grpc.requestCallback<base_pb.DeletePackageResponse>): grpc.ClientUnaryCall;
+  deletePackage(argument: base_pb.DeletePackageRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.DeletePackageResponse>): grpc.ClientUnaryCall;
+  deletePackage(argument: base_pb.DeletePackageRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.DeletePackageResponse>): grpc.ClientUnaryCall;
 }

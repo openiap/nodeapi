@@ -713,6 +713,80 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     EnsureCustomer(options: EnsureCustomerOptions, priority?: number): Promise<EnsureCustomerResponse>;
+    /**
+     * Invoke an OpenRPA workflow on a robot or a role with multiple robots in.
+     * At writing, this command is only supprted using OpenAPI endpoint
+     * @param options {@link InvokeOpenRPAOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns null if rpc is false, else the result of the workflow if workflow has any inout/out parameters
+     */
+    InvokeOpenRPA<T>(options: InvokeOpenRPAOptions, priority?: number): Promise<T>;
+    /**
+     * Start an agent inside Docker or Kubernetes
+     * Requires invoke permission on agent
+     * @param options {@link StartAgentOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    StartAgent(options: StartAgentOptions, priority?: number): Promise<void>;
+    /**
+     * Stop an agent running inside Docker or Kubernetes
+     * Requires invoke permission on agent
+     * @param options {@link StopAgentOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    StopAgent(options: StopAgentOptions, priority?: number): Promise<void>;
+    /**
+     * Return the console output of an running agent, can be in docker, kubernetes or running remote.
+     * Requires invoke permission on agent
+     * @param options {@link GetAgentLogOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns Return pods console output
+    */
+    GetAgentLog(options: GetAgentLogOptions, priority?: number): Promise<string>;
+    /**
+     * Return a list of pods for an running agent. Docker and Kubernetes only.
+     * Requires invoke permission on agent
+     * @param options {@link GetAgentPodsOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns Array of pods
+    */
+    GetAgentPods(options: GetAgentPodsOptions, priority?: number): Promise<any[]>;
+    /**
+     * Remove an agent pod, found with GetAgentPods. Docker and Kubernetes only.
+     * Requires invoke permission on agent
+     * @param options {@link DeleteAgentPodOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    DeleteAgentPod(options: DeleteAgentPodOptions, priority?: number): Promise<void>;
+    /**
+     * Remove an agent if running. Docker and Kubernetes only.
+     * Removes instance on docker, remove deployment, ingress and other resources on Kubernetes
+     * Requires delete permission on agent
+     * @param options {@link DeleteAgentOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    DeleteAgent(options: DeleteAgentOptions, priority?: number): Promise<void>;
+    /**
+     * Return the console output of an running agent, can be in docker, kubernetes or running remote.
+     * Requires invoke permission on agent
+     * @param options {@link CreateIndexOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns Returns the index name
+    */
+    CreateIndex(options: CreateIndexOptions, priority?: number): Promise<string>;
+    /**
+     * Delete an agent Package.
+     * Removes the associated file and then delete te package from the agents collection.
+     * Requires delete permission on the Package
+     * @param options {@link DeletePackageOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    DeletePackage(options: DeletePackageOptions, priority?: number): Promise<void>;
 }
 export type SigninOptions = {
     username?: string;
@@ -1001,5 +1075,50 @@ export type UpdateWorkItemQueueOptions = {
 export type DeleteWorkItemQueueOptions = {
     wiq?: string;
     wiqid?: string;
+    jwt?: string;
+};
+export type InvokeOpenRPAOptions = {
+    robotid: string;
+    workflowid: string;
+    rpc?: boolean;
+    payload?: object;
+    jwt?: string;
+};
+export type StartAgentOptions = {
+    agentid: string;
+    jwt?: string;
+};
+export type StopAgentOptions = {
+    agentid: string;
+    jwt?: string;
+};
+export type GetAgentLogOptions = {
+    agentid: string;
+    podname: string;
+    jwt?: string;
+};
+export type GetAgentPodsOptions = {
+    agentid?: string;
+    stats?: boolean;
+    jwt?: string;
+};
+export type DeleteAgentPodOptions = {
+    agentid: string;
+    podname: string;
+    jwt?: string;
+};
+export type DeleteAgentOptions = {
+    agentid: string;
+    jwt?: string;
+};
+export type CreateIndexOptions = {
+    collectionname: string;
+    index: object;
+    options?: object;
+    name?: string;
+    jwt?: string;
+};
+export type DeletePackageOptions = {
+    packageid: string;
     jwt?: string;
 };

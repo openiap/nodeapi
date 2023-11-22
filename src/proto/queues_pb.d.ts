@@ -319,3 +319,55 @@ export namespace CreateWorkflowInstanceResponse {
   }
 }
 
+export class InvokeOpenRPARequest extends jspb.Message {
+  getRobotid(): string;
+  setRobotid(value: string): void;
+
+  getWorkflowid(): string;
+  setWorkflowid(value: string): void;
+
+  getRpc(): boolean;
+  setRpc(value: boolean): void;
+
+  getPayload(): string;
+  setPayload(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InvokeOpenRPARequest.AsObject;
+  static toObject(includeInstance: boolean, msg: InvokeOpenRPARequest): InvokeOpenRPARequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: InvokeOpenRPARequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InvokeOpenRPARequest;
+  static deserializeBinaryFromReader(message: InvokeOpenRPARequest, reader: jspb.BinaryReader): InvokeOpenRPARequest;
+}
+
+export namespace InvokeOpenRPARequest {
+  export type AsObject = {
+    robotid: string,
+    workflowid: string,
+    rpc: boolean,
+    payload: string,
+  }
+}
+
+export class InvokeOpenRPAResponse extends jspb.Message {
+  getPayload(): string;
+  setPayload(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InvokeOpenRPAResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: InvokeOpenRPAResponse): InvokeOpenRPAResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: InvokeOpenRPAResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InvokeOpenRPAResponse;
+  static deserializeBinaryFromReader(message: InvokeOpenRPAResponse, reader: jspb.BinaryReader): InvokeOpenRPAResponse;
+}
+
+export namespace InvokeOpenRPAResponse {
+  export type AsObject = {
+    payload: string,
+  }
+}
+

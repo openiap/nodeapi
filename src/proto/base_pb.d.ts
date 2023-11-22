@@ -9,6 +9,7 @@ import * as queues_pb from "./queues_pb";
 import * as watch_pb from "./watch_pb";
 import * as workitems_pb from "./workitems_pb";
 import * as stripe_pb from "./stripe_pb";
+import * as agent_pb from "./agent_pb";
 
 export class Envelope extends jspb.Message {
   getCommand(): string;
@@ -857,6 +858,94 @@ export namespace EnsureCustomerResponse {
   export type AsObject = {
     customer?: Customer.AsObject,
     stripe?: stripe_pb.StripeCustomer.AsObject,
+  }
+}
+
+export class CreateIndexRequest extends jspb.Message {
+  getCollectionname(): string;
+  setCollectionname(value: string): void;
+
+  getIndex(): string;
+  setIndex(value: string): void;
+
+  getOptions(): string;
+  setOptions(value: string): void;
+
+  getName(): string;
+  setName(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CreateIndexRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateIndexRequest): CreateIndexRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CreateIndexRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateIndexRequest;
+  static deserializeBinaryFromReader(message: CreateIndexRequest, reader: jspb.BinaryReader): CreateIndexRequest;
+}
+
+export namespace CreateIndexRequest {
+  export type AsObject = {
+    collectionname: string,
+    index: string,
+    options: string,
+    name: string,
+  }
+}
+
+export class CreateIndexResponse extends jspb.Message {
+  getResult(): string;
+  setResult(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CreateIndexResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateIndexResponse): CreateIndexResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CreateIndexResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateIndexResponse;
+  static deserializeBinaryFromReader(message: CreateIndexResponse, reader: jspb.BinaryReader): CreateIndexResponse;
+}
+
+export namespace CreateIndexResponse {
+  export type AsObject = {
+    result: string,
+  }
+}
+
+export class DeletePackageRequest extends jspb.Message {
+  getPackageid(): string;
+  setPackageid(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DeletePackageRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: DeletePackageRequest): DeletePackageRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DeletePackageRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeletePackageRequest;
+  static deserializeBinaryFromReader(message: DeletePackageRequest, reader: jspb.BinaryReader): DeletePackageRequest;
+}
+
+export namespace DeletePackageRequest {
+  export type AsObject = {
+    packageid: string,
+  }
+}
+
+export class DeletePackageResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DeletePackageResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: DeletePackageResponse): DeletePackageResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DeletePackageResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeletePackageResponse;
+  static deserializeBinaryFromReader(message: DeletePackageResponse, reader: jspb.BinaryReader): DeletePackageResponse;
+}
+
+export namespace DeletePackageResponse {
+  export type AsObject = {
   }
 }
 

@@ -274,6 +274,29 @@ async function main() {
       } else if (str == "dwq") {
         await c.DeleteWorkItemQueue({ wiq: "testq1" })
         console.log("testq1 deleted");
+      } else if (str == "rpa") {
+        await c.InvokeOpenRPA({ robotid: "6242d68a73057b27d277be88", workflowid: "5e0b52194f910e30ce9e3e49" })
+      } else if (str == "agent") {
+        var pods = await c.GetAgentPods({ agentid: "655caa844c02cc4b45915091" })
+        if(pods.length > 0) {
+          console.log("Get logs for pod " + pods[0].metadata.name);
+          var logs = await c.GetAgentLog({ agentid: "655caa844c02cc4b45915091", podname: pods[0].metadata.name })
+          console.log(logs.replace(/\\n/g, '\n'));
+          await c.DeleteAgentPod({ agentid: "655caa844c02cc4b45915091", podname: pods[0].metadata.name })
+        }
+      } else if (str == "agent2") {
+        var pods = await c.GetAgentPods({  })
+        console.log("found " + pods.length + " pods");
+        for(let i = 0; i < pods.length; i++) {
+          console.log(pods[i].metadata.name);
+        }
+        // await c.DeleteAgent({ agentid: "655ded49f9d43e7dc72dfadf" })
+      } else if (str == "ci") {
+        var idx1 = await c.CreateIndex({collectionname: "entities", index: {"id": 1} })
+        console.log(idx1);
+        var idx2 = await c.CreateIndex({collectionname: "entities", index: {"slug": 1}, options: {unique: true} })
+        console.log(idx2);
+        // await c.DeleteAgent({ agentid: "655ded49f9d43e7dc72dfadf" })
       } else if (str == "c") {
         payload.command = "console";
         var Readable = require('stream').Readable;

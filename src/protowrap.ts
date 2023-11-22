@@ -67,12 +67,21 @@ export class protowrap {
   static protoRoot: any;
   static async init() {
     var paths: string[] = [];
-    paths.push(path.join(__dirname, "../proto/base.proto"));
-    paths.push(path.join(__dirname, "../proto/ace.proto"));
-    paths.push(path.join(__dirname, "../proto/querys.proto"));
-    paths.push(path.join(__dirname, "../proto/queues.proto"));
-    paths.push(path.join(__dirname, "../proto/watch.proto"));
-    paths.push(path.join(__dirname, "../proto/workitems.proto"));
+    var basepath = path.join(__dirname + "../proto");
+    if(!fs.existsSync(path.join(basepath, "base.proto"))) {
+      basepath = path.join(__dirname, "../node_modules/@openiap/proto")
+    }
+    if(!fs.existsSync(path.join(basepath, "base.proto"))) {
+      throw new Error("base.proto not found");
+    }
+    
+    paths.push(path.join(basepath, "base.proto"));
+    paths.push(path.join(basepath, "ace.proto"));
+    paths.push(path.join(basepath, "querys.proto"));
+    paths.push(path.join(basepath, "queues.proto"));
+    paths.push(path.join(basepath, "watch.proto"));
+    paths.push(path.join(basepath, "workitems.proto"));
+    paths.push(path.join(basepath, "agent.proto"));
 
     var packageDefinition = await protoLoader.load(
       paths,
@@ -87,199 +96,29 @@ export class protowrap {
     this.protoRoot = await protobuf.load(paths);
     // this.Envelope = this.protoRoot.lookupType("openiap.envelope");
   }
-  static CommandToProto(command) {
+  static CommandToProto(command:string) {
     switch (command) {
       case "error":
         return "openiap.ErrorResponse";
-      case "noop":
-        return "openiap.Noop";
-      case "ace":
-        return "openiap.Ace";
       case "grpcservice":
         return "openiap.FlowService";
-      case "ping":
-        return "openiap.PingRequest";
       case "pong":
         return "openiap.PingResponse";
-      case "getelement":
-        return "openiap.GetElementRequest";
-      case "download":
-        return "openiap.DownloadRequest";
-      case "downloadreply":
-        return "openiap.DownloadResponse";
-      case "upload":
-        return "openiap.UploadRequest";
-      case "uploadreply":
-        return "openiap.UploadResponse";
-      case "beginstream":
-        return "openiap.BeginStream";
-      case "stream":
-        return "openiap.Stream";
-      case "endstream":
-        return "openiap.EndStream";
-      case "customcommand":
-        return "openiap.CustomCommandRequest";
-      case "customcommandreply":
-        return "openiap.CustomCommandResponse";
-      case "signin":
-        return "openiap.SigninRequest";
-      case "signinreply":
-        return "openiap.SigninResponse";
-      case "RefreshToken":
-        return "openiap.RefreshToken";
-      case "listcollections":
-        return "openiap.ListCollectionsRequest";
-      case "listcollectionsreply":
-        return "openiap.ListCollectionsResponse";
-      case "dropcollection":
-        return "openiap.DropCollectionRequest";
-      case "dropcollectionreply":
-        return "openiap.DropCollectionResponse";
-      case "createcollection":
-        return "openiap.CreateCollectionRequest";
-      case "createcollectionreply":
-        return "openiap.CreateCollectionResponse";
-      case "query":
-        return "openiap.QueryRequest";
-      case "queryreply":
-        return "openiap.QueryResponse";
-      case "getdocumentversion":
-        return "openiap.GetDocumentVersionRequest";
-      case "getdocumentversionreply":
-        return "openiap.GetDocumentVersionResponse";
-      case "aggregate":
-        return "openiap.AggregateRequest";
-      case "aggregatereply":
-        return "openiap.AggregateResponse";
-      case "count":
-        return "openiap.CountRequest";
-      case "countreply":
-        return "openiap.CountResponse";
-      case "distinct":
-        return "openiap.DistinctRequest";
-      case "distinctreply":
-        return "openiap.DistinctResponse";
-      case "insertone":
-        return "openiap.InsertOneRequest";
-      case "insertonereply":
-        return "openiap.InsertOneResponse";
-      case "insertmany":
-        return "openiap.InsertManyRequest";
-      case "insertmanyreply":
-        return "openiap.InsertManyResponse";
-      case "updateone":
-        return "openiap.UpdateOneRequest";
-      case "updateonereply":
-        return "openiap.UpdateOneResponse";
-      case "updatedocument":
-        return "openiap.UpdateDocumentRequest";
-      case "updatedocumentreply":
-        return "openiap.UpdateDocumentResponse";
-      case "insertorupdateone":
-        return "openiap.InsertOrUpdateOneRequest";
-      case "insertorupdateonereply":
-        return "openiap.InsertOrUpdateOneResponse";
-      case "insertorupdatemany":
-        return "openiap.InsertOrUpdateManyRequest";
-      case "insertorupdatemanyreply":
-        return "openiap.InsertOrUpdateManyResponse";
-      case "deleteone":
-        return "openiap.DeleteOneRequest";
-      case "deleteonereply":
-        return "openiap.DeleteOneResponse";
-      case "deletemany":
-        return "openiap.DeleteManyRequest";
-      case "deletemanyreply":
-        return "openiap.DeleteManyResponse";
-      case "registerqueue":
-        return "openiap.RegisterQueueRequest";
-      case "registerqueuereply":
-        return "openiap.RegisterQueueResponse";
-      case "registerexchange":
-        return "openiap.RegisterExchangeRequest";
-      case "registerexchangereply":
-        return "openiap.RegisterExchangeResponse";
-      case "queuemessage":
-        return "openiap.QueueMessageRequest";
-      case "queuemessagereply":
-        return "openiap.QueueMessageResponse";
-      case "queueevent":
-        return "openiap.QueueEvent";
-      case "unregisterqueue":
-        return "openiap.UnRegisterQueueRequest";
-      case "unregisterqueuereply":
-        return "openiap.UnRegisterQueueResponse";
-      case "watch":
-        return "openiap.WatchRequest";
-      case "watchreply":
-        return "openiap.WatchResponse";
-      case "watchevent":
-        return "openiap.WatchEvent";
-      case "unwatch":
-        return "openiap.UnWatchRequest";
-      case "unwatchreply":
-        return "openiap.UnWatchResponse";
-      case "workitem":
-        return "openiap.Workitem";
-      case "workitemfile":
-        return "openiap.WorkitemFile";
-      case "pushworkitem":
-        return "openiap.PushWorkitemRequest";
-      case "pushworkitemreply":
-        return "openiap.PushWorkitemResponse";
-      case "pushworkitems":
-        return "openiap.PushWorkitemsRequest";
-      case "pushworkitemsreply":
-        return "openiap.PushWorkitemsResponse";
-      case "updateworkitem":
-        return "openiap.UpdateWorkitemRequest";
-      case "updateworkitemreply":
-        return "openiap.UpdateWorkitemResponse";
-      case "popworkitem":
-        return "openiap.PopWorkitemRequest";
-      case "popworkitemreply":
-        return "openiap.PopWorkitemResponse";
-      case "deleteworkitem":
-        return "openiap.DeleteWorkitemRequest";
-      case "deleteworkitemreply":
-        return "openiap.DeleteWorkitemResponse";
-      case "workitemqueue":
-        return "openiap.WorkItemQueue";
-      case "addworkitemqueue":
-        return "openiap.AddWorkItemQueueRequest";
-      case "addworkitemqueuereply":
-        return "openiap.AddWorkItemQueueResponse";
-      case "updateworkitemqueue":
-        return "openiap.UpdateWorkItemQueueRequest";
-      case "updateworkitemqueuereply":
-        return "openiap.UpdateWorkItemQueueResponse";
-      case "deleteworkitemqueue":
-        return "openiap.DeleteWorkItemQueueRequest";
-      case "deleteworkitemqueuereply":
-        return "openiap.DeleteWorkItemQueueResponse";    
-      case "createworkflowinstance":
-        return "openiap.CreateWorkflowInstanceRequest";
-      case "createworkflowinstancereply":
-        return "openiap.CreateWorkflowInstanceResponse";
-      case "ensurecustomerrequest":
-        return "openiap.EnsureCustomerRequest";
-      case "ensurecustomer":
-        return "openiap.EnsureCustomerRequest";
-      case "ensurecustomerreply":
-        return "openiap.EnsureCustomerResponse";
-      case "":
-        return "openiap.";
-      case "":
-        return "openiap.";
-      case "":
-        return "openiap.";
-      case "":
-        return "openiap.";
-      case "":
-        return "openiap.";
       default:
+        let searchkey = command;
+        if(searchkey.endsWith("reply")) {
+          searchkey = (searchkey.substring(0, searchkey.length - 5) + "Response").toLowerCase();
+        } else {
+          searchkey = (searchkey + "Request").toLowerCase();;
+        }
+        var keys = Object.keys(this.openiap_proto);
+        for (let i = 0; i < keys.length; i++) {
+          const key = keys[i];
+          if(key.toLowerCase() == searchkey || key.toLowerCase() == command.toLowerCase()) {
+            return "openiap." + key;
+          }
+        }
         return "openiap." + command;
-        break;
     }
   }
   static pack(command, payload) {

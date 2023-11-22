@@ -7,7 +7,7 @@ export declare class protowrap {
     static openiap_proto: grpc.GrpcObject | grpc.ServiceClientConstructor | grpc.ProtobufTypeDefinition;
     static protoRoot: any;
     static init(): Promise<void>;
-    static CommandToProto(command: any): string;
+    static CommandToProto(command: string): string;
     static pack(command: any, payload: any): {
         type_url: string;
         value: any;

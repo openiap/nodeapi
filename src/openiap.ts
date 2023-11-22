@@ -1,17 +1,18 @@
 import { client, clientAgent } from "./client";
 import { protowrap } from "./protowrap";
 import { config } from "./config";
-const { info, err, warn }  = config;
+const { info, err, warn } = config;
 import { Any } from "./proto/google/protobuf/any";
 // import events = require("events");
 import { EventEmitter } from "events";
-import { CustomCommandRequest, CustomCommandResponse, Customer, DownloadResponse, EnsureCustomerRequest, EnsureCustomerResponse, Envelope, GetElementRequest, GetElementResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
+import { CreateIndexRequest, CreateIndexResponse, CustomCommandRequest, CustomCommandResponse, Customer, DeletePackageRequest, DeletePackageResponse, DownloadResponse, EnsureCustomerRequest, EnsureCustomerResponse, Envelope, GetElementRequest, GetElementResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
 import { AddWorkItemQueueRequest, AddWorkItemQueueResponse, AggregateRequest, AggregateResponse, CountRequest, CountResponse, DeleteManyRequest, DeleteManyResponse, DeleteOneRequest, DeleteOneResponse, DeleteWorkItemQueueRequest, DeleteWorkItemQueueResponse, DeleteWorkitemRequest, DeleteWorkitemResponse, DropCollectionRequest, GetDocumentVersionRequest, GetDocumentVersionResponse, InsertManyRequest, InsertManyResponse, InsertOneRequest, InsertOneResponse, InsertOrUpdateManyRequest, InsertOrUpdateManyResponse, InsertOrUpdateOneRequest, InsertOrUpdateOneResponse, ListCollectionsRequest, ListCollectionsResponse, PopWorkitemRequest, PopWorkitemResponse, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse, QueryRequest, QueryResponse, QueueEvent, QueueMessageRequest, RegisterExchangeRequest, RegisterExchangeResponse, RegisterQueueRequest, RegisterQueueResponse, UnRegisterQueueRequest, UnWatchRequest, UpdateDocumentRequest, UpdateDocumentResponse, UpdateOneRequest, UpdateOneResponse, UpdateResult, UpdateWorkItemQueueRequest, UpdateWorkItemQueueResponse, UpdateWorkitemRequest, UpdateWorkitemResponse, WatchEvent, WatchRequest, WatchResponse, WorkItemQueue, Workitem } from ".";
-import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse } from "./proto/queues";
+import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse, InvokeOpenRPARequest, InvokeOpenRPAResponse } from "./proto/queues";
 import { CreateCollectionRequest, DistinctRequest, DistinctResponse } from "./proto/querys";
 import { StripeCustomer } from "./proto/stripe";
 import { apiinstrumentation } from "./apiinstrumentation";
 import { context } from "@opentelemetry/api";
+import { DeleteAgentPodRequest, DeleteAgentPodResponse, DeleteAgentRequest, DeleteAgentResponse, GetAgentLogRequest, GetAgentLogResponse, GetAgentPodsRequest, GetAgentPodsResponse, StartAgentRequest, StartAgentResponse, StopAgentRequest, StopAgentResponse } from "./proto/agent";
 
 /**
  * OpenIAP
@@ -121,11 +122,11 @@ export class openiap extends EventEmitter {
         super()
         this.version = require("../package.json").version;
         this.agent = "node";
-        if(url != null && url != "") this.url = url;
-        if(jwt != null && jwt != "") this.jwt = jwt;
-        if(this.url == null || this.url == "") this.url = process.env.apiurl
-        if(this.url == null || this.url == "") this.url = process.env.grpcapiurl
-        if(this.url == null || this.url == "") this.url = process.env.wscapiurl
+        if (url != null && url != "") this.url = url;
+        if (jwt != null && jwt != "") this.jwt = jwt;
+        if (this.url == null || this.url == "") this.url = process.env.apiurl
+        if (this.url == null || this.url == "") this.url = process.env.grpcapiurl
+        if (this.url == null || this.url == "") this.url = process.env.wscapiurl
     }
     /**
      * @param first Should be left out or used as true. Is used internally for controlling retry logic
@@ -141,14 +142,14 @@ export class openiap extends EventEmitter {
      */
     async connect(first: boolean = true): Promise<User> {
         return new Promise<User>(async (resolve, reject) => {
-            if(process.env.log_with_colors == "false" || process.env.log_with_colors == "False") {
+            if (process.env.log_with_colors == "false" || process.env.log_with_colors == "False") {
                 var keys = Object.keys(config.color);
-                for(var i = 0; i < keys.length; i++) {
+                for (var i = 0; i < keys.length; i++) {
                     config.color[keys[i]] = "";
                 }
             }
             var u = new URL(this.url);
-            if(u.protocol == "grpc:") {
+            if (u.protocol == "grpc:") {
                 await protowrap.init()
             }
             if (this.loginresolve == null && first == true) {
@@ -158,7 +159,7 @@ export class openiap extends EventEmitter {
             // await protowrap.init()
             this.connected = false;
             this.connecting = true;
-            if(this.pingerhandle != null) clearInterval(this.pingerhandle);
+            if (this.pingerhandle != null) clearInterval(this.pingerhandle);
             this.pingerhandle = setInterval(this.__server_pinger.bind(this), 30000)
             setTimeout(() => {
                 try {
@@ -173,7 +174,7 @@ export class openiap extends EventEmitter {
         });
     }
     __server_pinger() {
-        if(this.connected) {
+        if (this.connected) {
             this.client.ping(null);
         }
     }
@@ -182,7 +183,7 @@ export class openiap extends EventEmitter {
      */
     Close() {
         this.signedin = false;
-        if(this.pingerhandle != null) clearInterval(this.pingerhandle);
+        if (this.pingerhandle != null) clearInterval(this.pingerhandle);
         // if (this.client && this.client.destroy) this.client.destroy();
         // if (this.client && this.client.close) this.client.close();
         // if (this.client && this.client.terminate) this.client.terminate();
@@ -212,9 +213,9 @@ export class openiap extends EventEmitter {
      * client.connect();
      * ```
      */
-    async onConnected(client:openiap) {
+    async onConnected(client: openiap) {
     }
-    private async cliOnConnected(client:client) {
+    private async cliOnConnected(client: client) {
         try {
             this.connected = true;
             this.connecting = false;
@@ -223,10 +224,10 @@ export class openiap extends EventEmitter {
             var _jwt = process.env.jwt
             var _username = decodeURIComponent(u.username);
             var _password = decodeURIComponent(u.password);
-            if(_jwt == null) _jwt = this.jwt
-            if(_jwt == null) _jwt = client.jwt;
-            if(_username == null) _username = "";
-            if(_password == null) _password = "";
+            if (_jwt == null) _jwt = this.jwt
+            if (_jwt == null) _jwt = client.jwt;
+            if (_username == null) _username = "";
+            if (_password == null) _password = "";
 
             if (_username != "" && _password != "") {
                 const reply = await this.Signin({ username: _username, password: _password, ping: config.DoPing })
@@ -253,7 +254,7 @@ export class openiap extends EventEmitter {
             this.emit("connected", this)
         } catch (error) {
             this.loginresolve = null;
-            if(this.loginreject != null) this.loginreject(error);
+            if (this.loginreject != null) this.loginreject(error);
         }
     }
     /**
@@ -280,19 +281,19 @@ export class openiap extends EventEmitter {
      * client.connect();
      * ```
      */
-    public onDisconnected(client:openiap, error: Error) {
+    public onDisconnected(client: openiap, error: Error) {
     }
-    public onConnectGaveUp(client:openiap) {
-    }    
-    private cliOnDisconnected(client:client, error: Error) {
+    public onConnectGaveUp(client: openiap) {
+    }
+    private cliOnDisconnected(client: client, error: Error) {
         this.connected = false;
         this.connecting = false;
         this.signedin = false;
-        if(this.pingerhandle != null) clearInterval(this.pingerhandle);    
+        if (this.pingerhandle != null) clearInterval(this.pingerhandle);
         this.reconnectms += 100;
-        if(this.reconnectms > 1800 && this.allowconnectgiveup == true) {
+        if (this.reconnectms > 1800 && this.allowconnectgiveup == true) {
             this.reconnectms = 200;
-            if(this.loginreject != null) {
+            if (this.loginreject != null) {
                 this.loginreject(new Error("Giving up, not responding"));
                 this.loginresolve = null;
                 this.loginreject = null;
@@ -300,9 +301,9 @@ export class openiap extends EventEmitter {
                 err(new Error("Giving up, not responding"));
             }
             this.onConnectGaveUp(this);
-            this.emit("gaveup", this)        
+            this.emit("gaveup", this)
             return;
-        } else if(this.reconnectms > 2500) {
+        } else if (this.reconnectms > 2500) {
             this.reconnectms = 2500
         }
         var msg: string = "";
@@ -327,7 +328,7 @@ export class openiap extends EventEmitter {
         this.emit("disconnected", this, error)
         try {
             this.connect(false);
-        } catch (error) {            
+        } catch (error) {
         }
     }
     /**
@@ -357,7 +358,7 @@ export class openiap extends EventEmitter {
             let we: WatchEvent = WatchEvent.decode(message.data.value)
             if (this.watchids[we.id]) {
                 var document = we.document;
-                if(typeof document === "string") document = JSON.parse(document)
+                if (typeof document === "string") document = JSON.parse(document)
                 await this.watchids[we.id](we.operation, document);
             } else {
                 warn("Got watchevent for unknown id " + we.id);
@@ -372,8 +373,8 @@ export class openiap extends EventEmitter {
             delete data.__user;
             delete data.__jwt;
             we.data = JSON.stringify(data);
-            if(this.queuecallbacks[we.correlationId] && (we.replyto == "" || we.replyto == null)) {
-                await apiinstrumentation.With("queueevent", message.traceid, message.spanid, undefined, async (span)=> {
+            if (this.queuecallbacks[we.correlationId] && (we.replyto == "" || we.replyto == null)) {
+                await apiinstrumentation.With("queueevent", message.traceid, message.spanid, undefined, async (span) => {
                     if (config.doDumpRPCTraceIds) {
                         let ctx = span?.spanContext();
                         if (ctx != null) {
@@ -386,8 +387,8 @@ export class openiap extends EventEmitter {
             } else if (this.queues[we.queuename]) {
                 try {
                     var reply2 = await this.queues[we.queuename](we, data, user, jwt);
-                    if(reply2 != null && we.replyto != null && we.replyto != "") {
-                        await this.QueueMessage({ correlationId: we.correlationId, queuename: we.replyto, data: reply2, striptoken: true}, false);
+                    if (reply2 != null && we.replyto != null && we.replyto != "") {
+                        await this.QueueMessage({ correlationId: we.correlationId, queuename: we.replyto, data: reply2, striptoken: true }, false);
                     }
                 } catch (error) {
                     err(error);
@@ -404,9 +405,9 @@ export class openiap extends EventEmitter {
      * Only used if server require pings, or if the client is configured to send pings using {@link config.DoPing}
      */
     async Ping(): Promise<void> {
-        if(!this.connected || !this.signedin) return;
+        if (!this.connected || !this.signedin) return;
         let message = PingRequest.create();
-        const data = Any.create({type_url : "type.googleapis.com/openiap.PingRequest", value: PingRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.PingRequest", value: PingRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "ping", data });
         payload.priority = 0;
         const result = await protowrap.RPC(this.client, payload);
@@ -436,36 +437,36 @@ export class openiap extends EventEmitter {
      * {@link SigninOptions.validateonly} to true.
      * @param options {@link SigninOptions}
      * @returns 
-     */    
+     */
     async Signin(options: SigninOptions): Promise<SigninResponse> {
-        if(!this.connected) throw new Error("Not connected to server");
+        if (!this.connected) throw new Error("Not connected to server");
         const opt: SigninOptions = Object.assign(new SigninDefaults(), options)
-        if(opt.agent == null || opt.agent == "") opt.agent = this.agent;
-        if(opt.version == null || opt.version == "") opt.version = this.version;
+        if (opt.agent == null || opt.agent == "") opt.agent = this.agent;
+        if (opt.version == null || opt.version == "") opt.version = this.version;
         let message = SigninRequest.create(opt as any);
         // let message = SigninRequest.create({ agent: opt.agent, version: opt.version, username: opt.username, password: opt.password, ping: opt.ping, longtoken: opt.longtoken })
         // if (opt.jwt != null && opt.jwt != "") {
         //     message = SigninRequest.create({ jwt: opt.jwt, ping: opt.ping })
         // }
-        const data = Any.create({type_url: "type.googleapis.com/openiap.SigninRequest", value: SigninRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.SigninRequest", value: SigninRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "signin", data, jwt: opt.jwt });
         payload.priority = 2;
         const d = (await protowrap.RPC(this.client, payload))
         const result = SigninResponse.decode(d.data.value);
-        if(result.user == null) {
-            throw new Error("Login seem to have failed, nu user object returned");            
+        if (result.user == null) {
+            throw new Error("Login seem to have failed, nu user object returned");
         }
-        if(options.validateonly) {
+        if (options.validateonly) {
             // info("Validated " + result.user.name);
             return result;
         }
-        if(result.config != null && result.config != "") {
+        if (result.config != null && result.config != "") {
             try {
                 this.flowconfig = JSON.parse(result.config);
-            } catch (error) {                
+            } catch (error) {
             }
         }
-        info("Signed in as " +result.user.name);
+        info("Signed in as " + result.user.name);
         this.signedin = true;
         this.client.jwt = result.jwt;
         this.client.user = result.user;
@@ -479,11 +480,11 @@ export class openiap extends EventEmitter {
      * @returns 
      */
     async ListCollections(options: ListCollectionsOptions = {}, priority: number = 2): Promise<any[]> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: ListCollectionsOptions = Object.assign(new ListCollectionsDefaults(), options)
         let message = ListCollectionsRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.ListCollectionsRequest", "value": ListCollectionsRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.ListCollectionsRequest", "value": ListCollectionsRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "listcollections", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = ListCollectionsResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -495,11 +496,11 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     async DropCollection(options: DropCollectionOptions, priority: number = 2): Promise<void> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DropCollectionOptions = Object.assign(new DropCollectionDefaults(), options)
         let message = DropCollectionRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.DropCollectionRequest", "value": DropCollectionRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.DropCollectionRequest", "value": DropCollectionRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "dropcollection", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = await protowrap.RPC(this.client, payload);
@@ -510,11 +511,11 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     async CreateCollection(options: CreateCollectionOptions, priority: number = 2): Promise<void> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: CreateCollectionOptions = Object.assign(new CreateCollectionDefaults(), options)
         let message = CreateCollectionRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.CreateCollectionRequest", "value": CreateCollectionRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.CreateCollectionRequest", "value": CreateCollectionRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "createcollection", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = await protowrap.RPC(this.client, payload);
@@ -541,15 +542,15 @@ export class openiap extends EventEmitter {
      * ```
      */
     async Query<T>(options: QueryOptions, priority: number = 2): Promise<T[]> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: QueryOptions = Object.assign(new QueryDefaults(), options)
         let message = QueryRequest.create(opt as any);
         if (typeof message.query == "object") message.query = this.stringify(message.query);
         if (typeof message.orderby == "object") message.orderby = this.stringify(message.orderby);
         if (typeof message.projection == "object") message.projection = this.stringify(message.projection);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.QueryRequest", "value": QueryRequest.encode(message).finish()})
-        const payload = Envelope.create({ command: "query",data });
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.QueryRequest", "value": QueryRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "query", data });
         payload.priority = priority;
         const result = QueryResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
@@ -576,22 +577,22 @@ export class openiap extends EventEmitter {
      * ```
      */
     async FindOne<T>(options: FindOneOptions, priority: number = 2): Promise<T> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: FindOneOptions = Object.assign(new FindOneDefaults(), options)
         let message = QueryRequest.create(opt as any);
         message.top = 1;
         if (typeof message.query == "object") message.query = this.stringify(message.query);
         if (typeof message.orderby == "object") message.orderby = this.stringify(message.orderby);
         if (typeof message.projection == "object") message.projection = this.stringify(message.projection);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.QueryRequest", "value": QueryRequest.encode(message).finish()})
-        const payload = Envelope.create({ command: "query",data });
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.QueryRequest", "value": QueryRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "query", data });
         payload.priority = priority;
         const result = QueryResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
-        if(result.results == null || result.results == "") return null;
+        if (result.results == null || result.results == "") return null;
         var array = JSON.parse(result.results);
-        if(!Array.isArray(array)) return null;
-        if(array.length == 0) return null;
+        if (!Array.isArray(array)) return null;
+        if (array.length == 0) return null;
         return array[0];
     }
     /**
@@ -608,12 +609,12 @@ export class openiap extends EventEmitter {
      * ```
      */
     async GetDocumentVersion<T>(options: GetDocumentVersionOptions, priority: number = 2): Promise<T[]> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: GetDocumentVersionOptions = Object.assign(new GetDocumentVersionDefaults(), options)
         let message = GetDocumentVersionRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.GetDocumentVersionRequest", "value": GetDocumentVersionRequest.encode(message).finish()})
-        const payload = Envelope.create({ command: "getdocumentversion", data});
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.GetDocumentVersionRequest", "value": GetDocumentVersionRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "getdocumentversion", data });
         payload.priority = priority;
         const result = GetDocumentVersionResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
@@ -636,40 +637,40 @@ export class openiap extends EventEmitter {
      * ```
      */
     async Count(options: CountOptions, priority: number = 2): Promise<number> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: CountOptions = Object.assign(new CountDefaults(), options)
         let message = CountRequest.create(opt as any);
         if (typeof message.query == "object") message.query = this.stringify(message.query);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.CountRequest", "value": CountRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.CountRequest", "value": CountRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "count", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = CountResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.result;
     }
-        /**
-     * Finds the distinct values for a specified field across a single collection
-     * @param options {@link DistinctOptions}
-     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
-     * @returns returns the results in an array
-     * @example
-     * Get the distinct name of all documents with type "test" 
-     * ```typescript
-     * const result = await client.Distinct({ collectionname: "entities", field: "name", query: { "_type": "test" } });
-     * ```
-     * @example
-     * Get the distinct types in the entities collection
-     * ```typescript
-     * const result = await client.Distinct({ collectionname: "entities", field: "_type" });
-     * ```
-     */
+    /**
+ * Finds the distinct values for a specified field across a single collection
+ * @param options {@link DistinctOptions}
+ * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+ * @returns returns the results in an array
+ * @example
+ * Get the distinct name of all documents with type "test" 
+ * ```typescript
+ * const result = await client.Distinct({ collectionname: "entities", field: "name", query: { "_type": "test" } });
+ * ```
+ * @example
+ * Get the distinct types in the entities collection
+ * ```typescript
+ * const result = await client.Distinct({ collectionname: "entities", field: "_type" });
+ * ```
+ */
     async Distinct(options: DistinctOptions, priority: number = 2): Promise<string[]> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DistinctOptions = Object.assign(new DistinctDefaults(), options)
         let message = DistinctRequest.create(opt as any);
         if (typeof message.query == "object") message.query = this.stringify(message.query);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.DistinctRequest", "value": DistinctRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.DistinctRequest", "value": DistinctRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "distinct", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = DistinctResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -689,12 +690,12 @@ export class openiap extends EventEmitter {
      * ```
      */
     async Aggregate<T>(options: AggregateOptions, priority: number = 2): Promise<T[]> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: AggregateOptions = Object.assign(new AggregateDefaults(), options)
         let message = AggregateRequest.create(opt as any);
         if (typeof message.aggregates == "object") message.aggregates = this.stringify(message.aggregates);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.AggregateRequest", "value": AggregateRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.AggregateRequest", "value": AggregateRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "aggregate", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = AggregateResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -712,13 +713,13 @@ export class openiap extends EventEmitter {
      * ```
      */
     async InsertOne<T>(options: InsertOneOptions, priority: number = 2): Promise<T> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertOneOptions = Object.assign(new InsertOneDefaults(), options)
         let message = InsertOneRequest.create(opt as any);
         if (typeof message.item == "object") message.item = JSON.stringify(message.item);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.InsertOneRequest", "value": InsertOneRequest.encode(message).finish()})
-        const payload = Envelope.create({ command: "insertone", data});
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.InsertOneRequest", "value": InsertOneRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "insertone", data });
         payload.priority = priority;
         const result = InsertOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
@@ -735,12 +736,12 @@ export class openiap extends EventEmitter {
      * ```
      */
     async InsertMany<T>(options: InsertManyOptions, priority: number = 2): Promise<T[]> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertManyOptions = Object.assign(new InsertManyDefaults(), options)
         let message = InsertManyRequest.create(opt as any);
         if (typeof message.items == "object") message.items = JSON.stringify(message.items);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.InsertManyRequest", "value": InsertManyRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.InsertManyRequest", "value": InsertManyRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "insertmany", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = InsertManyResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -764,13 +765,13 @@ export class openiap extends EventEmitter {
      * ```
      */
     async UpdateOne<T>(options: UpdateOneOptions, priority: number = 2): Promise<T> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UpdateOneOptions = Object.assign(new UpdateOneDefaults(), options)
         let message = UpdateOneRequest.create(opt as any);
         if (typeof message.item == "object") message.item = JSON.stringify(message.item);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.UpdateOneRequest", "value": UpdateOneRequest.encode(message).finish()})
-        const payload = Envelope.create({ command: "updateone", data});
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.UpdateOneRequest", "value": UpdateOneRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "updateone", data });
         payload.priority = priority;
         const result = UpdateOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
@@ -790,13 +791,13 @@ export class openiap extends EventEmitter {
      * ```
      */
     async UpdateDocument(options: UpdateDocumentOptions, priority: number = 2): Promise<UpdateResult> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UpdateDocumentOptions = Object.assign(new UpdateDocumentDefaults(), options)
         let message = UpdateDocumentRequest.create(opt as any);
         if (typeof message.document == "object") message.document = this.stringify(message.document);
         if (typeof message.query == "object") message.query = this.stringify(message.query);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.UpdateDocumentRequest", "value": UpdateDocumentRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.UpdateDocumentRequest", "value": UpdateDocumentRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "updatedocument", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = UpdateDocumentResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -820,12 +821,12 @@ export class openiap extends EventEmitter {
      * ```
      */
     async InsertOrUpdateOne<T>(options: InsertOrUpdateOneOptions, priority: number = 2): Promise<T> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertOrUpdateOneOptions = Object.assign(new InsertOrUpdateOneDefaults(), options)
         let message = InsertOrUpdateOneRequest.create(opt as any);
         if (typeof message.item == "object") message.item = JSON.stringify(message.item);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.InsertOrUpdateOneRequest", "value": InsertOrUpdateOneRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.InsertOrUpdateOneRequest", "value": InsertOrUpdateOneRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "insertorupdateone", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = InsertOrUpdateOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -853,12 +854,12 @@ export class openiap extends EventEmitter {
      * ```
      */
     async InsertOrUpdateMany<T>(options: InsertOrUpdateManyOptions, priority: number = 2): Promise<T[]> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertOrUpdateManyOptions = Object.assign(new InsertOrUpdateManyDefaults(), options)
         let message = InsertOrUpdateManyRequest.create(opt as any);
         if (typeof message.items == "object") message.items = JSON.stringify(message.items);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.InsertOrUpdateManyRequest", "value": InsertOrUpdateManyRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.InsertOrUpdateManyRequest", "value": InsertOrUpdateManyRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "insertorupdatemany", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = InsertOrUpdateManyResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -880,11 +881,11 @@ export class openiap extends EventEmitter {
      * ```
      */
     async DeleteOne(options: DeleteOneOptions, priority: number = 2): Promise<number> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteOneOptions = Object.assign(new DeleteOneDefaults(), options)
         let message = DeleteOneRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.DeleteOneRequest", "value": DeleteOneRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteOneRequest", "value": DeleteOneRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "deleteone", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = DeleteOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -909,13 +910,13 @@ export class openiap extends EventEmitter {
      * ```
      */
     async DeleteMany(options: DeleteManyOptions, priority: number = 2): Promise<number> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteManyOptions = Object.assign(new DeleteManyDefaults(), options)
         let message = DeleteManyRequest.create(opt as any);
         if (typeof message.query == "object") message.query = this.stringify(message.query);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.DeleteManyRequest", "value": DeleteManyRequest.encode(message).finish()})
-        const payload = Envelope.create({command: "deletemany",data });
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteManyRequest", "value": DeleteManyRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "deletemany", data });
         payload.priority = priority;
         const result = DeleteManyResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.affectedrows;
@@ -933,21 +934,21 @@ export class openiap extends EventEmitter {
      *     console.log(operation + " on " + document.name);
      * });
      */
-    async Watch(options: WatchOptions, callback: (operation: string, document: any)=> void, priority: number = 2): Promise<string> {
+    async Watch(options: WatchOptions, callback: (operation: string, document: any) => void, priority: number = 2): Promise<string> {
         if (!callback) return "";
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: WatchOptions = Object.assign(new WatchDefaults(), options)
-        if(opt.paths) {
-            if(Array.isArray(opt.paths)) {
+        if (opt.paths) {
+            if (Array.isArray(opt.paths)) {
                 for (let i = 0; i < opt.paths.length; i++) {
                     const element = opt.paths[i];
-                    if(element != null && typeof element !== "string") opt.paths[i] = JSON.stringify(element);
+                    if (element != null && typeof element !== "string") opt.paths[i] = JSON.stringify(element);
                 }
             }
         }
         let message = WatchRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.WatchRequest", "value": WatchRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.WatchRequest", "value": WatchRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "watch", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = WatchResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -962,12 +963,12 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     async UnWatch(options: UnWatchOptions, priority: number = 2): Promise<void> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UnWatchOptions = Object.assign(new UnWatchDefaults(), options)
         delete this.watchids[opt.id];
         let message = UnWatchRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.UnWatchRequest", "value": UnWatchRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.UnWatchRequest", "value": UnWatchRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "unwatch", data });
         payload.priority = priority;
         const result = await protowrap.RPC(this.client, payload);
@@ -979,7 +980,7 @@ export class openiap extends EventEmitter {
      */
     async GetElement(xpath: string) {
         var message = GetElementRequest.create({ xpath })
-        const data = Any.create({type_url: "type.googleapis.com/openiap.GetElementRequest", "value": GetElementRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.GetElementRequest", "value": GetElementRequest.encode(message).finish() })
         var payload = Envelope.create({ command: "getelement", data });
         const result = GetElementResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.xpath;
@@ -991,8 +992,8 @@ export class openiap extends EventEmitter {
      * @returns 
      */
     async DownloadFile(options: DownloadFileOptions): Promise<DownloadResponse> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DownloadFileOptions = Object.assign(new DownloadFileDefaults(), options)
         return await protowrap.DownloadFile(this.client, opt.id, opt.filename, opt.folder, config.SendFileHighWaterMark);
     }
@@ -1011,10 +1012,10 @@ export class openiap extends EventEmitter {
      * ```
      */
     async UploadFile(options: UploadFileOptions): Promise<UploadResponse> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UploadFileOptions = Object.assign(new UploadFileDefaults(), options)
-        const result:Envelope = await protowrap.UploadFile(this.client, opt.filename, opt.jwt) as any;
+        const result: Envelope = await protowrap.UploadFile(this.client, opt.filename, opt.jwt) as any;
         var res = UploadResponse.decode(result.data.value);
         return res;
     }
@@ -1039,18 +1040,18 @@ export class openiap extends EventEmitter {
      * console.log("registered queue " + queuename);
      * ```
      */
-    async RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt:string)=> any, priority: number = 2 ): Promise<string> {
+    async RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any, priority: number = 2): Promise<string> {
         if (!callback) return "";
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: RegisterQueueOptions = Object.assign(new RegisterQueueDefaults(), options)
         let message = RegisterQueueRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.RegisterQueueRequest", "value": RegisterQueueRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.RegisterQueueRequest", "value": RegisterQueueRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "registerqueue", data, jwt: opt.jwt });
-        if(opt.queuename && opt.queuename != "") this.queues[opt.queuename] = callback;
+        if (opt.queuename && opt.queuename != "") this.queues[opt.queuename] = callback;
         payload.priority = priority;
         const result = RegisterQueueResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
-        if(this.defaltqueue == "" && (opt.queuename == ""|| opt.queuename == null)) this.defaltqueue = result.queuename;
+        if (this.defaltqueue == "" && (opt.queuename == "" || opt.queuename == null)) this.defaltqueue = result.queuename;
         if (result.queuename != null && result.queuename != "" && result.queuename != opt.queuename) {
             this.queues[result.queuename] = callback;
             delete this.queues[opt.queuename];
@@ -1074,13 +1075,13 @@ export class openiap extends EventEmitter {
      * console.log("registered exchange myexchange and is consuming it using queue " + queuename);
      * ```
      */
-    async RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt:string)=> any, priority: number = 2): Promise<string> {
+    async RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any, priority: number = 2): Promise<string> {
         if (!callback) return "";
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: RegisterExchangeOptions = Object.assign(new RegisterExchangeDefaults(), options)
         let message = RegisterExchangeRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.RegisterExchangeRequest", "value": RegisterExchangeRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.RegisterExchangeRequest", "value": RegisterExchangeRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "registerexchange", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = RegisterExchangeResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -1106,15 +1107,15 @@ export class openiap extends EventEmitter {
      * ```
      */
     async UnRegisterQueue(options: UnRegisterQueueOptions, priority: number = 2): Promise<void> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UnRegisterQueueOptions = Object.assign(new UnRegisterQueueDefaults(), options)
         let message = UnRegisterQueueRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.UnRegisterQueueRequest", "value": UnRegisterQueueRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.UnRegisterQueueRequest", "value": UnRegisterQueueRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "unregisterqueue", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = await protowrap.RPC(this.client, payload);
-        if(this.defaltqueue == opt.queuename) this.defaltqueue = "";
+        if (this.defaltqueue == opt.queuename) this.defaltqueue = "";
         delete this.queues[opt.queuename];
     }
     /**
@@ -1139,16 +1140,16 @@ export class openiap extends EventEmitter {
      * ```
      */
     async QueueMessage(options: QueueMessageOptions, rpc: boolean = false, priority: number = 2) {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
-        return new Promise<any>(async (resolve, reject)=> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        return new Promise<any>(async (resolve, reject) => {
             try {
                 const opt: QueueMessageOptions = Object.assign(new QueueMessageDefaults(), options)
-                if(typeof opt.data !== 'string') opt.data = JSON.stringify(opt.data) as any;
-                if(rpc) {
-                    if(this.defaltqueue == "") {
-                        this.defaltqueue = await this.RegisterQueue({queuename: ""}, (msg, payload, user, jwt)=>{
-                            if(msg && msg.correlationId) {
+                if (typeof opt.data !== 'string') opt.data = JSON.stringify(opt.data) as any;
+                if (rpc) {
+                    if (this.defaltqueue == "") {
+                        this.defaltqueue = await this.RegisterQueue({ queuename: "" }, (msg, payload, user, jwt) => {
+                            if (msg && msg.correlationId) {
                                 warn("temp queue received message for unknown receiver with correlationId " + msg.correlationId)
                             } else {
                                 warn("temp queue received message for unknown receiver")
@@ -1158,17 +1159,17 @@ export class openiap extends EventEmitter {
                     }
                     opt.correlationId = openiap.GetUniqueIdentifier();
                     opt.replyto = this.defaltqueue;
-                    this.queuecallbacks[opt.correlationId] = (message, user)=> {
+                    this.queuecallbacks[opt.correlationId] = (message, user) => {
                         resolve(message);
                     };
                     // info(`Send message with correlationId ${opt.correlationId} to ${opt.queuename}`)
                 }
                 let message = QueueMessageRequest.create(opt as any);
-                const data = Any.create({type_url: "type.googleapis.com/openiap.QueueMessageRequest", "value": QueueMessageRequest.encode(message).finish()})
+                const data = Any.create({ type_url: "type.googleapis.com/openiap.QueueMessageRequest", "value": QueueMessageRequest.encode(message).finish() })
                 const payload = Envelope.create({ command: "queuemessage", data, jwt: opt.jwt });
                 payload.priority = priority;
                 const result = await protowrap.RPC(this.client, payload);
-                if(!rpc) resolve(null);
+                if (!rpc) resolve(null);
             } catch (error) {
                 reject(error);
             }
@@ -1203,17 +1204,17 @@ export class openiap extends EventEmitter {
      * console.log("Pushed workitem with id " + workitem._id);
      */
     async PushWorkitem(options: PushWorkitemOptions, priority: number = 2): Promise<Workitem> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: PushWorkitemOptions = Object.assign(new PushWorkitemDefaults(), options)
-        if(typeof opt.payload !== 'string') opt.payload = JSON.stringify(opt.payload);
+        if (typeof opt.payload !== 'string') opt.payload = JSON.stringify(opt.payload);
         let message = PushWorkitemRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.PushWorkitemRequest", "value": PushWorkitemRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.PushWorkitemRequest", "value": PushWorkitemRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "pushworkitem", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = PushWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
-        if(result && result.workitem && result.workitem.payload) {
-            if(typeof result.workitem.payload == "string") {
+        if (result && result.workitem && result.workitem.payload) {
+            if (typeof result.workitem.payload == "string") {
                 try {
                     result.workitem.payload = JSON.parse(result.workitem.payload)
                 } catch (error) {
@@ -1229,29 +1230,29 @@ export class openiap extends EventEmitter {
      * @returns an array of workitems that was pushed, including the workitem id's
      */
     async PushWorkitems(options: PushWorkitemsOptions, priority: number = 2): Promise<Workitem[]> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: PushWorkitemsOptions = Object.assign(new PushWorkitemsDefaults(), options)
         opt.items.forEach(wi => {
-            if(typeof wi.payload !== 'string') wi.payload = JSON.stringify(wi.payload);
+            if (typeof wi.payload !== 'string') wi.payload = JSON.stringify(wi.payload);
         });
         let message = PushWorkitemsRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.PushWorkitemsRequest", "value": PushWorkitemsRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.PushWorkitemsRequest", "value": PushWorkitemsRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "pushworkitems", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = PushWorkitemsResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
-        if(result.workitems) {
-            for(var i = 0; i < result.workitems.length; i++) {
+        if (result.workitems) {
+            for (var i = 0; i < result.workitems.length; i++) {
                 const wi = result.workitems[i];
-                if(wi && wi.payload) {
-                    if(typeof wi.payload == "string") {
+                if (wi && wi.payload) {
+                    if (typeof wi.payload == "string") {
                         try {
                             wi.payload = JSON.parse(wi.payload)
                         } catch (error) {
                         }
                     }
                 }
-        
+
             }
         }
         return result.workitems
@@ -1264,16 +1265,16 @@ export class openiap extends EventEmitter {
      * @returns If no workitem is available, this will return null. 
      */
     async PopWorkitem(options: PopWorkitemOptions, priority: number = 2): Promise<Workitem | undefined> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: PopWorkitemOptions = Object.assign(new PopWorkitemDefaults(), options)
         let message = PopWorkitemRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.PopWorkitemRequest", "value": PopWorkitemRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.PopWorkitemRequest", "value": PopWorkitemRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "popworkitem", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = PopWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
-        if(result && result.workitem && result.workitem.payload) {
-            if(typeof result.workitem.payload == "string") {
+        if (result && result.workitem && result.workitem.payload) {
+            if (typeof result.workitem.payload == "string") {
                 try {
                     result.workitem.payload = JSON.parse(result.workitem.payload)
                 } catch (error) {
@@ -1303,17 +1304,17 @@ export class openiap extends EventEmitter {
      * ```
      */
     async UpdateWorkitem(options: UpdateWorkitemOptions, priority: number = 2): Promise<Workitem> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UpdateWorkitemOptions = Object.assign(new UpdateWorkitemDefaults(), options)
-        if(typeof opt.workitem.payload !== 'string') opt.workitem.payload = JSON.stringify(opt.workitem.payload);
+        if (typeof opt.workitem.payload !== 'string') opt.workitem.payload = JSON.stringify(opt.workitem.payload);
         let message = UpdateWorkitemRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.UpdateWorkitemRequest", "value": UpdateWorkitemRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.UpdateWorkitemRequest", "value": UpdateWorkitemRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "updateworkitem", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = UpdateWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
-        if(result && result.workitem && result.workitem.payload) {
-            if(typeof result.workitem.payload == "string") {
+        if (result && result.workitem && result.workitem.payload) {
+            if (typeof result.workitem.payload == "string") {
                 try {
                     result.workitem.payload = JSON.parse(result.workitem.payload)
                 } catch (error) {
@@ -1333,11 +1334,11 @@ export class openiap extends EventEmitter {
      * ```
      */
     async DeleteWorkitem(options: DeleteWorkitemOptions, priority: number = 2): Promise<void> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteWorkitemOptions = Object.assign(new DeleteWorkitemDefaults(), options)
         let message = DeleteWorkitemRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.DeleteWorkitemRequest", "value": DeleteWorkitemRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteWorkitemRequest", "value": DeleteWorkitemRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "deleteworkitem", data, jwt: opt.jwt });
         payload.priority = priority;
         await protowrap.RPC(this.client, payload);
@@ -1381,16 +1382,16 @@ export class openiap extends EventEmitter {
     * @param options {@link DeleteWorkItemQueueOptions}
     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
     */
-        async DeleteWorkItemQueue(options: DeleteWorkItemQueueOptions, priority: number = 2): Promise<void> {
-            if (!this.connected) throw new Error("Not connected to server");
-            if (!this.signedin) throw new Error("Not signed in to server");
-            const opt: DeleteWorkItemQueueOptions = Object.assign(new DeleteWorkItemQueueDefaults(), options)
-            let message = DeleteWorkItemQueueRequest.create(opt as any);
-            const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteWorkItemQueueRequest", "value": DeleteWorkItemQueueRequest.encode(message).finish() })
-            const payload = Envelope.create({ command: "deleteworkitemqueue", data, jwt: opt.jwt });
-            payload.priority = priority;
-            await protowrap.RPC(this.client, payload);
-        }
+    async DeleteWorkItemQueue(options: DeleteWorkItemQueueOptions, priority: number = 2): Promise<void> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: DeleteWorkItemQueueOptions = Object.assign(new DeleteWorkItemQueueDefaults(), options)
+        let message = DeleteWorkItemQueueRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteWorkItemQueueRequest", "value": DeleteWorkItemQueueRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "deleteworkitemqueue", data, jwt: opt.jwt });
+        payload.priority = priority;
+        await protowrap.RPC(this.client, payload);
+    }
     /**
      * Run custom commands not defined in the protocol yet.
      * This is how new functioanlly is added and tested, before it is finally added to the offical proto3 protocol.
@@ -1399,12 +1400,12 @@ export class openiap extends EventEmitter {
      * @returns If command has a result, this will be returned as a string. This will most likely need to be parser as JSON
      */
     async CustomCommand<T>(options: CustomCommandOptions, priority: number = 2): Promise<string> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: CustomCommandOptions = Object.assign(new CustomCommandDefaults(), options)
-        if(opt.data != null && typeof opt.data !== "string") opt.data = JSON.stringify(opt.data)
+        if (opt.data != null && typeof opt.data !== "string") opt.data = JSON.stringify(opt.data)
         let message = CustomCommandRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.CustomCommand", "value": CustomCommandRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.CustomCommand", "value": CustomCommandRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "customcommand", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = CustomCommandResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -1417,12 +1418,12 @@ export class openiap extends EventEmitter {
      * @returns 
      */
     async CreateWorkflowInstance(options: CreateWorkflowInstanceOptions, priority: number = 2): Promise<string> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: CreateWorkflowInstanceOptions = Object.assign(new CreateWorkflowInstanceDefaults(), options)
-        if(opt.data != null && typeof opt.data !== "string") opt.data = JSON.stringify(opt.data)
+        if (opt.data != null && typeof opt.data !== "string") opt.data = JSON.stringify(opt.data)
         let message = CreateWorkflowInstanceRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.CreateWorkflowInstance", "value": CreateWorkflowInstanceRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.CreateWorkflowInstance", "value": CreateWorkflowInstanceRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "createworkflowinstance", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = CreateWorkflowInstanceResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
@@ -1434,17 +1435,182 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
     async EnsureCustomer(options: EnsureCustomerOptions, priority: number = 2): Promise<EnsureCustomerResponse> {
-        if(!this.connected) throw new Error("Not connected to server");
-        if(!this.signedin) throw new Error("Not signed in to server");
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
         const opt: EnsureCustomerOptions = Object.assign(new EnsureCustomerDefaults(), options)
         let message = EnsureCustomerRequest.create(opt as any);
-        const data = Any.create({type_url: "type.googleapis.com/openiap.EnsureCustomerRequest", "value": EnsureCustomerRequest.encode(message).finish()})
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.EnsureCustomerRequest", "value": EnsureCustomerRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "ensurecustomer", data, jwt: opt.jwt });
         payload.priority = priority;
         // const result = await protowrap.RPC(this.client, payload);
         const result = EnsureCustomerResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result;
     }
+    /**
+     * Invoke an OpenRPA workflow on a robot or a role with multiple robots in.
+     * At writing, this command is only supprted using OpenAPI endpoint
+     * @param options {@link InvokeOpenRPAOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns null if rpc is false, else the result of the workflow if workflow has any inout/out parameters
+     */
+    async InvokeOpenRPA<T>(options: InvokeOpenRPAOptions, priority: number = 2): Promise<T> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: InvokeOpenRPAOptions = Object.assign(new InvokeOpenRPADefaults(), options)
+        if (typeof opt.payload == "object" && opt.payload != null) opt.payload = JSON.stringify(opt.payload) as any;
+        let message = InvokeOpenRPARequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.InvokeOpenRPA", "value": InvokeOpenRPARequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "invokeopenrpa", data, jwt: opt.jwt });
+        payload.priority = priority;
+        const result = InvokeOpenRPAResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        return JSON.parse(result.payload)
+    }
+    /**
+     * Start an agent inside Docker or Kubernetes
+     * Requires invoke permission on agent
+     * @param options {@link StartAgentOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    async StartAgent(options: StartAgentOptions, priority: number = 2): Promise<void> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: StartAgentOptions = Object.assign(new Startagentidefaults(), options)
+        let message = StartAgentRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.StartAgent", "value": StartAgentRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "startagent", data, jwt: opt.jwt });
+        payload.priority = priority;
+        StartAgentResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+    }
+    /**
+     * Stop an agent running inside Docker or Kubernetes
+     * Requires invoke permission on agent
+     * @param options {@link StopAgentOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    async StopAgent(options: StopAgentOptions, priority: number = 2): Promise<void> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: StopAgentOptions = Object.assign(new Stopagentidefaults(), options)
+        let message = StopAgentRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.StopAgent", "value": StopAgentRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "stopagent", data, jwt: opt.jwt });
+        payload.priority = priority;
+        StopAgentResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+    }
+    /**
+     * Return the console output of an running agent, can be in docker, kubernetes or running remote.
+     * Requires invoke permission on agent
+     * @param options {@link GetAgentLogOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns Return pods console output
+    */
+    async GetAgentLog(options: GetAgentLogOptions, priority: number = 2): Promise<string> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: GetAgentLogOptions = Object.assign(new GetAgentLogDefaults(), options)
+        let message = GetAgentLogRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.GetAgentLog", "value": GetAgentLogRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "getagentlog", data, jwt: opt.jwt });
+        payload.priority = priority;
+        const result = GetAgentLogResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        return result.result;
+    }
+    /**
+     * Return a list of pods for an running agent. Docker and Kubernetes only.
+     * Requires invoke permission on agent
+     * @param options {@link GetAgentPodsOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns Array of pods
+    */
+    async GetAgentPods(options: GetAgentPodsOptions, priority: number = 2): Promise<any[]> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: GetAgentPodsOptions = Object.assign(new GetAgentPodsDefaults(), options)
+        let message = GetAgentPodsRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.GetAgentPods", "value": GetAgentPodsRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "getagentpods", data, jwt: opt.jwt });
+        payload.priority = priority;
+        const result = GetAgentPodsResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        if(result.results != null && result.results != "") return JSON.parse(result.results);
+        return [];
+    }
+    /**
+     * Remove an agent pod, found with GetAgentPods. Docker and Kubernetes only.
+     * Requires invoke permission on agent
+     * @param options {@link DeleteAgentPodOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    async DeleteAgentPod(options: DeleteAgentPodOptions, priority: number = 2): Promise<void> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: DeleteAgentPodOptions = Object.assign(new DeleteAgentPodDefaults(), options)
+        let message = DeleteAgentPodRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteAgentPod", "value": DeleteAgentPodRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "deleteagentpod", data, jwt: opt.jwt });
+        payload.priority = priority;
+        DeleteAgentPodResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+    }
+    /**
+     * Remove an agent if running. Docker and Kubernetes only.
+     * Removes instance on docker, remove deployment, ingress and other resources on Kubernetes
+     * Requires delete permission on agent
+     * @param options {@link DeleteAgentOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    async DeleteAgent(options: DeleteAgentOptions, priority: number = 2): Promise<void> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: DeleteAgentOptions = Object.assign(new DeleteAgentDefaults(), options)
+        let message = DeleteAgentRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteAgent", "value": DeleteAgentRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "deleteagent", data, jwt: opt.jwt });
+        payload.priority = priority;
+        DeleteAgentResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+    }
+    /**
+     * Return the console output of an running agent, can be in docker, kubernetes or running remote.
+     * Requires invoke permission on agent
+     * @param options {@link CreateIndexOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns Returns the index name
+    */
+    async CreateIndex(options: CreateIndexOptions, priority: number = 2): Promise<string> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: CreateIndexOptions = Object.assign(new CreateIndexDefaults(), options)
+        let message = CreateIndexRequest.create(opt as any);
+        if (typeof message.index == "object") message.index = this.stringify(message.index);
+        if (typeof message.options == "object") message.options = this.stringify(message.options);
+
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.CreateIndex", "value": CreateIndexRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "createindex", data, jwt: opt.jwt });
+        payload.priority = priority;
+        const result = CreateIndexResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        return result.result;
+    }
+    /**
+     * Delete an agent Package.
+     * Removes the associated file and then delete te package from the agents collection.
+     * Requires delete permission on the Package
+     * @param options {@link DeletePackageOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    async DeletePackage(options: DeletePackageOptions, priority: number = 2): Promise<void> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: DeletePackageOptions = Object.assign(new DeletePackageDefaults(), options)
+        let message = DeletePackageRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.DeletePackage", "value": DeletePackageRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "deletepackage", data, jwt: opt.jwt });
+        payload.priority = priority;
+        DeletePackageResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+    }
+    
 }
 export type SigninOptions = {
     username?: string;
@@ -1452,14 +1618,14 @@ export type SigninOptions = {
     jwt?: string;
     ping?: boolean;
     validateonly?: boolean;
-    agent?:string;
-    version?:string;
-    longtoken?:boolean;
+    agent?: string;
+    version?: string;
+    longtoken?: boolean;
 }
 class SigninDefaults {
     ping: boolean = true;
     validateonly: boolean = false;
-    longtoken:boolean = false;
+    longtoken: boolean = false;
 }
 export type ListCollectionsOptions = {
     includehist?: boolean;
@@ -1478,14 +1644,14 @@ export type col_timeseries_granularity = "seconds" | "minutes" | "hours"; //  | 
 export type col_validationLevel = "off" | "strict" | "moderate";
 export type col_validationAction = "error" | "warn";
 export type col_collation = {
-   locale?: string,
-   caseLevel?: boolean,
-   caseFirst?: string,
-   strength?: number,
-   numericOrdering?: boolean,
-   alternate?: string,
-   maxVariable?: string,
-   backwards?: boolean
+    locale?: string,
+    caseLevel?: boolean,
+    caseFirst?: string,
+    strength?: number,
+    numericOrdering?: boolean,
+    alternate?: string,
+    maxVariable?: string,
+    backwards?: boolean
 };
 export type col_timeseries = {
     timeField: string,
@@ -1496,7 +1662,7 @@ export type CreateCollectionOptions = {
     jwt?: string;
     collectionname: string,
     timeseries?: col_timeseries;
-  
+
     expireAfterSeconds?: number,
     changeStreamPreAndPostImages?: boolean,
     size?: number, // Optional. Specify a maximum size in bytes for a capped collection.
@@ -1643,7 +1809,7 @@ export type InsertOrUpdateManyOptions = {
     uniqeness?: string;
     w?: number;
     j?: boolean;
-    skipresults?:boolean;
+    skipresults?: boolean;
     jwt?: string;
 }
 class InsertOrUpdateManyDefaults {
@@ -1703,15 +1869,15 @@ export type RegisterQueueOptions = {
 class RegisterQueueDefaults {
 }
 export type RegisterExchangeOptions = {
-    exchangename:string;
-    algorithm?:string;
-    routingkey?:string;
-    addqueue?:boolean;
+    exchangename: string;
+    algorithm?: string;
+    routingkey?: string;
+    addqueue?: boolean;
     jwt?: string;
 }
 class RegisterExchangeDefaults {
     algorithm: string = "fanout"
-    routingkey:string = "";
+    routingkey: string = "";
     addqueue: boolean = true;
 }
 export type UnRegisterQueueOptions = {
@@ -1730,7 +1896,7 @@ export type QueueMessageOptions = {
     striptoken?: boolean;
     expiration?: number;
     jwt?: string;
-  }
+}
 class QueueMessageDefaults {
     striptoken: boolean = false;
 }
@@ -1790,14 +1956,14 @@ export type UpdateWorkitemOptions = {
      * Override who the request should run as, using a customer jwt
      */
     jwt?: string;
-  }
+}
 class UpdateWorkitemDefaults {
     ignoremaxretries: boolean = false;
 }
 export type DeleteWorkitemOptions = {
     _id: string;
     jwt?: string;
-  }
+}
 class DeleteWorkitemDefaults {
 }
 export type CustomCommandOptions = {
@@ -1806,7 +1972,7 @@ export type CustomCommandOptions = {
     name?: string;
     data?: string;
     jwt?: string;
-  }
+}
 class CustomCommandDefaults {
 }
 export type CreateWorkflowInstanceOptions = {
@@ -1817,7 +1983,7 @@ export type CreateWorkflowInstanceOptions = {
     data: any;
     initialrun: boolean;
     jwt?: string;
-  }
+}
 class CreateWorkflowInstanceDefaults {
     initialrun: boolean = false;
 }
@@ -1855,4 +2021,69 @@ export type DeleteWorkItemQueueOptions = {
 }
 class DeleteWorkItemQueueDefaults {
     purge: boolean = false;
+}
+export type InvokeOpenRPAOptions = {
+    robotid: string;
+    workflowid: string;
+    rpc?: boolean;
+    payload?: object;
+    jwt?: string;
+}
+class InvokeOpenRPADefaults {
+    rpc: boolean = true;
+}
+export type StartAgentOptions = {
+    agentid: string;
+    jwt?: string;
+}
+class Startagentidefaults {
+}
+export type StopAgentOptions = {
+    agentid: string;
+    jwt?: string;
+}
+class Stopagentidefaults {
+}
+export type GetAgentLogOptions = {
+    agentid: string;
+    podname: string;
+    jwt?: string;
+}
+class GetAgentLogDefaults {
+}
+export type GetAgentPodsOptions = {
+    agentid?: string;
+    stats?: boolean;
+    jwt?: string;
+}
+class GetAgentPodsDefaults {
+    stats: boolean = false;
+}
+export type DeleteAgentPodOptions = {
+    agentid: string;
+    podname: string;
+    jwt?: string;
+}
+class DeleteAgentPodDefaults {
+}
+export type DeleteAgentOptions = {
+    agentid: string;
+    jwt?: string;
+}
+class DeleteAgentDefaults {
+}
+export type CreateIndexOptions = {
+    collectionname: string;
+    index: object;
+    options?: object;
+    name?: string;
+    jwt?: string;
+}
+class CreateIndexDefaults {
+}
+export type DeletePackageOptions = {
+    packageid: string;
+    jwt?: string;
+}
+class DeletePackageDefaults {
 }
