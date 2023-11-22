@@ -67,7 +67,10 @@ export class protowrap {
   static protoRoot: any;
   static async init() {
     var paths: string[] = [];
-    var basepath = path.join(__dirname + "../proto");
+    var basepath = path.join(__dirname, "proto");
+    if(!fs.existsSync(path.join(basepath, "base.proto"))) {
+      var basepath = path.join(__dirname, "..", "proto");
+    }
     if(!fs.existsSync(path.join(basepath, "base.proto"))) {
       basepath = path.join(__dirname, "../node_modules/@openiap/proto")
     }
