@@ -282,6 +282,26 @@ export interface CreateIndexResponse {
   result: string;
 }
 
+export interface GetIndexesRequest {
+  /** Collection to create index on */
+  collectionname: string;
+}
+
+export interface GetIndexesResponse {
+  /** List of indexes for collection */
+  results: string;
+}
+
+export interface DropIndexRequest {
+  /** Collection to create index on */
+  collectionname: string;
+  /** Index name */
+  name: string;
+}
+
+export interface DropIndexResponse {
+}
+
 export interface DeletePackageRequest {
   /** id of package to delete,found in `agents` collection with {"_type": "package"} */
   packageid: string;
@@ -2532,6 +2552,213 @@ export const CreateIndexResponse = {
   },
 };
 
+function createBaseGetIndexesRequest(): GetIndexesRequest {
+  return { collectionname: "" };
+}
+
+export const GetIndexesRequest = {
+  encode(message: GetIndexesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.collectionname !== "") {
+      writer.uint32(10).string(message.collectionname);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetIndexesRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetIndexesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.collectionname = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetIndexesRequest {
+    return { collectionname: isSet(object.collectionname) ? String(object.collectionname) : "" };
+  },
+
+  toJSON(message: GetIndexesRequest): unknown {
+    const obj: any = {};
+    message.collectionname !== undefined && (obj.collectionname = message.collectionname);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetIndexesRequest>, I>>(base?: I): GetIndexesRequest {
+    return GetIndexesRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<GetIndexesRequest>, I>>(object: I): GetIndexesRequest {
+    const message = createBaseGetIndexesRequest();
+    message.collectionname = object.collectionname ?? "";
+    return message;
+  },
+};
+
+function createBaseGetIndexesResponse(): GetIndexesResponse {
+  return { results: "" };
+}
+
+export const GetIndexesResponse = {
+  encode(message: GetIndexesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.results !== "") {
+      writer.uint32(10).string(message.results);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetIndexesResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetIndexesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.results = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetIndexesResponse {
+    return { results: isSet(object.results) ? String(object.results) : "" };
+  },
+
+  toJSON(message: GetIndexesResponse): unknown {
+    const obj: any = {};
+    message.results !== undefined && (obj.results = message.results);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetIndexesResponse>, I>>(base?: I): GetIndexesResponse {
+    return GetIndexesResponse.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<GetIndexesResponse>, I>>(object: I): GetIndexesResponse {
+    const message = createBaseGetIndexesResponse();
+    message.results = object.results ?? "";
+    return message;
+  },
+};
+
+function createBaseDropIndexRequest(): DropIndexRequest {
+  return { collectionname: "", name: "" };
+}
+
+export const DropIndexRequest = {
+  encode(message: DropIndexRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.collectionname !== "") {
+      writer.uint32(10).string(message.collectionname);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DropIndexRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDropIndexRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.collectionname = reader.string();
+          break;
+        case 2:
+          message.name = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DropIndexRequest {
+    return {
+      collectionname: isSet(object.collectionname) ? String(object.collectionname) : "",
+      name: isSet(object.name) ? String(object.name) : "",
+    };
+  },
+
+  toJSON(message: DropIndexRequest): unknown {
+    const obj: any = {};
+    message.collectionname !== undefined && (obj.collectionname = message.collectionname);
+    message.name !== undefined && (obj.name = message.name);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DropIndexRequest>, I>>(base?: I): DropIndexRequest {
+    return DropIndexRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<DropIndexRequest>, I>>(object: I): DropIndexRequest {
+    const message = createBaseDropIndexRequest();
+    message.collectionname = object.collectionname ?? "";
+    message.name = object.name ?? "";
+    return message;
+  },
+};
+
+function createBaseDropIndexResponse(): DropIndexResponse {
+  return {};
+}
+
+export const DropIndexResponse = {
+  encode(_: DropIndexResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DropIndexResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDropIndexResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): DropIndexResponse {
+    return {};
+  },
+
+  toJSON(_: DropIndexResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DropIndexResponse>, I>>(base?: I): DropIndexResponse {
+    return DropIndexResponse.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<DropIndexResponse>, I>>(_: I): DropIndexResponse {
+    const message = createBaseDropIndexResponse();
+    return message;
+  },
+};
+
 function createBaseDeletePackageRequest(): DeletePackageRequest {
   return { packageid: "" };
 }
@@ -2884,6 +3111,17 @@ export interface FlowService {
    */
   CreateIndex(request: CreateIndexRequest): Promise<CreateIndexResponse>;
   /**
+   * Create an Index on a MongoDB Collection
+   * Will not fail if exists, but will fail if spec is different from existing.
+   * Require admins rights
+   */
+  GetIndexes(request: GetIndexesRequest): Promise<GetIndexesResponse>;
+  /**
+   * Delete an Index from a MongoDB Collection
+   * Require admins rights
+   */
+  DropIndex(request: DropIndexRequest): Promise<DropIndexResponse>;
+  /**
    * Delete an agent Package.
    * Removes the associated file and then delete te package from the agents collection.
    * Requires delete permission on the Package
@@ -2940,6 +3178,8 @@ export class FlowServiceClientImpl implements FlowService {
     this.DeleteAgentPod = this.DeleteAgentPod.bind(this);
     this.DeleteAgent = this.DeleteAgent.bind(this);
     this.CreateIndex = this.CreateIndex.bind(this);
+    this.GetIndexes = this.GetIndexes.bind(this);
+    this.DropIndex = this.DropIndex.bind(this);
     this.DeletePackage = this.DeletePackage.bind(this);
   }
   SetupStream(request: Observable<Envelope>): Observable<Envelope> {
@@ -3198,6 +3438,18 @@ export class FlowServiceClientImpl implements FlowService {
     const data = CreateIndexRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "CreateIndex", data);
     return promise.then((data) => CreateIndexResponse.decode(new _m0.Reader(data)));
+  }
+
+  GetIndexes(request: GetIndexesRequest): Promise<GetIndexesResponse> {
+    const data = GetIndexesRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetIndexes", data);
+    return promise.then((data) => GetIndexesResponse.decode(new _m0.Reader(data)));
+  }
+
+  DropIndex(request: DropIndexRequest): Promise<DropIndexResponse> {
+    const data = DropIndexRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "DropIndex", data);
+    return promise.then((data) => DropIndexResponse.decode(new _m0.Reader(data)));
   }
 
   DeletePackage(request: DeletePackageRequest): Promise<DeletePackageResponse> {

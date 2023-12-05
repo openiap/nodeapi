@@ -5,7 +5,7 @@ const { info, err, warn } = config;
 import { Any } from "./proto/google/protobuf/any";
 // import events = require("events");
 import { EventEmitter } from "events";
-import { CreateIndexRequest, CreateIndexResponse, CustomCommandRequest, CustomCommandResponse, Customer, DeletePackageRequest, DeletePackageResponse, DownloadResponse, EnsureCustomerRequest, EnsureCustomerResponse, Envelope, GetElementRequest, GetElementResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
+import { CreateIndexRequest, CreateIndexResponse, CustomCommandRequest, CustomCommandResponse, Customer, DeletePackageRequest, DeletePackageResponse, DownloadResponse, DropIndexRequest, DropIndexResponse, EnsureCustomerRequest, EnsureCustomerResponse, Envelope, GetElementRequest, GetElementResponse, GetIndexesRequest, GetIndexesResponse, PingRequest, RefreshToken, SigninRequest, SigninResponse, UploadResponse, User } from "./proto/base";
 import { AddWorkItemQueueRequest, AddWorkItemQueueResponse, AggregateRequest, AggregateResponse, CountRequest, CountResponse, DeleteManyRequest, DeleteManyResponse, DeleteOneRequest, DeleteOneResponse, DeleteWorkItemQueueRequest, DeleteWorkItemQueueResponse, DeleteWorkitemRequest, DeleteWorkitemResponse, DropCollectionRequest, GetDocumentVersionRequest, GetDocumentVersionResponse, InsertManyRequest, InsertManyResponse, InsertOneRequest, InsertOneResponse, InsertOrUpdateManyRequest, InsertOrUpdateManyResponse, InsertOrUpdateOneRequest, InsertOrUpdateOneResponse, ListCollectionsRequest, ListCollectionsResponse, PopWorkitemRequest, PopWorkitemResponse, PushWorkitemRequest, PushWorkitemResponse, PushWorkitemsRequest, PushWorkitemsResponse, QueryRequest, QueryResponse, QueueEvent, QueueMessageRequest, RegisterExchangeRequest, RegisterExchangeResponse, RegisterQueueRequest, RegisterQueueResponse, UnRegisterQueueRequest, UnWatchRequest, UpdateDocumentRequest, UpdateDocumentResponse, UpdateOneRequest, UpdateOneResponse, UpdateResult, UpdateWorkItemQueueRequest, UpdateWorkItemQueueResponse, UpdateWorkitemRequest, UpdateWorkitemResponse, WatchEvent, WatchRequest, WatchResponse, WorkItemQueue, Workitem } from ".";
 import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse, InvokeOpenRPARequest, InvokeOpenRPAResponse } from "./proto/queues";
 import { CreateCollectionRequest, DistinctRequest, DistinctResponse } from "./proto/querys";
@@ -1571,6 +1571,18 @@ export class openiap extends EventEmitter {
         payload.priority = priority;
         DeleteAgentResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
     }
+    async GetIndexes(options: GetIndexesOptions, priority: number = 2): Promise<any[]> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: GetIndexesOptions = Object.assign(new GetIndexesDefaults(), options)
+        let message = GetIndexesRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.GetIndexes", "value": GetIndexesRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "getindexes", data, jwt: opt.jwt });
+        payload.priority = priority;
+        const result = GetIndexesResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+        if(result.results != null && result.results != "") return JSON.parse(result.results);
+        return [];
+    }
     /**
      * Return the console output of an running agent, can be in docker, kubernetes or running remote.
      * Requires invoke permission on agent
@@ -1593,6 +1605,23 @@ export class openiap extends EventEmitter {
         return result.result;
     }
     /**
+     * Drop a MongoDB index from a collection.
+     * Requires admins permission
+     * @param options {@link DropIndexOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    async DropIndex(options: DropIndexOptions, priority: number = 2): Promise<void> {
+        if (!this.connected) throw new Error("Not connected to server");
+        if (!this.signedin) throw new Error("Not signed in to server");
+        const opt: DropIndexOptions = Object.assign(new DropIndexDefaults(), options)
+        let message = DropIndexRequest.create(opt as any);
+        const data = Any.create({ type_url: "type.googleapis.com/openiap.DropIndex", "value": DropIndexRequest.encode(message).finish() })
+        const payload = Envelope.create({ command: "dropindex", data, jwt: opt.jwt });
+        payload.priority = priority;
+        DropIndexResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
+    }
+    /**
      * Delete an agent Package.
      * Removes the associated file and then delete te package from the agents collection.
      * Requires delete permission on the Package
@@ -1610,7 +1639,6 @@ export class openiap extends EventEmitter {
         payload.priority = priority;
         DeletePackageResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
     }
-    
 }
 export type SigninOptions = {
     username?: string;
@@ -2081,9 +2109,22 @@ export type CreateIndexOptions = {
 }
 class CreateIndexDefaults {
 }
+export type DropIndexOptions = {
+    collectionname: string;
+    name: string;
+    jwt?: string;
+}
+class DropIndexDefaults {
+}
 export type DeletePackageOptions = {
     packageid: string;
     jwt?: string;
 }
 class DeletePackageDefaults {
+}
+export type GetIndexesOptions = {
+    collectionname: string;
+    jwt?: string;
+}
+class GetIndexesDefaults {
 }

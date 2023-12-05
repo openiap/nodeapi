@@ -913,6 +913,86 @@ export namespace CreateIndexResponse {
   }
 }
 
+export class GetIndexesRequest extends jspb.Message {
+  getCollectionname(): string;
+  setCollectionname(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetIndexesRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetIndexesRequest): GetIndexesRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetIndexesRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetIndexesRequest;
+  static deserializeBinaryFromReader(message: GetIndexesRequest, reader: jspb.BinaryReader): GetIndexesRequest;
+}
+
+export namespace GetIndexesRequest {
+  export type AsObject = {
+    collectionname: string,
+  }
+}
+
+export class GetIndexesResponse extends jspb.Message {
+  getResults(): string;
+  setResults(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetIndexesResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetIndexesResponse): GetIndexesResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: GetIndexesResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetIndexesResponse;
+  static deserializeBinaryFromReader(message: GetIndexesResponse, reader: jspb.BinaryReader): GetIndexesResponse;
+}
+
+export namespace GetIndexesResponse {
+  export type AsObject = {
+    results: string,
+  }
+}
+
+export class DropIndexRequest extends jspb.Message {
+  getCollectionname(): string;
+  setCollectionname(value: string): void;
+
+  getName(): string;
+  setName(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DropIndexRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: DropIndexRequest): DropIndexRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DropIndexRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DropIndexRequest;
+  static deserializeBinaryFromReader(message: DropIndexRequest, reader: jspb.BinaryReader): DropIndexRequest;
+}
+
+export namespace DropIndexRequest {
+  export type AsObject = {
+    collectionname: string,
+    name: string,
+  }
+}
+
+export class DropIndexResponse extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DropIndexResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: DropIndexResponse): DropIndexResponse.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DropIndexResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DropIndexResponse;
+  static deserializeBinaryFromReader(message: DropIndexResponse, reader: jspb.BinaryReader): DropIndexResponse;
+}
+
+export namespace DropIndexResponse {
+  export type AsObject = {
+  }
+}
+
 export class DeletePackageRequest extends jspb.Message {
   getPackageid(): string;
   setPackageid(value: string): void;

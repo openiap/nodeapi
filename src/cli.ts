@@ -221,9 +221,10 @@ async function main() {
           warn("No users found");
         }
       } else if (str == "ll") {
-        const results = await c.ListCollections();
+        let results = await c.ListCollections();
         for(var i = 0; i < results.length; i++) {
-          info(results[i].name);
+          var col = results[i];
+          info(col.name);
         }
         if(results.length == 0) {
           warn("No users found");
@@ -260,7 +261,21 @@ async function main() {
           await c.DropCollection({collectionname: "testcollection"});
         } catch (error) {
         }
-        await c.CreateCollection({ collectionname: "testcollection", timeseries: { timeField: "timestamp", metaField: "metadata" } } )
+        await c.CreateCollection({ collectionname: "testcollection", expireAfterSeconds:20, timeseries: { timeField: "_created", metaField: "metadata" } } )
+
+        var indexname = await c.CreateIndex({collectionname: "testcollection", index: {"name": 1} })
+        console.log("Created index " + indexname);
+        var indexes = await c.GetIndexes({ collectionname: "testcollection"} )
+        console.log(indexes);
+
+        await c.DropIndex({collectionname: "testcollection", name: indexname })
+        console.log("Dropped index " + indexname);
+
+      } else if (str == "gi") {
+        var indexes = await c.GetIndexes({ collectionname: "entities"} )
+        console.log(indexes);
+        var indexes = await c.GetIndexes({ collectionname: "testcollection"} )
+        console.log(indexes);
       } else if (str == "ec") {
         // var ensureresult = await c.EnsureCustomer({ customer: Customer.create({ name: "testcustomer" }), ensureas: "641f36c88ecd2bbbbd3a52b3" })
         var ensureresult = await c.EnsureCustomer({ customer: Customer.create({ name: "testcustomer2" })})

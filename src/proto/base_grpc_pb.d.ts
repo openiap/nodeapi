@@ -55,6 +55,8 @@ interface IFlowServiceService extends grpc.ServiceDefinition<grpc.UntypedService
   deleteAgentPod: grpc.MethodDefinition<agent_pb.DeleteAgentPodRequest, agent_pb.DeleteAgentPodResponse>;
   deleteAgent: grpc.MethodDefinition<agent_pb.DeleteAgentRequest, agent_pb.DeleteAgentResponse>;
   createIndex: grpc.MethodDefinition<base_pb.CreateIndexRequest, base_pb.CreateIndexResponse>;
+  getIndexes: grpc.MethodDefinition<base_pb.GetIndexesRequest, base_pb.GetIndexesResponse>;
+  dropIndex: grpc.MethodDefinition<base_pb.DropIndexRequest, base_pb.DropIndexResponse>;
   deletePackage: grpc.MethodDefinition<base_pb.DeletePackageRequest, base_pb.DeletePackageResponse>;
 }
 
@@ -104,6 +106,8 @@ export interface IFlowServiceServer extends grpc.UntypedServiceImplementation {
   deleteAgentPod: grpc.handleUnaryCall<agent_pb.DeleteAgentPodRequest, agent_pb.DeleteAgentPodResponse>;
   deleteAgent: grpc.handleUnaryCall<agent_pb.DeleteAgentRequest, agent_pb.DeleteAgentResponse>;
   createIndex: grpc.handleUnaryCall<base_pb.CreateIndexRequest, base_pb.CreateIndexResponse>;
+  getIndexes: grpc.handleUnaryCall<base_pb.GetIndexesRequest, base_pb.GetIndexesResponse>;
+  dropIndex: grpc.handleUnaryCall<base_pb.DropIndexRequest, base_pb.DropIndexResponse>;
   deletePackage: grpc.handleUnaryCall<base_pb.DeletePackageRequest, base_pb.DeletePackageResponse>;
 }
 
@@ -237,6 +241,12 @@ export class FlowServiceClient extends grpc.Client {
   createIndex(argument: base_pb.CreateIndexRequest, callback: grpc.requestCallback<base_pb.CreateIndexResponse>): grpc.ClientUnaryCall;
   createIndex(argument: base_pb.CreateIndexRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.CreateIndexResponse>): grpc.ClientUnaryCall;
   createIndex(argument: base_pb.CreateIndexRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.CreateIndexResponse>): grpc.ClientUnaryCall;
+  getIndexes(argument: base_pb.GetIndexesRequest, callback: grpc.requestCallback<base_pb.GetIndexesResponse>): grpc.ClientUnaryCall;
+  getIndexes(argument: base_pb.GetIndexesRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.GetIndexesResponse>): grpc.ClientUnaryCall;
+  getIndexes(argument: base_pb.GetIndexesRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.GetIndexesResponse>): grpc.ClientUnaryCall;
+  dropIndex(argument: base_pb.DropIndexRequest, callback: grpc.requestCallback<base_pb.DropIndexResponse>): grpc.ClientUnaryCall;
+  dropIndex(argument: base_pb.DropIndexRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.DropIndexResponse>): grpc.ClientUnaryCall;
+  dropIndex(argument: base_pb.DropIndexRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.DropIndexResponse>): grpc.ClientUnaryCall;
   deletePackage(argument: base_pb.DeletePackageRequest, callback: grpc.requestCallback<base_pb.DeletePackageResponse>): grpc.ClientUnaryCall;
   deletePackage(argument: base_pb.DeletePackageRequest, metadataOrOptions: grpc.Metadata | grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.DeletePackageResponse>): grpc.ClientUnaryCall;
   deletePackage(argument: base_pb.DeletePackageRequest, metadata: grpc.Metadata | null, options: grpc.CallOptions | null, callback: grpc.requestCallback<base_pb.DeletePackageResponse>): grpc.ClientUnaryCall;

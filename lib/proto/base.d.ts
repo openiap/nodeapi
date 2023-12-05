@@ -178,6 +178,22 @@ export interface CreateIndexResponse {
     /** Index name */
     result: string;
 }
+export interface GetIndexesRequest {
+    /** Collection to create index on */
+    collectionname: string;
+}
+export interface GetIndexesResponse {
+    /** List of indexes for collection */
+    results: string;
+}
+export interface DropIndexRequest {
+    /** Collection to create index on */
+    collectionname: string;
+    /** Index name */
+    name: string;
+}
+export interface DropIndexResponse {
+}
 export interface DeletePackageRequest {
     /** id of package to delete,found in `agents` collection with {"_type": "package"} */
     packageid: string;
@@ -13368,6 +13384,66 @@ export declare const CreateIndexResponse: {
         result?: string;
     } & { [K_1 in Exclude<keyof I_1, "result">]: never; }>(object: I_1): CreateIndexResponse;
 };
+export declare const GetIndexesRequest: {
+    encode(message: GetIndexesRequest, writer?: _m0.Writer): _m0.Writer;
+    decode(input: _m0.Reader | Uint8Array, length?: number): GetIndexesRequest;
+    fromJSON(object: any): GetIndexesRequest;
+    toJSON(message: GetIndexesRequest): unknown;
+    create<I extends {
+        collectionname?: string;
+    } & {
+        collectionname?: string;
+    } & { [K in Exclude<keyof I, "collectionname">]: never; }>(base?: I): GetIndexesRequest;
+    fromPartial<I_1 extends {
+        collectionname?: string;
+    } & {
+        collectionname?: string;
+    } & { [K_1 in Exclude<keyof I_1, "collectionname">]: never; }>(object: I_1): GetIndexesRequest;
+};
+export declare const GetIndexesResponse: {
+    encode(message: GetIndexesResponse, writer?: _m0.Writer): _m0.Writer;
+    decode(input: _m0.Reader | Uint8Array, length?: number): GetIndexesResponse;
+    fromJSON(object: any): GetIndexesResponse;
+    toJSON(message: GetIndexesResponse): unknown;
+    create<I extends {
+        results?: string;
+    } & {
+        results?: string;
+    } & { [K in Exclude<keyof I, "results">]: never; }>(base?: I): GetIndexesResponse;
+    fromPartial<I_1 extends {
+        results?: string;
+    } & {
+        results?: string;
+    } & { [K_1 in Exclude<keyof I_1, "results">]: never; }>(object: I_1): GetIndexesResponse;
+};
+export declare const DropIndexRequest: {
+    encode(message: DropIndexRequest, writer?: _m0.Writer): _m0.Writer;
+    decode(input: _m0.Reader | Uint8Array, length?: number): DropIndexRequest;
+    fromJSON(object: any): DropIndexRequest;
+    toJSON(message: DropIndexRequest): unknown;
+    create<I extends {
+        collectionname?: string;
+        name?: string;
+    } & {
+        collectionname?: string;
+        name?: string;
+    } & { [K in Exclude<keyof I, keyof DropIndexRequest>]: never; }>(base?: I): DropIndexRequest;
+    fromPartial<I_1 extends {
+        collectionname?: string;
+        name?: string;
+    } & {
+        collectionname?: string;
+        name?: string;
+    } & { [K_1 in Exclude<keyof I_1, keyof DropIndexRequest>]: never; }>(object: I_1): DropIndexRequest;
+};
+export declare const DropIndexResponse: {
+    encode(_: DropIndexResponse, writer?: _m0.Writer): _m0.Writer;
+    decode(input: _m0.Reader | Uint8Array, length?: number): DropIndexResponse;
+    fromJSON(_: any): DropIndexResponse;
+    toJSON(_: DropIndexResponse): unknown;
+    create<I extends {} & {} & { [K in Exclude<keyof I, never>]: never; }>(base?: I): DropIndexResponse;
+    fromPartial<I_1 extends {} & {} & { [K_1 in Exclude<keyof I_1, never>]: never; }>(_: I_1): DropIndexResponse;
+};
 export declare const DeletePackageRequest: {
     encode(message: DeletePackageRequest, writer?: _m0.Writer): _m0.Writer;
     decode(input: _m0.Reader | Uint8Array, length?: number): DeletePackageRequest;
@@ -13650,6 +13726,17 @@ export interface FlowService {
      */
     CreateIndex(request: CreateIndexRequest): Promise<CreateIndexResponse>;
     /**
+     * Create an Index on a MongoDB Collection
+     * Will not fail if exists, but will fail if spec is different from existing.
+     * Require admins rights
+     */
+    GetIndexes(request: GetIndexesRequest): Promise<GetIndexesResponse>;
+    /**
+     * Delete an Index from a MongoDB Collection
+     * Require admins rights
+     */
+    DropIndex(request: DropIndexRequest): Promise<DropIndexResponse>;
+    /**
      * Delete an agent Package.
      * Removes the associated file and then delete te package from the agents collection.
      * Requires delete permission on the Package
@@ -13705,6 +13792,8 @@ export declare class FlowServiceClientImpl implements FlowService {
     DeleteAgentPod(request: DeleteAgentPodRequest): Promise<DeleteAgentPodResponse>;
     DeleteAgent(request: DeleteAgentRequest): Promise<DeleteAgentResponse>;
     CreateIndex(request: CreateIndexRequest): Promise<CreateIndexResponse>;
+    GetIndexes(request: GetIndexesRequest): Promise<GetIndexesResponse>;
+    DropIndex(request: DropIndexRequest): Promise<DropIndexResponse>;
     DeletePackage(request: DeletePackageRequest): Promise<DeletePackageResponse>;
 }
 interface Rpc {

@@ -245,6 +245,9 @@ export class QueryRequest extends jspb.Message {
   getQueryas(): string;
   setQueryas(value: string): void;
 
+  getExplain(): boolean;
+  setExplain(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueryRequest.AsObject;
   static toObject(includeInstance: boolean, msg: QueryRequest): QueryRequest.AsObject;
@@ -264,6 +267,7 @@ export namespace QueryRequest {
     skip: number,
     orderby: string,
     queryas: string,
+    explain: boolean,
   }
 }
 
@@ -352,6 +356,9 @@ export class AggregateRequest extends jspb.Message {
   getHint(): string;
   setHint(value: string): void;
 
+  getExplain(): boolean;
+  setExplain(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): AggregateRequest.AsObject;
   static toObject(includeInstance: boolean, msg: AggregateRequest): AggregateRequest.AsObject;
@@ -368,6 +375,7 @@ export namespace AggregateRequest {
     aggregates: string,
     queryas: string,
     hint: string,
+    explain: boolean,
   }
 }
 
@@ -401,6 +409,9 @@ export class CountRequest extends jspb.Message {
   getQueryas(): string;
   setQueryas(value: string): void;
 
+  getExplain(): boolean;
+  setExplain(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CountRequest.AsObject;
   static toObject(includeInstance: boolean, msg: CountRequest): CountRequest.AsObject;
@@ -416,6 +427,7 @@ export namespace CountRequest {
     collectionname: string,
     query: string,
     queryas: string,
+    explain: boolean,
   }
 }
 
@@ -455,6 +467,9 @@ export class DistinctRequest extends jspb.Message {
   getOptions(): string;
   setOptions(value: string): void;
 
+  getExplain(): boolean;
+  setExplain(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DistinctRequest.AsObject;
   static toObject(includeInstance: boolean, msg: DistinctRequest): DistinctRequest.AsObject;
@@ -472,6 +487,7 @@ export namespace DistinctRequest {
     query: string,
     queryas: string,
     options: string,
+    explain: boolean,
   }
 }
 

@@ -770,6 +770,7 @@ export declare class openiap extends EventEmitter {
      * @returns void
     */
     DeleteAgent(options: DeleteAgentOptions, priority?: number): Promise<void>;
+    GetIndexes(options: GetIndexesOptions, priority?: number): Promise<any[]>;
     /**
      * Return the console output of an running agent, can be in docker, kubernetes or running remote.
      * Requires invoke permission on agent
@@ -778,6 +779,14 @@ export declare class openiap extends EventEmitter {
      * @returns Returns the index name
     */
     CreateIndex(options: CreateIndexOptions, priority?: number): Promise<string>;
+    /**
+     * Drop a MongoDB index from a collection.
+     * Requires admins permission
+     * @param options {@link DropIndexOptions}
+     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
+     * @returns void
+    */
+    DropIndex(options: DropIndexOptions, priority?: number): Promise<void>;
     /**
      * Delete an agent Package.
      * Removes the associated file and then delete te package from the agents collection.
@@ -1118,7 +1127,16 @@ export type CreateIndexOptions = {
     name?: string;
     jwt?: string;
 };
+export type DropIndexOptions = {
+    collectionname: string;
+    name: string;
+    jwt?: string;
+};
 export type DeletePackageOptions = {
     packageid: string;
+    jwt?: string;
+};
+export type GetIndexesOptions = {
+    collectionname: string;
     jwt?: string;
 };
