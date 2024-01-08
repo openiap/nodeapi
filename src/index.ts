@@ -22,7 +22,8 @@ export { QueueEvent, QueueMessageRequest, QueueMessageResponse } from "./proto/q
 export { config } from "./config";
 export { AggregateOptions, CountOptions, CreateWorkflowInstanceOptions, CustomCommandOptions, DeleteManyOptions, DeleteOneOptions, DeleteWorkitemOptions,
     DownloadFileOptions, DropCollectionOptions, FindOneOptions, GetDocumentVersionOptions, InsertManyOptions, InsertOneOptions, InsertOrUpdateManyOptions,
-    InsertOrUpdateOneOptions, ListCollectionsOptions, PopWorkitemOptions, PushWorkitemOptions, PushWorkitemsOptions, QueryOptions, QueueMessageOptions,
+    InsertOrUpdateOneOptions, ListCollectionsOptions, PopWorkitemOptions, PushWorkitemOptions, PushWorkitemsOptions, QueryOptions, 
+    QueueMessageOptions, ExchangeNameQueueMessageOptions, QueueNameQueueMessageOptions, BaseQueueMessageOptions, 
     RegisterExchangeOptions, RegisterQueueOptions, SigninOptions, UnRegisterQueueOptions, UnWatchOptions, UpdateDocumentOptions, UpdateOneOptions,
     UpdateWorkitemOptions, UploadFileOptions, WatchOptions
     

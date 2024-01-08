@@ -986,17 +986,24 @@ export type UnRegisterQueueOptions = {
     queuename: string;
     jwt?: string;
 };
-export type QueueMessageOptions = {
-    queuename: string;
+export type BaseQueueMessageOptions = {
     correlationId?: string;
     replyto?: string;
     routingkey?: string;
-    exchangename?: string;
     data: object;
     striptoken?: boolean;
     expiration?: number;
     jwt?: string;
 };
+export type QueueNameQueueMessageOptions = {
+    queuename: string;
+    exchangename?: never;
+};
+export type ExchangeNameQueueMessageOptions = {
+    queuename?: never;
+    exchangename: string;
+};
+export type QueueMessageOptions = BaseQueueMessageOptions & (QueueNameQueueMessageOptions | ExchangeNameQueueMessageOptions);
 export type PushWorkitemOptions = {
     wiq?: string;
     wiqid?: string;
