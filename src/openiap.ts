@@ -364,7 +364,7 @@ export class openiap extends EventEmitter {
                 warn("Got watchevent for unknown id " + we.id);
             }
         } else if (message.command == "queueevent") {
-            let we: QueueEvent = QueueEvent.decode(message.data.value)
+            var we: QueueEvent = QueueEvent.decode(message.data.value)
             var data = JSON.parse(we.data)
             delete data.spanId;
             delete data.traceId;

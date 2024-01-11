@@ -26,6 +26,15 @@ import { Envelope, ErrorResponse, DownloadRequest, DownloadResponse, UploadReque
 
 import opentelemetry, { ROOT_CONTEXT, trace, context } from '@opentelemetry/api';
 
+import * as ace from "./proto/ace";
+import * as agent from "./proto/agent";
+import * as base from "./proto/base";
+import * as querys from "./proto/querys";
+import * as queues from "./proto/queues";
+import * as stripe from "./proto/stripe";
+import * as watch from "./proto/watch";
+import * as workitems from "./proto/workitems";
+
 export class protowrap {
   /*
   // https://github.com/grpc/grpc/blob/117457a76780e49b599b393b471feee894ced4a8/examples/python/keep_alive/greeter_server.py
@@ -64,7 +73,7 @@ export class protowrap {
   // static packageDefinition: protoLoader.PackageDefinition;
   static openiap_proto: grpc.GrpcObject | grpc.ServiceClientConstructor | grpc.ProtobufTypeDefinition;
   // static Envelope: any; // = new protobuf.Type("envelope");
-  static protoRoot: any;
+  // static protoRoot: any;
   static async init() {
     var paths: string[] = [];
     var basepath = path.join(__dirname, "proto");
@@ -96,10 +105,83 @@ export class protowrap {
         oneofs: true
       });
     this.openiap_proto = grpc.loadPackageDefinition(packageDefinition).openiap;
-    this.protoRoot = await protobuf.load(paths);
+    // this.protoRoot = await protobuf.load(paths);
     // this.Envelope = this.protoRoot.lookupType("openiap.envelope");
   }
-  static CommandToProto(command:string) {
+  // static CommandToProto(command:string) {
+  //   switch (command) {
+  //     case "error":
+  //       return "openiap.ErrorResponse";
+  //     case "grpcservice":
+  //       return "openiap.FlowService";
+  //     case "pong":
+  //       return "openiap.PingResponse";
+  //     default:
+  //       let searchkey = command;
+  //       if(searchkey.endsWith("reply")) {
+  //         searchkey = (searchkey.substring(0, searchkey.length - 5) + "Response").toLowerCase();
+  //       } else {
+  //         searchkey = (searchkey + "Request").toLowerCase();;
+  //       }
+  //       var keys = Object.keys(this.openiap_proto);
+  //       for (let i = 0; i < keys.length; i++) {
+  //         const key = keys[i];
+  //         if(key.toLowerCase() == searchkey || key.toLowerCase() == command.toLowerCase()) {
+  //           return "openiap." + key;
+  //         }
+  //       }
+  //       return "openiap." + command;
+  //   }
+  // }
+  static lookupType(command:string):any {
+    let searchkey = command;
+    if(searchkey.endsWith("reply")) {
+      searchkey = (searchkey.substring(0, searchkey.length - 5) + "Response").toLowerCase();
+    } else {
+      searchkey = (searchkey + "Request").toLowerCase();;
+    }
+    switch (command) {
+      case "error":
+        return base.ErrorResponse;
+      case "grpcservice":
+        return base.FlowServiceClientImpl;
+      case "pong":
+        return base.PingResponse;
+      default:
+        var key = Object.keys(ace);
+        var idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return ace[key[idx]];
+        key = Object.keys(agent);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return agent[key[idx]];
+        key = Object.keys(base);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return base[key[idx]];
+        key = Object.keys(querys);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return querys[key[idx]];
+        key = Object.keys(queues);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return queues[key[idx]];
+        key = Object.keys(stripe);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return stripe[key[idx]];
+        key = Object.keys(watch);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return watch[key[idx]];
+        key = Object.keys(workitems);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return workitems[key[idx]];
+    }
+    return null;
+  }
+  static CommandToProto(command:string):string {
+    let searchkey = command;
+    if(searchkey.endsWith("reply")) {
+      searchkey = (searchkey.substring(0, searchkey.length - 5) + "Response").toLowerCase();
+    } else {
+      searchkey = (searchkey + "Request").toLowerCase();;
+    }
     switch (command) {
       case "error":
         return "openiap.ErrorResponse";
@@ -108,25 +190,37 @@ export class protowrap {
       case "pong":
         return "openiap.PingResponse";
       default:
-        let searchkey = command;
-        if(searchkey.endsWith("reply")) {
-          searchkey = (searchkey.substring(0, searchkey.length - 5) + "Response").toLowerCase();
-        } else {
-          searchkey = (searchkey + "Request").toLowerCase();;
-        }
-        var keys = Object.keys(this.openiap_proto);
-        for (let i = 0; i < keys.length; i++) {
-          const key = keys[i];
-          if(key.toLowerCase() == searchkey || key.toLowerCase() == command.toLowerCase()) {
-            return "openiap." + key;
-          }
-        }
-        return "openiap." + command;
+        var key = Object.keys(ace);
+        var idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return "openiap." + key[idx];
+        key = Object.keys(agent);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return "openiap." + key[idx];
+        key = Object.keys(base);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return "openiap." + key[idx];
+        key = Object.keys(querys);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return "openiap." + key[idx];
+        key = Object.keys(queues);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return "openiap." + key[idx];
+        key = Object.keys(stripe);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return "openiap." + key[idx];
+        key = Object.keys(watch);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return "openiap." + key[idx];
+        key = Object.keys(workitems);
+        idx = key.map((k) => k.toLowerCase()).indexOf(searchkey);
+        if(idx > -1) return "openiap." + key[idx];
     }
+    return "openiap." + command;;
   }
   static pack(command, payload) {
     if (payload == null) return null;
-    const protomsg = this.protoRoot.lookupType(this.CommandToProto(command));
+    // const protomsg = this.protoRoot.lookupType(this.CommandToProto(command));
+    const protomsg = this.lookupType(command);
     if (protomsg == null) return null;
     if (typeof payload == "string") {
       payload = JSON.parse(payload);
@@ -140,7 +234,8 @@ export class protowrap {
     const rid = message.id;
     let msg = data;
     if (command != null) {
-      const protomsg = this.protoRoot.lookupType(this.CommandToProto(command));
+      // const protomsg = this.protoRoot.lookupType(this.CommandToProto(command));
+      const protomsg = this.lookupType(command);
       if (typeof data == "string") {
         msg = JSON.parse(data);
       } else if (data != null) {

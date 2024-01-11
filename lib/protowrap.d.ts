@@ -5,8 +5,8 @@ export declare class protowrap {
     static grpc_server_options: grpc.ChannelOptions;
     static defaultprotocol: clientType;
     static openiap_proto: grpc.GrpcObject | grpc.ServiceClientConstructor | grpc.ProtobufTypeDefinition;
-    static protoRoot: any;
     static init(): Promise<void>;
+    static lookupType(command: string): any;
     static CommandToProto(command: string): string;
     static pack(command: any, payload: any): {
         type_url: string;
