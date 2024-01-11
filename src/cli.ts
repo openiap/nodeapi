@@ -126,15 +126,15 @@ async function main() {
         });
         console.log("RegisterQueue", data2);
       } else if (str == "ex") {
-        var data2 = await c.RegisterExchange({ routingkey: "test", exchangename: "65995de51759d08cc55cbe3e", addqueue: false}, async (msg, payload, user, jwt)=> {
+        var data2 = await c.RegisterExchange({ exchangename: "65995de51759d08cc55cbe3e", addqueue: true}, async (msg, payload, user, jwt)=> {
           console.log("65995de51759d08cc55cbe3e", payload);
           return payload;
         });
-        var data2 = await c.RegisterExchange({ exchangename: "659aa659058158e309b321a1", addqueue: false}, async (msg, payload, user, jwt)=> {
+        var data2 = await c.RegisterExchange({ exchangename: "659aa659058158e309b321a1", addqueue: true}, async (msg, payload, user, jwt)=> {
           console.log("659aa659058158e309b321a1", payload);
           return payload;
         });
-        var data2 = await c.RegisterExchange({ exchangename: "659bd8b3058158e309b32900", addqueue: false}, async (msg, payload, user, jwt)=> {
+        var data2 = await c.RegisterExchange({ exchangename: "659bd8b3058158e309b32900", addqueue: true}, async (msg, payload, user, jwt)=> {
           console.log("659bd8b3058158e309b32900", payload);
           return payload;
         });
