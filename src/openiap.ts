@@ -550,7 +550,7 @@ export class openiap extends EventEmitter {
         if (typeof message.orderby == "object") message.orderby = this.stringify(message.orderby);
         if (typeof message.projection == "object") message.projection = this.stringify(message.projection);
         const data = Any.create({ type_url: "type.googleapis.com/openiap.QueryRequest", "value": QueryRequest.encode(message).finish() })
-        const payload = Envelope.create({ command: "query", data });
+        const payload = Envelope.create({ command: "query", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = QueryResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
@@ -586,7 +586,7 @@ export class openiap extends EventEmitter {
         if (typeof message.orderby == "object") message.orderby = this.stringify(message.orderby);
         if (typeof message.projection == "object") message.projection = this.stringify(message.projection);
         const data = Any.create({ type_url: "type.googleapis.com/openiap.QueryRequest", "value": QueryRequest.encode(message).finish() })
-        const payload = Envelope.create({ command: "query", data });
+        const payload = Envelope.create({ command: "query", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = QueryResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         if (result.results == null || result.results == "") return null;
@@ -614,7 +614,7 @@ export class openiap extends EventEmitter {
         const opt: GetDocumentVersionOptions = Object.assign(new GetDocumentVersionDefaults(), options)
         let message = GetDocumentVersionRequest.create(opt as any);
         const data = Any.create({ type_url: "type.googleapis.com/openiap.GetDocumentVersionRequest", "value": GetDocumentVersionRequest.encode(message).finish() })
-        const payload = Envelope.create({ command: "getdocumentversion", data });
+        const payload = Envelope.create({ command: "getdocumentversion", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = GetDocumentVersionResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
@@ -719,7 +719,7 @@ export class openiap extends EventEmitter {
         let message = InsertOneRequest.create(opt as any);
         if (typeof message.item == "object") message.item = JSON.stringify(message.item);
         const data = Any.create({ type_url: "type.googleapis.com/openiap.InsertOneRequest", "value": InsertOneRequest.encode(message).finish() })
-        const payload = Envelope.create({ command: "insertone", data });
+        const payload = Envelope.create({ command: "insertone", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = InsertOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
@@ -771,7 +771,7 @@ export class openiap extends EventEmitter {
         let message = UpdateOneRequest.create(opt as any);
         if (typeof message.item == "object") message.item = JSON.stringify(message.item);
         const data = Any.create({ type_url: "type.googleapis.com/openiap.UpdateOneRequest", "value": UpdateOneRequest.encode(message).finish() })
-        const payload = Envelope.create({ command: "updateone", data });
+        const payload = Envelope.create({ command: "updateone", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = UpdateOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
@@ -916,7 +916,7 @@ export class openiap extends EventEmitter {
         let message = DeleteManyRequest.create(opt as any);
         if (typeof message.query == "object") message.query = this.stringify(message.query);
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteManyRequest", "value": DeleteManyRequest.encode(message).finish() })
-        const payload = Envelope.create({ command: "deletemany", data });
+        const payload = Envelope.create({ command: "deletemany", data, jwt: opt.jwt });
         payload.priority = priority;
         const result = DeleteManyResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.affectedrows;
