@@ -19,7 +19,7 @@ export declare class protowrap {
     static CreateStream(client: client, stream: any, payload: any): Promise<unknown>;
     static DownloadFile(client: client, id: string, filename: string, folder: string, highWaterMark: number | undefined): Promise<DownloadResponse>;
     static sendFileContent(client: client, rid: any, filename: any, highWaterMark: any): Promise<unknown>;
-    static UploadFile(client: client, filename: string, jwt: string): Promise<UploadResponse>;
+    static UploadFile(client: client, filename: string, metadata: object, jwt: string): Promise<UploadResponse>;
     static ReceiveFileContent(client: client, rid: string, filename: string, highWaterMark: number): Promise<unknown>;
     static IsPendingReply(client: client, payload: Envelope): any;
     static get(url: any): Promise<unknown>;

@@ -970,6 +970,7 @@ export type DownloadFileOptions = {
 export type UploadFileOptions = {
     filename: string;
     jwt?: string;
+    metadata?: object;
 };
 export type RegisterQueueOptions = {
     queuename: string;

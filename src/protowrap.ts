@@ -326,9 +326,14 @@ export class protowrap {
       }
     });
   }
-  static UploadFile(client: client, filename: string, jwt: string): Promise<UploadResponse> {
+  static UploadFile(client: client, filename: string, metadata: object, jwt: string): Promise<UploadResponse> {
     var basename = path.basename(filename)
-    const packdata = Any.create<any>({ "typeUrl": "openiap.UploadRequest", "value": UploadRequest.encode(UploadRequest.create({ filename: basename })).finish() })
+
+    let message = UploadRequest.create({ filename: basename });
+    if(metadata != null) {
+      message.metadata = JSON.stringify(metadata);
+    }
+    const packdata = Any.create<any>({ "typeUrl": "openiap.UploadRequest", "value": UploadRequest.encode(message).finish() })
     // Send upload command, server will respond, once upload is complete
     const [rid, promise] = this._RPC(client, { command: "upload", data: packdata, jwt });
     // send file content using the ID used for upload command

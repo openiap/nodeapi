@@ -240,6 +240,9 @@ export class UploadRequest extends jspb.Message {
   getMimetype(): string;
   setMimetype(value: string): void;
 
+  getMetadata(): string;
+  setMetadata(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): UploadRequest.AsObject;
   static toObject(includeInstance: boolean, msg: UploadRequest): UploadRequest.AsObject;
@@ -254,6 +257,7 @@ export namespace UploadRequest {
   export type AsObject = {
     filename: string,
     mimetype: string,
+    metadata: string,
   }
 }
 

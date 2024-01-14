@@ -1015,7 +1015,7 @@ export class openiap extends EventEmitter {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UploadFileOptions = Object.assign(new UploadFileDefaults(), options)
-        const result: Envelope = await protowrap.UploadFile(this.client, opt.filename, opt.jwt) as any;
+        const result: Envelope = await protowrap.UploadFile(this.client, opt.filename, opt.metadata, opt.jwt) as any;
         var res = UploadResponse.decode(result.data.value);
         return res;
     }
@@ -1886,6 +1886,7 @@ class DownloadFileDefaults {
 export type UploadFileOptions = {
     filename: string;
     jwt?: string;
+    metadata?: object;
 }
 class UploadFileDefaults {
 }

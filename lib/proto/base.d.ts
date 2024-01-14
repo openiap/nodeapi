@@ -48,6 +48,7 @@ export interface DownloadResponse {
 export interface UploadRequest {
     filename: string;
     mimetype: string;
+    metadata: string;
 }
 export interface UploadResponse {
     id: string;
@@ -398,16 +399,20 @@ export declare const UploadRequest: {
     create<I extends {
         filename?: string;
         mimetype?: string;
+        metadata?: string;
     } & {
         filename?: string;
         mimetype?: string;
+        metadata?: string;
     } & { [K in Exclude<keyof I, keyof UploadRequest>]: never; }>(base?: I): UploadRequest;
     fromPartial<I_1 extends {
         filename?: string;
         mimetype?: string;
+        metadata?: string;
     } & {
         filename?: string;
         mimetype?: string;
+        metadata?: string;
     } & { [K_1 in Exclude<keyof I_1, keyof UploadRequest>]: never; }>(object: I_1): UploadRequest;
 };
 export declare const UploadResponse: {
