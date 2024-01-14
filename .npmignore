@@ -3,3 +3,7 @@ node_modules
 /make
 /.vscode
 /docs
+.dockerignore
+generate.sh
+nodemon.json
+tsconfig.json
