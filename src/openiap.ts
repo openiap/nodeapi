@@ -995,7 +995,7 @@ export class openiap extends EventEmitter {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DownloadFileOptions = Object.assign(new DownloadFileDefaults(), options)
-        return await protowrap.DownloadFile(this.client, opt.id, opt.filename, opt.folder, config.SendFileHighWaterMark);
+        return await protowrap.DownloadFile(this.client, opt.id, opt.collectionname, opt.filename, opt.folder, config.SendFileHighWaterMark);
     }
     /**
      * Upload a file to OpenIAP flow database.
@@ -1877,6 +1877,7 @@ class UnWatchDefaults {
 }
 export type DownloadFileOptions = {
     id?: string;
+    collectionname?: string;
     filename?: string;
     folder?: string;
     jwt?: string;

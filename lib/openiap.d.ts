@@ -963,6 +963,7 @@ export type UnWatchOptions = {
 };
 export type DownloadFileOptions = {
     id?: string;
+    collectionname?: string;
     filename?: string;
     folder?: string;
     jwt?: string;

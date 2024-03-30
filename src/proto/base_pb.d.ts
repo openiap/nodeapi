@@ -188,6 +188,9 @@ export class DownloadRequest extends jspb.Message {
   getFilename(): string;
   setFilename(value: string): void;
 
+  getCollectionname(): string;
+  setCollectionname(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): DownloadRequest.AsObject;
   static toObject(includeInstance: boolean, msg: DownloadRequest): DownloadRequest.AsObject;
@@ -202,6 +205,7 @@ export namespace DownloadRequest {
   export type AsObject = {
     id: string,
     filename: string,
+    collectionname: string,
   }
 }
 

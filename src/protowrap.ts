@@ -210,7 +210,7 @@ export class protowrap {
       this.sendMesssag(client, _payload, id, true);
     });
   }
-  static DownloadFile(client: client, id: string, filename: string, folder: string, highWaterMark: number | undefined): Promise<DownloadResponse> {
+  static DownloadFile(client: client, id: string, collectionname:string, filename: string, folder: string, highWaterMark: number | undefined): Promise<DownloadResponse> {
     return new Promise<any>(async (resolve, reject) => {
       let temp: boolean = false
       if (filename == null || filename == "") {
@@ -226,7 +226,7 @@ export class protowrap {
 
       const ws = fs.createWriteStream(filename, { highWaterMark });
       const startTime = new Date().getTime();
-      const packdata = Any.create({ type_url: "type.googleapis.com/openiap.DownloadRequest", value: DownloadRequest.encode(DownloadRequest.create({ id, filename })).finish() })
+      const packdata = Any.create({ type_url: "type.googleapis.com/openiap.DownloadRequest", value: DownloadRequest.encode(DownloadRequest.create({ id, filename, collectionname })).finish() })
       const [rid, promise] = this._RPC(client, { command: "download", data: packdata });
       promise.catch((err) => {
         reject(err);
