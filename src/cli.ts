@@ -354,6 +354,15 @@ async function main() {
         const startTime = new Date().getTime();
         const result = await protowrap.DownloadFile(c.client, "6608157a60ad2717a5be980e", "mail.files", filename, "", config.SendFileHighWaterMark);
         // info(`downloaded ${filename} (${(result.mb).toFixed(2)} Mb) in ${(result.elapsedTime / 1000).toFixed(2)} seconds in ${result.chunks} chunks (${result.mbps.toFixed(2)} Mb/s)`);
+      } else if (str == "f3") {
+        cleanup()
+        // filename = nextfilename();
+        // let name = path.basename(filename);
+        filename = "download.png";
+        const startTime = new Date().getTime();
+        const result = await protowrap.DownloadFile(c.client, "", "mail.files", "message 18e8f93e40000067ac", "", config.SendFileHighWaterMark);
+        // info(`downloaded ${filename} (${(result.mb).toFixed(2)} Mb) in ${(result.elapsedTime / 1000).toFixed(2)} seconds in ${result.chunks} chunks (${result.mbps.toFixed(2)} Mb/s)`);
+        
       } else if (str == "pp") {
         var filepath = nextfilename();
         var filename = path.basename(filepath);
