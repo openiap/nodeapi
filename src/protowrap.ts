@@ -1033,7 +1033,8 @@ export class protowrap {
       // @ts-ignore
       result.server.bindAsync("0.0.0.0:" + port, grpc.ServerCredentials.createInsecure(), () => {
         // @ts-ignore
-        result.server.start();
+        // DeprecationWarning: Calling start() is no longer necessary. It can be safely omitted.
+        // result.server.start();
       });
       return result;
     } else if (protocol == "pipe" || protocol == "socket") {
