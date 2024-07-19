@@ -19,7 +19,7 @@
   "keywords": [],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openiap/nodepai.git"
+    "url": "git+https://github.com/openiap/nodeapi.git"
   },
   "publishConfig": {
     "access": "public"
@@ -29,7 +29,7 @@
   "bugs": {
     "url": "https://community.openiap.io/"
   },
-  "homepage": "https://github.com/openiap/nodepai",
+  "homepage": "https://github.com/openiap/nodeapi",
   "funding": "https://github.com/sponsors/skadefro",
   "dependencies": {
     "@grpc/grpc-js": "^1.8.8",

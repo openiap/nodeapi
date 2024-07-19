@@ -126,7 +126,7 @@ export class openiap extends EventEmitter {
         if (jwt != null && jwt != "") this.jwt = jwt;
         if (this.url == null || this.url == "") this.url = process.env.apiurl
         if (this.url == null || this.url == "") this.url = process.env.grpcapiurl
-        if (this.url == null || this.url == "") this.url = process.env.wscapiurl
+        if (this.url == null || this.url == "") this.url = process.env.wsapiurl
     }
     /**
      * @param first Should be left out or used as true. Is used internally for controlling retry logic
