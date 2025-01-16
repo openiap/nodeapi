@@ -1,12 +1,12 @@
 console.log("BEGIN CLI")
 import { config } from "./config";
 const { info, err, warn }  = config;
-import * as fs  from "fs";
-import * as path  from 'path';
-import { protowrap }  from './protowrap';
-import * as readline from 'readline';
-import { stdin as input, stdout as output } from "process";
-import { clientType } from "./client";
+const fs = require("fs");
+const path = require('path');
+const { protowrap } = require('./protowrap');
+const readline = require('readline');
+const { stdin: input, stdout: output } = require("process");
+const { clientType } = require("./client");
 const rl = readline.createInterface({ input, output });
 import * as pako from 'pako';
 import { openiap } from "./openiap";
@@ -365,13 +365,13 @@ async function main() {
         
       } else if (str == "pp") {
         var filepath = nextfilename();
-        var filename = path.basename(filepath);
+        var filename:string = path.basename(filepath);
 
         var items: any[] = [];
         var wi1 = Workitem.create({payload: JSON.stringify({"name": "test " + filename}), wiq: "q2", name: "file test " + filename,
         files: [{ _id:"", filename, compressed: true, file: pako.deflate(fs.readFileSync(filepath, null)) }]});
         var filepath = nextfilename();
-        var filename = path.basename(filepath);
+        var filename:string = path.basename(filepath);
         var wi2 = Workitem.create({payload: JSON.stringify({"name": "test2 " + filename}), wiq: "q2", name: "file2 test " + filename,
         files: [{ _id:"", filename, compressed: true, file: pako.deflate(fs.readFileSync(filepath, null)) }]});
         items.push(wi1)
