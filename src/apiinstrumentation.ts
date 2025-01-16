@@ -27,4 +27,14 @@ export class apiinstrumentation {
             // }, undefined, undefined);
         });
     }
+    public static GetTraceSpanId(span: Span): [string, string] {
+        if (span == null) return [null, null];
+        var ctx = span.spanContext();
+        // @ts-ignore
+        if (ctx == null) return [null, null];
+        // @ts-ignore
+        const { traceId, spanId } = ctx;
+        return [traceId, spanId];
+    }
+
 }
