@@ -4,6 +4,7 @@ import { EventEmitter } from "events";
 import { Customer, DownloadResponse, EnsureCustomerResponse, SigninResponse, UploadResponse, User } from "./proto/base";
 import { QueueEvent, UpdateResult, WorkItemQueue, Workitem } from ".";
 import { StripeCustomer } from "./proto/stripe";
+import { Span } from "@opentelemetry/api";
 /**
  * OpenIAP
  */
@@ -213,26 +214,26 @@ export declare class openiap extends EventEmitter {
      * @param options {@link SigninOptions}
      * @returns
      */
-    Signin(options: SigninOptions): Promise<SigninResponse>;
+    Signin(options: SigninOptions, span?: Span): Promise<SigninResponse>;
     /**
      * Returns a list of all known collections. By default filtering out history collectins.
      * @param options {@link ListCollectionsOptions}
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns
      */
-    ListCollections(options?: ListCollectionsOptions, priority?: number): Promise<any[]>;
+    ListCollections(options?: ListCollectionsOptions, priority?: number, span?: Span): Promise<any[]>;
     /**
      * Drop a collection removing all data from the collection. Only users with admin rights can drop collections.
      * @param options {@link DropCollectionOptions}
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
-    DropCollection(options: DropCollectionOptions, priority?: number): Promise<void>;
+    DropCollection(options: DropCollectionOptions, priority?: number, span?: Span): Promise<void>;
     /**
      * Create a collection removing all data from the collection. Only users with admin rights can Create collections.
      * @param options {@link CreateCollectionOptions}
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
-    CreateCollection(options: CreateCollectionOptions, priority?: number): Promise<void>;
+    CreateCollection(options: CreateCollectionOptions, priority?: number, span?: Span): Promise<void>;
     /**
      * Query a collection for data
      * @param options {@link QueryOptions}
@@ -254,7 +255,7 @@ export declare class openiap extends EventEmitter {
      * const result = await client.Query({ collectionname: "entities", query: { "_type": "test" }, projection: { "name": 1 }, orderby: { "name": 1 } });
      * ```
      */
-    Query<T>(options: QueryOptions, priority?: number): Promise<T[]>;
+    Query<T>(options: QueryOptions, priority?: number, span?: Span): Promise<T[]>;
     /**
      * Query a collection for data and return the first document
      * @param options {@link FindOneOptions}
@@ -276,7 +277,7 @@ export declare class openiap extends EventEmitter {
      * const result = await client.FindOne({ collectionname: "entities", query: { "_type": "test" }, projection: { "name": 1 }, orderby: { "name": 1 } });
      * ```
      */
-    FindOne<T>(options: FindOneOptions, priority?: number): Promise<T>;
+    FindOne<T>(options: FindOneOptions, priority?: number, span?: Span): Promise<T>;
     /**
      * By default OpenIAP will keep history information about all data in the database.
      * This function will try and reconstruct the document at it was at a given version.
@@ -290,7 +291,7 @@ export declare class openiap extends EventEmitter {
      * const result = await client.GetDocumentVersion({ id: "643917fb153b7c2c1466fb21", version: 1 });
      * ```
      */
-    GetDocumentVersion<T>(options: GetDocumentVersionOptions, priority?: number): Promise<T[]>;
+    GetDocumentVersion<T>(options: GetDocumentVersionOptions, priority?: number, span?: Span): Promise<T[]>;
     /**
      * Getting the count of documents in a collection can be done using this function.
      * Leave query empty to get the total count of documents in the collection.
@@ -308,7 +309,7 @@ export declare class openiap extends EventEmitter {
      * const result = await client.Count({ collectionname: "entities" });
      * ```
      */
-    Count(options: CountOptions, priority?: number): Promise<number>;
+    Count(options: CountOptions, priority?: number, span?: Span): Promise<number>;
     /**
  * Finds the distinct values for a specified field across a single collection
  * @param options {@link DistinctOptions}
@@ -325,7 +326,7 @@ export declare class openiap extends EventEmitter {
  * const result = await client.Distinct({ collectionname: "entities", field: "_type" });
  * ```
  */
-    Distinct(options: DistinctOptions, priority?: number): Promise<string[]>;
+    Distinct(options: DistinctOptions, priority?: number, span?: Span): Promise<string[]>;
     /**
      * Run an mongodb aggregation pipeline toward the OpenIAP flow database.
      * See https://docs.mongodb.com/manual/aggregation/ for more information
@@ -339,7 +340,7 @@ export declare class openiap extends EventEmitter {
      * const result = await client.Aggregate({ collectionname: "entities", aggregates: [{ "$match": { "_type": "test" } }, { "$count": "count" }] });
      * ```
      */
-    Aggregate<T>(options: AggregateOptions, priority?: number): Promise<T[]>;
+    Aggregate<T>(options: AggregateOptions, priority?: number, span?: Span): Promise<T[]>;
     /**
      * Insert a document into a collection
      * @param options {@link InsertOneOptions}
@@ -351,7 +352,7 @@ export declare class openiap extends EventEmitter {
      * const result = await client.InsertOne({ collectionname: "entities", item: { "_type": "test", name: "find me" } });
      * ```
      */
-    InsertOne<T>(options: InsertOneOptions, priority?: number): Promise<T>;
+    InsertOne<T>(options: InsertOneOptions, priority?: number, span?: Span): Promise<T>;
     /**
      * Bulk insert multiple documents into a collection, this is faster than using InsertOne multiple times.
      * @param options {@link InsertManyOptions}
@@ -363,7 +364,7 @@ export declare class openiap extends EventEmitter {
      * const result = await client.InsertMany({ collectionname: "entities", items: [{ "_type": "test", name: "find me" }, { "_type": "test", name: "find me too" }] });
      * ```
      */
-    InsertMany<T>(options: InsertManyOptions, priority?: number): Promise<T[]>;
+    InsertMany<T>(options: InsertManyOptions, priority?: number, span?: Span): Promise<T[]>;
     /**
      * Update ( replace ) an existing document in a collection.
      * Any fields that starts with underscoore will be preserved. This is to prevent the system from overwriting fields that are used by the system.
@@ -381,7 +382,7 @@ export declare class openiap extends EventEmitter {
      * console.log("Updated document with id: " + updated._id + " and name: " + updated.name);
      * ```
      */
-    UpdateOne<T>(options: UpdateOneOptions, priority?: number): Promise<T>;
+    UpdateOne<T>(options: UpdateOneOptions, priority?: number, span?: Span): Promise<T>;
     /**
      * Run an update command on a collection, to update one or more documents matching a query.
      * See https://docs.mongodb.com/manual/reference/operator/update/ for more information on the update operators.
@@ -396,7 +397,7 @@ export declare class openiap extends EventEmitter {
      * console.log("Updated " + result.matchedCount + " documents");
      * ```
      */
-    UpdateDocument(options: UpdateDocumentOptions, priority?: number): Promise<UpdateResult>;
+    UpdateDocument(options: UpdateDocumentOptions, priority?: number, span?: Span): Promise<UpdateResult>;
     /**
      * Will match a document in a collection on the uniqeness parameters ( _id if left out ) and update it if it exists, or insert it if it does not exist.
      * Will trhow an error if more than one document exists that matches the uniqeness parameters.
@@ -414,7 +415,7 @@ export declare class openiap extends EventEmitter {
      * console.log("Updated document with id: " + updated._id + " and new name: " + updated.name);
      * ```
      */
-    InsertOrUpdateOne<T>(options: InsertOrUpdateOneOptions, priority?: number): Promise<T>;
+    InsertOrUpdateOne<T>(options: InsertOrUpdateOneOptions, priority?: number, span?: Span): Promise<T>;
     /**
      * Will match all documents toward a collection using the uniqeness parameters ( _id if left out ) and update it if it exists, or insert it if it does not exist.
      * Will trhow an error if more than one document exists that matches the uniqeness parameters.
@@ -436,7 +437,7 @@ export declare class openiap extends EventEmitter {
      * console.log("Updated document with id: " + updated[1]._id + " and new name: " + updated[1].name);
      * ```
      */
-    InsertOrUpdateMany<T>(options: InsertOrUpdateManyOptions, priority?: number): Promise<T[]>;
+    InsertOrUpdateMany<T>(options: InsertOrUpdateManyOptions, priority?: number, span?: Span): Promise<T[]>;
     /**
      * Delete one document from a collection.
      * Will throw an error if document does not exist or you don't have the right permissions.
@@ -452,7 +453,7 @@ export declare class openiap extends EventEmitter {
      * console.log("Deleted " + result + " documents");
      * ```
      */
-    DeleteOne(options: DeleteOneOptions, priority?: number): Promise<number>;
+    DeleteOne(options: DeleteOneOptions, priority?: number, span?: Span): Promise<number>;
     /**
      * Delete many documents from a collection based on a query.
      * Will return 0 if no documents are deleted.
@@ -471,7 +472,7 @@ export declare class openiap extends EventEmitter {
      * console.log("Deleted " + result + " documents");
      * ```
      */
-    DeleteMany(options: DeleteManyOptions, priority?: number): Promise<number>;
+    DeleteMany(options: DeleteManyOptions, priority?: number, span?: Span): Promise<number>;
     /**
      * Register a change stream ( watch ) on a collection. Use paths to narrow the scope of the watch.
      * The callback will be called for each document that matches the paths when ever it is inserted, updated or deleted from the database
@@ -485,13 +486,13 @@ export declare class openiap extends EventEmitter {
      *     console.log(operation + " on " + document.name);
      * });
      */
-    Watch(options: WatchOptions, callback: (operation: string, document: any) => void, priority?: number): Promise<string>;
+    Watch(options: WatchOptions, callback: (operation: string, document: any) => void, priority?: number, span?: Span): Promise<string>;
     /**
      * Unregister a change stream ( watch ) created with {@link Watch } to stop receiving notifications from the watch.
      * @param options
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
-    UnWatch(options: UnWatchOptions, priority?: number): Promise<void>;
+    UnWatch(options: UnWatchOptions, priority?: number, span?: Span): Promise<void>;
     /**
      * Dummy function used to test the connection to the server.
      * @param xpath
@@ -541,7 +542,7 @@ export declare class openiap extends EventEmitter {
      * console.log("registered queue " + queuename);
      * ```
      */
-    RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any, priority?: number): Promise<string>;
+    RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any, priority?: number, span?: Span): Promise<string>;
     /**
      * Register an exchange and a message queue and consume it. Exchange's are registered in the mq collection.
      * This uses streams to notify client about messages, and is therefore not supported using REST interface.
@@ -559,7 +560,7 @@ export declare class openiap extends EventEmitter {
      * console.log("registered exchange myexchange and is consuming it using queue " + queuename);
      * ```
      */
-    RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any, priority?: number): Promise<string>;
+    RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any, priority?: number, span?: Span): Promise<string>;
     /**
      * Tell server to close queue and stop receving message from the queue ( or queue consuming an exchange )
      * @param options
@@ -576,7 +577,7 @@ export declare class openiap extends EventEmitter {
      * console.log("registered exchange myexchange and is consuming it using queue " + queuename);
      * ```
      */
-    UnRegisterQueue(options: UnRegisterQueueOptions, priority?: number): Promise<void>;
+    UnRegisterQueue(options: UnRegisterQueueOptions, priority?: number, span?: Span): Promise<void>;
     /**
      * Send message to queue or exchange. If recevied sends a reply back, set rpc = true to recevied response as return value.
      * Be aware, right now there is no timeout on the wait, so if recevier never sends a reply it will hang for ever
@@ -598,7 +599,7 @@ export declare class openiap extends EventEmitter {
      * await client.QueueMessage({ exchangename: "myexchange", data: { "hello": "world" } }, false);
      * ```
      */
-    QueueMessage(options: QueueMessageOptions, rpc?: boolean, priority?: number): Promise<any>;
+    QueueMessage(options: QueueMessageOptions, rpc?: boolean, priority?: number, span?: Span): Promise<any>;
     /**
      * Push a workitem to a workqueue. Workitem can be processed by a worker after calling {@link PopWorkitem}
      * @param options
@@ -626,14 +627,14 @@ export declare class openiap extends EventEmitter {
      *   files: [{ _id:"", filename, compressed: true, file: pako.deflate(fs.readFileSync(filepath, null)) }]});
      * console.log("Pushed workitem with id " + workitem._id);
      */
-    PushWorkitem(options: PushWorkitemOptions, priority?: number): Promise<Workitem>;
+    PushWorkitem(options: PushWorkitemOptions, priority?: number, span?: Span): Promise<Workitem>;
     /**
      * Push multiple workitems to a workqueue. Workitems can be processed by a worker after calling {@link PopWorkitem}
      * @param options
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns an array of workitems that was pushed, including the workitem id's
      */
-    PushWorkitems(options: PushWorkitemsOptions, priority?: number): Promise<Workitem[]>;
+    PushWorkitems(options: PushWorkitemsOptions, priority?: number, span?: Span): Promise<Workitem[]>;
     /**
      * Pop an item of a workitem queue. An items aviailable in the queue will be determined by it's status, retry time and runat time steamp.
      * If multiple items are available, the items will be fatched based on each wrkitem's priority field.
@@ -641,7 +642,7 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns If no workitem is available, this will return null.
      */
-    PopWorkitem(options: PopWorkitemOptions, priority?: number): Promise<Workitem | undefined>;
+    PopWorkitem(options: PopWorkitemOptions, priority?: number, span?: Span): Promise<Workitem | undefined>;
     /**
      * Update an existing workitem. Workitem can be fetched using {@link PopWorkitem}. Use this to update the status of a workitem.
      * You can also update the payload, and update or add files to the workitem.
@@ -662,7 +663,7 @@ export declare class openiap extends EventEmitter {
      * console.log("Updated workitem with id " + workitem._id);
      * ```
      */
-    UpdateWorkitem(options: UpdateWorkitemOptions, priority?: number): Promise<Workitem>;
+    UpdateWorkitem(options: UpdateWorkitemOptions, priority?: number, span?: Span): Promise<Workitem>;
     /**
      * Delete one workitem and all associated files from a workitem queue.
      * @param options
@@ -673,25 +674,25 @@ export declare class openiap extends EventEmitter {
      * client.DeleteWorkitem({ id: "64366f12cffb7419a89d5e10" });
      * ```
      */
-    DeleteWorkitem(options: DeleteWorkitemOptions, priority?: number): Promise<void>;
+    DeleteWorkitem(options: DeleteWorkitemOptions, priority?: number, span?: Span): Promise<void>;
     /**
     * Create a new workitem queue. Workitem queues are registered in the wiq collection.
     * @param options {@link AddWorkItemQueueOptions}
     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
     */
-    AddWorkItemQueue(options: AddWorkItemQueueOptions, priority?: number): Promise<WorkItemQueue>;
+    AddWorkItemQueue(options: AddWorkItemQueueOptions, priority?: number, span?: Span): Promise<WorkItemQueue>;
     /**
     * Create a new workitem queue. Workitem queues are registered in the wiq collection. To delete all items from qyueue, set purge to true.
     * @param options {@link UpdateWorkItemQueueOptions}
     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
     */
-    UpdateWorkItemQueue(options: UpdateWorkItemQueueOptions, priority?: number): Promise<WorkItemQueue>;
+    UpdateWorkItemQueue(options: UpdateWorkItemQueueOptions, priority?: number, span?: Span): Promise<WorkItemQueue>;
     /**
     * Delete a workitem queue. Workitem queues are registered in the wiq collection. If queue has workitems in it, the request will fail, unless purge is set to true.
     * @param options {@link DeleteWorkItemQueueOptions}
     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
     */
-    DeleteWorkItemQueue(options: DeleteWorkItemQueueOptions, priority?: number): Promise<void>;
+    DeleteWorkItemQueue(options: DeleteWorkItemQueueOptions, priority?: number, span?: Span): Promise<void>;
     /**
      * Run custom commands not defined in the protocol yet.
      * This is how new functioanlly is added and tested, before it is finally added to the offical proto3 protocol.
@@ -699,20 +700,20 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns If command has a result, this will be returned as a string. This will most likely need to be parser as JSON
      */
-    CustomCommand<T>(options: CustomCommandOptions, priority?: number): Promise<string>;
+    CustomCommand<T>(options: CustomCommandOptions, priority?: number, span?: Span): Promise<string>;
     /**
      * Old command used by nodered "Workflow in" and "assign" nodes for creating a new workflow instance.
      * @param options
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns
      */
-    CreateWorkflowInstance(options: CreateWorkflowInstanceOptions, priority?: number): Promise<string>;
+    CreateWorkflowInstance(options: CreateWorkflowInstanceOptions, priority?: number, span?: Span): Promise<string>;
     /**
      * Create a collection removing all data from the collection. Only users with admin rights can Create collections.
      * @param options {@link EnsureCustomerOptions}
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
-    EnsureCustomer(options: EnsureCustomerOptions, priority?: number): Promise<EnsureCustomerResponse>;
+    EnsureCustomer(options: EnsureCustomerOptions, priority?: number, span?: Span): Promise<EnsureCustomerResponse>;
     /**
      * Invoke an OpenRPA workflow on a robot or a role with multiple robots in.
      * At writing, this command is only supprted using OpenAPI endpoint
@@ -720,7 +721,7 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns null if rpc is false, else the result of the workflow if workflow has any inout/out parameters
      */
-    InvokeOpenRPA<T>(options: InvokeOpenRPAOptions, priority?: number): Promise<T>;
+    InvokeOpenRPA<T>(options: InvokeOpenRPAOptions, priority?: number, span?: Span): Promise<T>;
     /**
      * Start an agent inside Docker or Kubernetes
      * Requires invoke permission on agent
@@ -728,7 +729,7 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    StartAgent(options: StartAgentOptions, priority?: number): Promise<void>;
+    StartAgent(options: StartAgentOptions, priority?: number, span?: Span): Promise<void>;
     /**
      * Stop an agent running inside Docker or Kubernetes
      * Requires invoke permission on agent
@@ -736,7 +737,7 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    StopAgent(options: StopAgentOptions, priority?: number): Promise<void>;
+    StopAgent(options: StopAgentOptions, priority?: number, span?: Span): Promise<void>;
     /**
      * Return the console output of an running agent, can be in docker, kubernetes or running remote.
      * Requires invoke permission on agent
@@ -744,7 +745,7 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns Return pods console output
     */
-    GetAgentLog(options: GetAgentLogOptions, priority?: number): Promise<string>;
+    GetAgentLog(options: GetAgentLogOptions, priority?: number, span?: Span): Promise<string>;
     /**
      * Return a list of pods for an running agent. Docker and Kubernetes only.
      * Requires invoke permission on agent
@@ -752,7 +753,7 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns Array of pods
     */
-    GetAgentPods(options: GetAgentPodsOptions, priority?: number): Promise<any[]>;
+    GetAgentPods(options: GetAgentPodsOptions, priority?: number, span?: Span): Promise<any[]>;
     /**
      * Remove an agent pod, found with GetAgentPods. Docker and Kubernetes only.
      * Requires invoke permission on agent
@@ -760,7 +761,7 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    DeleteAgentPod(options: DeleteAgentPodOptions, priority?: number): Promise<void>;
+    DeleteAgentPod(options: DeleteAgentPodOptions, priority?: number, span?: Span): Promise<void>;
     /**
      * Remove an agent if running. Docker and Kubernetes only.
      * Removes instance on docker, remove deployment, ingress and other resources on Kubernetes
@@ -769,8 +770,8 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    DeleteAgent(options: DeleteAgentOptions, priority?: number): Promise<void>;
-    GetIndexes(options: GetIndexesOptions, priority?: number): Promise<any[]>;
+    DeleteAgent(options: DeleteAgentOptions, priority?: number, span?: Span): Promise<void>;
+    GetIndexes(options: GetIndexesOptions, priority?: number, span?: Span): Promise<any[]>;
     /**
      * Return the console output of an running agent, can be in docker, kubernetes or running remote.
      * Requires invoke permission on agent
@@ -778,7 +779,7 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns Returns the index name
     */
-    CreateIndex(options: CreateIndexOptions, priority?: number): Promise<string>;
+    CreateIndex(options: CreateIndexOptions, priority?: number, span?: Span): Promise<string>;
     /**
      * Drop a MongoDB index from a collection.
      * Requires admins permission
@@ -786,7 +787,7 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    DropIndex(options: DropIndexOptions, priority?: number): Promise<void>;
+    DropIndex(options: DropIndexOptions, priority?: number, span?: Span): Promise<void>;
     /**
      * Delete an agent Package.
      * Removes the associated file and then delete te package from the agents collection.
@@ -795,7 +796,7 @@ export declare class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    DeletePackage(options: DeletePackageOptions, priority?: number): Promise<void>;
+    DeletePackage(options: DeletePackageOptions, priority?: number, span?: Span): Promise<void>;
 }
 export type SigninOptions = {
     username?: string;

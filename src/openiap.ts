@@ -11,7 +11,7 @@ import { CreateWorkflowInstanceRequest, CreateWorkflowInstanceResponse, InvokeOp
 import { CreateCollectionRequest, DistinctRequest, DistinctResponse } from "./proto/querys";
 import { StripeCustomer } from "./proto/stripe";
 import { apiinstrumentation } from "./apiinstrumentation";
-import { context } from "@opentelemetry/api";
+import { context, Span } from "@opentelemetry/api";
 import { DeleteAgentPodRequest, DeleteAgentPodResponse, DeleteAgentRequest, DeleteAgentResponse, GetAgentLogRequest, GetAgentLogResponse, GetAgentPodsRequest, GetAgentPodsResponse, StartAgentRequest, StartAgentResponse, StopAgentRequest, StopAgentResponse } from "./proto/agent";
 
 /**
@@ -386,10 +386,17 @@ export class openiap extends EventEmitter {
                 });
             } else if (this.queues[we.queuename]) {
                 try {
-                    var reply2 = await this.queues[we.queuename](we, data, user, jwt);
-                    if (reply2 != null && we.replyto != null && we.replyto != "") {
-                        await this.QueueMessage({ correlationId: we.correlationId, queuename: we.replyto, data: reply2, striptoken: true }, false);
-                    }
+                    await apiinstrumentation.With("queueevent", message.traceid, message.spanid, undefined, async (span) => {
+                        try {
+                            let s = span;
+                            var reply2 = await this.queues[we.queuename](we, data, user, jwt);
+                            if (reply2 != null && we.replyto != null && we.replyto != "") {
+                                await this.QueueMessage({ correlationId: we.correlationId, queuename: we.replyto, data: reply2, striptoken: true }, false);
+                            }
+                        } catch (error) {
+                            err(error);
+                        }
+                    });
                 } catch (error) {
                     err(error);
                 }
@@ -438,7 +445,7 @@ export class openiap extends EventEmitter {
      * @param options {@link SigninOptions}
      * @returns 
      */
-    async Signin(options: SigninOptions): Promise<SigninResponse> {
+    async Signin(options: SigninOptions, span: Span = null): Promise<SigninResponse> {
         if (!this.connected) throw new Error("Not connected to server");
         const opt: SigninOptions = Object.assign(new SigninDefaults(), options)
         if (opt.agent == null || opt.agent == "") opt.agent = this.agent;
@@ -451,6 +458,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.SigninRequest", value: SigninRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "signin", data, jwt: opt.jwt });
         payload.priority = 2;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const d = (await protowrap.RPC(this.client, payload))
         const result = SigninResponse.decode(d.data.value);
         if (result.user == null) {
@@ -479,7 +489,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns 
      */
-    async ListCollections(options: ListCollectionsOptions = {}, priority: number = 2): Promise<any[]> {
+    async ListCollections(options: ListCollectionsOptions = {}, priority: number = 2, span: Span = null): Promise<any[]> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: ListCollectionsOptions = Object.assign(new ListCollectionsDefaults(), options)
@@ -487,6 +497,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.ListCollectionsRequest", "value": ListCollectionsRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "listcollections", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = ListCollectionsResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
@@ -495,7 +508,7 @@ export class openiap extends EventEmitter {
      * @param options {@link DropCollectionOptions}
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
-    async DropCollection(options: DropCollectionOptions, priority: number = 2): Promise<void> {
+    async DropCollection(options: DropCollectionOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DropCollectionOptions = Object.assign(new DropCollectionDefaults(), options)
@@ -503,6 +516,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DropCollectionRequest", "value": DropCollectionRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "dropcollection", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = await protowrap.RPC(this.client, payload);
     }
     /**
@@ -510,7 +526,7 @@ export class openiap extends EventEmitter {
      * @param options {@link CreateCollectionOptions}
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
-    async CreateCollection(options: CreateCollectionOptions, priority: number = 2): Promise<void> {
+    async CreateCollection(options: CreateCollectionOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: CreateCollectionOptions = Object.assign(new CreateCollectionDefaults(), options)
@@ -518,6 +534,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.CreateCollectionRequest", "value": CreateCollectionRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "createcollection", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = await protowrap.RPC(this.client, payload);
     }
     /**
@@ -541,7 +560,7 @@ export class openiap extends EventEmitter {
      * const result = await client.Query({ collectionname: "entities", query: { "_type": "test" }, projection: { "name": 1 }, orderby: { "name": 1 } });
      * ```
      */
-    async Query<T>(options: QueryOptions, priority: number = 2): Promise<T[]> {
+    async Query<T>(options: QueryOptions, priority: number = 2, span: Span = null): Promise<T[]> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: QueryOptions = Object.assign(new QueryDefaults(), options)
@@ -552,6 +571,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.QueryRequest", "value": QueryRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "query", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = QueryResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
@@ -576,7 +598,7 @@ export class openiap extends EventEmitter {
      * const result = await client.FindOne({ collectionname: "entities", query: { "_type": "test" }, projection: { "name": 1 }, orderby: { "name": 1 } });
      * ```
      */
-    async FindOne<T>(options: FindOneOptions, priority: number = 2): Promise<T> {
+    async FindOne<T>(options: FindOneOptions, priority: number = 2, span: Span = null): Promise<T> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: FindOneOptions = Object.assign(new FindOneDefaults(), options)
@@ -588,6 +610,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.QueryRequest", "value": QueryRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "query", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = QueryResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         if (result.results == null || result.results == "") return null;
         var array = JSON.parse(result.results);
@@ -608,7 +633,7 @@ export class openiap extends EventEmitter {
      * const result = await client.GetDocumentVersion({ id: "643917fb153b7c2c1466fb21", version: 1 });
      * ```
      */
-    async GetDocumentVersion<T>(options: GetDocumentVersionOptions, priority: number = 2): Promise<T[]> {
+    async GetDocumentVersion<T>(options: GetDocumentVersionOptions, priority: number = 2, span: Span = null): Promise<T[]> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: GetDocumentVersionOptions = Object.assign(new GetDocumentVersionDefaults(), options)
@@ -616,6 +641,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.GetDocumentVersionRequest", "value": GetDocumentVersionRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "getdocumentversion", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = GetDocumentVersionResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
     }
@@ -636,7 +664,7 @@ export class openiap extends EventEmitter {
      * const result = await client.Count({ collectionname: "entities" });
      * ```
      */
-    async Count(options: CountOptions, priority: number = 2): Promise<number> {
+    async Count(options: CountOptions, priority: number = 2, span: Span = null): Promise<number> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: CountOptions = Object.assign(new CountDefaults(), options)
@@ -645,6 +673,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.CountRequest", "value": CountRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "count", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = CountResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.result;
     }
@@ -664,7 +695,7 @@ export class openiap extends EventEmitter {
  * const result = await client.Distinct({ collectionname: "entities", field: "_type" });
  * ```
  */
-    async Distinct(options: DistinctOptions, priority: number = 2): Promise<string[]> {
+    async Distinct(options: DistinctOptions, priority: number = 2, span: Span = null): Promise<string[]> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DistinctOptions = Object.assign(new DistinctDefaults(), options)
@@ -673,6 +704,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DistinctRequest", "value": DistinctRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "distinct", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = DistinctResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.results;
     }
@@ -689,7 +723,7 @@ export class openiap extends EventEmitter {
      * const result = await client.Aggregate({ collectionname: "entities", aggregates: [{ "$match": { "_type": "test" } }, { "$count": "count" }] });
      * ```
      */
-    async Aggregate<T>(options: AggregateOptions, priority: number = 2): Promise<T[]> {
+    async Aggregate<T>(options: AggregateOptions, priority: number = 2, span: Span = null): Promise<T[]> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: AggregateOptions = Object.assign(new AggregateDefaults(), options)
@@ -698,6 +732,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.AggregateRequest", "value": AggregateRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "aggregate", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = AggregateResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
@@ -712,7 +749,7 @@ export class openiap extends EventEmitter {
      * const result = await client.InsertOne({ collectionname: "entities", item: { "_type": "test", name: "find me" } });
      * ```
      */
-    async InsertOne<T>(options: InsertOneOptions, priority: number = 2): Promise<T> {
+    async InsertOne<T>(options: InsertOneOptions, priority: number = 2, span: Span = null): Promise<T> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertOneOptions = Object.assign(new InsertOneDefaults(), options)
@@ -721,6 +758,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.InsertOneRequest", "value": InsertOneRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "insertone", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = InsertOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
     }
@@ -735,7 +775,7 @@ export class openiap extends EventEmitter {
      * const result = await client.InsertMany({ collectionname: "entities", items: [{ "_type": "test", name: "find me" }, { "_type": "test", name: "find me too" }] });
      * ```
      */
-    async InsertMany<T>(options: InsertManyOptions, priority: number = 2): Promise<T[]> {
+    async InsertMany<T>(options: InsertManyOptions, priority: number = 2, span: Span = null): Promise<T[]> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertManyOptions = Object.assign(new InsertManyDefaults(), options)
@@ -744,6 +784,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.InsertManyRequest", "value": InsertManyRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "insertmany", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = InsertManyResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
@@ -764,7 +807,7 @@ export class openiap extends EventEmitter {
      * console.log("Updated document with id: " + updated._id + " and name: " + updated.name);
      * ```
      */
-    async UpdateOne<T>(options: UpdateOneOptions, priority: number = 2): Promise<T> {
+    async UpdateOne<T>(options: UpdateOneOptions, priority: number = 2, span: Span = null): Promise<T> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UpdateOneOptions = Object.assign(new UpdateOneDefaults(), options)
@@ -773,6 +816,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.UpdateOneRequest", "value": UpdateOneRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "updateone", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = UpdateOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
     }
@@ -790,7 +836,7 @@ export class openiap extends EventEmitter {
      * console.log("Updated " + result.matchedCount + " documents");
      * ```
      */
-    async UpdateDocument(options: UpdateDocumentOptions, priority: number = 2): Promise<UpdateResult> {
+    async UpdateDocument(options: UpdateDocumentOptions, priority: number = 2, span: Span = null): Promise<UpdateResult> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UpdateDocumentOptions = Object.assign(new UpdateDocumentDefaults(), options)
@@ -800,6 +846,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.UpdateDocumentRequest", "value": UpdateDocumentRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "updatedocument", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = UpdateDocumentResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.opresult;
     }
@@ -820,7 +869,7 @@ export class openiap extends EventEmitter {
      * console.log("Updated document with id: " + updated._id + " and new name: " + updated.name);
      * ```
      */
-    async InsertOrUpdateOne<T>(options: InsertOrUpdateOneOptions, priority: number = 2): Promise<T> {
+    async InsertOrUpdateOne<T>(options: InsertOrUpdateOneOptions, priority: number = 2, span: Span = null): Promise<T> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertOrUpdateOneOptions = Object.assign(new InsertOrUpdateOneDefaults(), options)
@@ -829,6 +878,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.InsertOrUpdateOneRequest", "value": InsertOrUpdateOneRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "insertorupdateone", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = InsertOrUpdateOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.result);
     }
@@ -853,7 +905,7 @@ export class openiap extends EventEmitter {
      * console.log("Updated document with id: " + updated[1]._id + " and new name: " + updated[1].name);
      * ```
      */
-    async InsertOrUpdateMany<T>(options: InsertOrUpdateManyOptions, priority: number = 2): Promise<T[]> {
+    async InsertOrUpdateMany<T>(options: InsertOrUpdateManyOptions, priority: number = 2, span: Span = null): Promise<T[]> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: InsertOrUpdateManyOptions = Object.assign(new InsertOrUpdateManyDefaults(), options)
@@ -862,6 +914,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.InsertOrUpdateManyRequest", "value": InsertOrUpdateManyRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "insertorupdatemany", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = InsertOrUpdateManyResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.results);
     }
@@ -880,7 +935,7 @@ export class openiap extends EventEmitter {
      * console.log("Deleted " + result + " documents");
      * ```
      */
-    async DeleteOne(options: DeleteOneOptions, priority: number = 2): Promise<number> {
+    async DeleteOne(options: DeleteOneOptions, priority: number = 2, span: Span = null): Promise<number> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteOneOptions = Object.assign(new DeleteOneDefaults(), options)
@@ -888,6 +943,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteOneRequest", "value": DeleteOneRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "deleteone", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = DeleteOneResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.affectedrows;
     }
@@ -909,7 +967,7 @@ export class openiap extends EventEmitter {
      * console.log("Deleted " + result + " documents");
      * ```
      */
-    async DeleteMany(options: DeleteManyOptions, priority: number = 2): Promise<number> {
+    async DeleteMany(options: DeleteManyOptions, priority: number = 2, span: Span = null): Promise<number> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteManyOptions = Object.assign(new DeleteManyDefaults(), options)
@@ -918,6 +976,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteManyRequest", "value": DeleteManyRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "deletemany", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = DeleteManyResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.affectedrows;
     }
@@ -934,7 +995,7 @@ export class openiap extends EventEmitter {
      *     console.log(operation + " on " + document.name);
      * });
      */
-    async Watch(options: WatchOptions, callback: (operation: string, document: any) => void, priority: number = 2): Promise<string> {
+    async Watch(options: WatchOptions, callback: (operation: string, document: any) => void, priority: number = 2, span: Span = null): Promise<string> {
         if (!callback) return "";
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
@@ -951,6 +1012,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.WatchRequest", "value": WatchRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "watch", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = WatchResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         if (result.id && result.id != "") {
             this.watchids[result.id] = callback;
@@ -962,7 +1026,7 @@ export class openiap extends EventEmitter {
      * @param options 
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
-    async UnWatch(options: UnWatchOptions, priority: number = 2): Promise<void> {
+    async UnWatch(options: UnWatchOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UnWatchOptions = Object.assign(new UnWatchDefaults(), options)
@@ -971,6 +1035,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.UnWatchRequest", "value": UnWatchRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "unwatch", data });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = await protowrap.RPC(this.client, payload);
     }
     /**
@@ -1040,7 +1107,7 @@ export class openiap extends EventEmitter {
      * console.log("registered queue " + queuename);
      * ```
      */
-    async RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any, priority: number = 2): Promise<string> {
+    async RegisterQueue(options: RegisterQueueOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any, priority: number = 2, span: Span = null): Promise<string> {
         if (!callback) return "";
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
@@ -1050,6 +1117,9 @@ export class openiap extends EventEmitter {
         const payload = Envelope.create({ command: "registerqueue", data, jwt: opt.jwt });
         if (opt.queuename && opt.queuename != "") this.queues[opt.queuename] = callback;
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = RegisterQueueResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         if (this.defaltqueue == "" && (opt.queuename == "" || opt.queuename == null)) this.defaltqueue = result.queuename;
         if (result.queuename != null && result.queuename != "" && result.queuename != opt.queuename) {
@@ -1075,7 +1145,7 @@ export class openiap extends EventEmitter {
      * console.log("registered exchange myexchange and is consuming it using queue " + queuename);
      * ```
      */
-    async RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any, priority: number = 2): Promise<string> {
+    async RegisterExchange(options: RegisterExchangeOptions, callback: (msg: QueueEvent, payload: any, user: any, jwt: string) => any, priority: number = 2, span: Span = null): Promise<string> {
         if (!callback) return "";
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
@@ -1084,6 +1154,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.RegisterExchangeRequest", "value": RegisterExchangeRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "registerexchange", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = RegisterExchangeResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         if (result.queuename && result.queuename != "" && opt.addqueue) {
             this.queues[result.queuename] = callback;
@@ -1106,7 +1179,7 @@ export class openiap extends EventEmitter {
      * console.log("registered exchange myexchange and is consuming it using queue " + queuename);
      * ```
      */
-    async UnRegisterQueue(options: UnRegisterQueueOptions, priority: number = 2): Promise<void> {
+    async UnRegisterQueue(options: UnRegisterQueueOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UnRegisterQueueOptions = Object.assign(new UnRegisterQueueDefaults(), options)
@@ -1114,6 +1187,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.UnRegisterQueueRequest", "value": UnRegisterQueueRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "unregisterqueue", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = await protowrap.RPC(this.client, payload);
         if (this.defaltqueue == opt.queuename) this.defaltqueue = "";
         delete this.queues[opt.queuename];
@@ -1139,7 +1215,7 @@ export class openiap extends EventEmitter {
      * await client.QueueMessage({ exchangename: "myexchange", data: { "hello": "world" } }, false);
      * ```
      */
-    async QueueMessage(options: QueueMessageOptions, rpc: boolean = false, priority: number = 2) {
+    async QueueMessage(options: QueueMessageOptions, rpc: boolean = false, priority: number = 2, span: Span = null) {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         return new Promise<any>(async (resolve, reject) => {
@@ -1167,6 +1243,9 @@ export class openiap extends EventEmitter {
                 let message = QueueMessageRequest.create(opt as any);
                 const data = Any.create({ type_url: "type.googleapis.com/openiap.QueueMessageRequest", "value": QueueMessageRequest.encode(message).finish() })
                 const payload = Envelope.create({ command: "queuemessage", data, jwt: opt.jwt });
+                const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+                payload.spanid = spanId;
+                payload.traceid = traceId;
                 payload.priority = priority;
                 const result = await protowrap.RPC(this.client, payload);
                 if (!rpc) resolve(null);
@@ -1203,7 +1282,7 @@ export class openiap extends EventEmitter {
      *   files: [{ _id:"", filename, compressed: true, file: pako.deflate(fs.readFileSync(filepath, null)) }]});
      * console.log("Pushed workitem with id " + workitem._id);
      */
-    async PushWorkitem(options: PushWorkitemOptions, priority: number = 2): Promise<Workitem> {
+    async PushWorkitem(options: PushWorkitemOptions, priority: number = 2, span: Span = null): Promise<Workitem> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: PushWorkitemOptions = Object.assign(new PushWorkitemDefaults(), options)
@@ -1212,6 +1291,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.PushWorkitemRequest", "value": PushWorkitemRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "pushworkitem", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = PushWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         if (result && result.workitem && result.workitem.payload) {
             if (typeof result.workitem.payload == "string") {
@@ -1229,7 +1311,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns an array of workitems that was pushed, including the workitem id's
      */
-    async PushWorkitems(options: PushWorkitemsOptions, priority: number = 2): Promise<Workitem[]> {
+    async PushWorkitems(options: PushWorkitemsOptions, priority: number = 2, span: Span = null): Promise<Workitem[]> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: PushWorkitemsOptions = Object.assign(new PushWorkitemsDefaults(), options)
@@ -1240,6 +1322,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.PushWorkitemsRequest", "value": PushWorkitemsRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "pushworkitems", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = PushWorkitemsResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         if (result.workitems) {
             for (var i = 0; i < result.workitems.length; i++) {
@@ -1264,7 +1349,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns If no workitem is available, this will return null. 
      */
-    async PopWorkitem(options: PopWorkitemOptions, priority: number = 2): Promise<Workitem | undefined> {
+    async PopWorkitem(options: PopWorkitemOptions, priority: number = 2, span: Span = null): Promise<Workitem | undefined> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: PopWorkitemOptions = Object.assign(new PopWorkitemDefaults(), options)
@@ -1272,6 +1357,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.PopWorkitemRequest", "value": PopWorkitemRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "popworkitem", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = PopWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         if (result && result.workitem && result.workitem.payload) {
             if (typeof result.workitem.payload == "string") {
@@ -1303,7 +1391,7 @@ export class openiap extends EventEmitter {
      * console.log("Updated workitem with id " + workitem._id);
      * ```
      */
-    async UpdateWorkitem(options: UpdateWorkitemOptions, priority: number = 2): Promise<Workitem> {
+    async UpdateWorkitem(options: UpdateWorkitemOptions, priority: number = 2, span: Span = null): Promise<Workitem> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UpdateWorkitemOptions = Object.assign(new UpdateWorkitemDefaults(), options)
@@ -1312,6 +1400,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.UpdateWorkitemRequest", "value": UpdateWorkitemRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "updateworkitem", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = UpdateWorkitemResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         if (result && result.workitem && result.workitem.payload) {
             if (typeof result.workitem.payload == "string") {
@@ -1333,7 +1424,7 @@ export class openiap extends EventEmitter {
      * client.DeleteWorkitem({ id: "64366f12cffb7419a89d5e10" });
      * ```
      */
-    async DeleteWorkitem(options: DeleteWorkitemOptions, priority: number = 2): Promise<void> {
+    async DeleteWorkitem(options: DeleteWorkitemOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteWorkitemOptions = Object.assign(new DeleteWorkitemDefaults(), options)
@@ -1341,6 +1432,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteWorkitemRequest", "value": DeleteWorkitemRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "deleteworkitem", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         await protowrap.RPC(this.client, payload);
     }
     /**
@@ -1348,7 +1442,7 @@ export class openiap extends EventEmitter {
     * @param options {@link AddWorkItemQueueOptions}
     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
     */
-    async AddWorkItemQueue(options: AddWorkItemQueueOptions, priority: number = 2): Promise<WorkItemQueue> {
+    async AddWorkItemQueue(options: AddWorkItemQueueOptions, priority: number = 2, span: Span = null): Promise<WorkItemQueue> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: AddWorkItemQueueOptions = Object.assign(new AddWorkItemQueueDefaults(), options)
@@ -1356,7 +1450,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.AddWorkItemQueueRequest", "value": AddWorkItemQueueRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "addworkitemqueue", data, jwt: opt.jwt });
         payload.priority = priority;
-        // const result = await protowrap.RPC(this.client, payload);
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = AddWorkItemQueueResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.workitemqueue;
     }
@@ -1365,7 +1461,7 @@ export class openiap extends EventEmitter {
     * @param options {@link UpdateWorkItemQueueOptions}
     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
     */
-    async UpdateWorkItemQueue(options: UpdateWorkItemQueueOptions, priority: number = 2): Promise<WorkItemQueue> {
+    async UpdateWorkItemQueue(options: UpdateWorkItemQueueOptions, priority: number = 2, span: Span = null): Promise<WorkItemQueue> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: UpdateWorkItemQueueOptions = Object.assign(new UpdateWorkItemQueueDefaults(), options)
@@ -1373,7 +1469,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.UpdateWorkItemQueueRequest", "value": UpdateWorkItemQueueRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "updateworkitemqueue", data, jwt: opt.jwt });
         payload.priority = priority;
-        // const result = await protowrap.RPC(this.client, payload);
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = UpdateWorkItemQueueResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.workitemqueue;
     }
@@ -1382,7 +1480,7 @@ export class openiap extends EventEmitter {
     * @param options {@link DeleteWorkItemQueueOptions}
     * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
     */
-    async DeleteWorkItemQueue(options: DeleteWorkItemQueueOptions, priority: number = 2): Promise<void> {
+    async DeleteWorkItemQueue(options: DeleteWorkItemQueueOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteWorkItemQueueOptions = Object.assign(new DeleteWorkItemQueueDefaults(), options)
@@ -1390,6 +1488,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteWorkItemQueueRequest", "value": DeleteWorkItemQueueRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "deleteworkitemqueue", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         await protowrap.RPC(this.client, payload);
     }
     /**
@@ -1399,7 +1500,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns If command has a result, this will be returned as a string. This will most likely need to be parser as JSON
      */
-    async CustomCommand<T>(options: CustomCommandOptions, priority: number = 2): Promise<string> {
+    async CustomCommand<T>(options: CustomCommandOptions, priority: number = 2, span: Span = null): Promise<string> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: CustomCommandOptions = Object.assign(new CustomCommandDefaults(), options)
@@ -1408,6 +1509,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.CustomCommand", "value": CustomCommandRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "customcommand", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = CustomCommandResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.result
     }
@@ -1417,7 +1521,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns 
      */
-    async CreateWorkflowInstance(options: CreateWorkflowInstanceOptions, priority: number = 2): Promise<string> {
+    async CreateWorkflowInstance(options: CreateWorkflowInstanceOptions, priority: number = 2, span: Span = null): Promise<string> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: CreateWorkflowInstanceOptions = Object.assign(new CreateWorkflowInstanceDefaults(), options)
@@ -1426,6 +1530,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.CreateWorkflowInstance", "value": CreateWorkflowInstanceRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "createworkflowinstance", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = CreateWorkflowInstanceResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.instanceid;
     }
@@ -1434,7 +1541,7 @@ export class openiap extends EventEmitter {
      * @param options {@link EnsureCustomerOptions}
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      */
-    async EnsureCustomer(options: EnsureCustomerOptions, priority: number = 2): Promise<EnsureCustomerResponse> {
+    async EnsureCustomer(options: EnsureCustomerOptions, priority: number = 2, span: Span = null): Promise<EnsureCustomerResponse> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: EnsureCustomerOptions = Object.assign(new EnsureCustomerDefaults(), options)
@@ -1442,7 +1549,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.EnsureCustomerRequest", "value": EnsureCustomerRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "ensurecustomer", data, jwt: opt.jwt });
         payload.priority = priority;
-        // const result = await protowrap.RPC(this.client, payload);
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = EnsureCustomerResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result;
     }
@@ -1453,7 +1562,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns null if rpc is false, else the result of the workflow if workflow has any inout/out parameters
      */
-    async InvokeOpenRPA<T>(options: InvokeOpenRPAOptions, priority: number = 2): Promise<T> {
+    async InvokeOpenRPA<T>(options: InvokeOpenRPAOptions, priority: number = 2, span: Span = null): Promise<T> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: InvokeOpenRPAOptions = Object.assign(new InvokeOpenRPADefaults(), options)
@@ -1462,6 +1571,10 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.InvokeOpenRPA", "value": InvokeOpenRPARequest.encode(message).finish() })
         const payload = Envelope.create({ command: "invokeopenrpa", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
+
         const result = InvokeOpenRPAResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return JSON.parse(result.payload)
     }
@@ -1472,7 +1585,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    async StartAgent(options: StartAgentOptions, priority: number = 2): Promise<void> {
+    async StartAgent(options: StartAgentOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: StartAgentOptions = Object.assign(new Startagentidefaults(), options)
@@ -1480,6 +1593,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.StartAgent", "value": StartAgentRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "startagent", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         StartAgentResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
     }
     /**
@@ -1489,7 +1605,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    async StopAgent(options: StopAgentOptions, priority: number = 2): Promise<void> {
+    async StopAgent(options: StopAgentOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: StopAgentOptions = Object.assign(new Stopagentidefaults(), options)
@@ -1497,6 +1613,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.StopAgent", "value": StopAgentRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "stopagent", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         StopAgentResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
     }
     /**
@@ -1506,7 +1625,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns Return pods console output
     */
-    async GetAgentLog(options: GetAgentLogOptions, priority: number = 2): Promise<string> {
+    async GetAgentLog(options: GetAgentLogOptions, priority: number = 2, span: Span = null): Promise<string> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: GetAgentLogOptions = Object.assign(new GetAgentLogDefaults(), options)
@@ -1514,6 +1633,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.GetAgentLog", "value": GetAgentLogRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "getagentlog", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = GetAgentLogResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.result;
     }
@@ -1524,7 +1646,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns Array of pods
     */
-    async GetAgentPods(options: GetAgentPodsOptions, priority: number = 2): Promise<any[]> {
+    async GetAgentPods(options: GetAgentPodsOptions, priority: number = 2, span: Span = null): Promise<any[]> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: GetAgentPodsOptions = Object.assign(new GetAgentPodsDefaults(), options)
@@ -1532,6 +1654,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.GetAgentPods", "value": GetAgentPodsRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "getagentpods", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = GetAgentPodsResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         if(result.results != null && result.results != "") return JSON.parse(result.results);
         return [];
@@ -1543,7 +1668,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    async DeleteAgentPod(options: DeleteAgentPodOptions, priority: number = 2): Promise<void> {
+    async DeleteAgentPod(options: DeleteAgentPodOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteAgentPodOptions = Object.assign(new DeleteAgentPodDefaults(), options)
@@ -1551,6 +1676,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteAgentPod", "value": DeleteAgentPodRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "deleteagentpod", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         DeleteAgentPodResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
     }
     /**
@@ -1561,7 +1689,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    async DeleteAgent(options: DeleteAgentOptions, priority: number = 2): Promise<void> {
+    async DeleteAgent(options: DeleteAgentOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DeleteAgentOptions = Object.assign(new DeleteAgentDefaults(), options)
@@ -1569,9 +1697,12 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DeleteAgent", "value": DeleteAgentRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "deleteagent", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         DeleteAgentResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
     }
-    async GetIndexes(options: GetIndexesOptions, priority: number = 2): Promise<any[]> {
+    async GetIndexes(options: GetIndexesOptions, priority: number = 2, span: Span = null): Promise<any[]> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: GetIndexesOptions = Object.assign(new GetIndexesDefaults(), options)
@@ -1590,7 +1721,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns Returns the index name
     */
-    async CreateIndex(options: CreateIndexOptions, priority: number = 2): Promise<string> {
+    async CreateIndex(options: CreateIndexOptions, priority: number = 2, span: Span = null): Promise<string> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: CreateIndexOptions = Object.assign(new CreateIndexDefaults(), options)
@@ -1601,6 +1732,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.CreateIndex", "value": CreateIndexRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "createindex", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         const result = CreateIndexResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
         return result.result;
     }
@@ -1611,7 +1745,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    async DropIndex(options: DropIndexOptions, priority: number = 2): Promise<void> {
+    async DropIndex(options: DropIndexOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DropIndexOptions = Object.assign(new DropIndexDefaults(), options)
@@ -1619,6 +1753,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DropIndex", "value": DropIndexRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "dropindex", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         DropIndexResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
     }
     /**
@@ -1629,7 +1766,7 @@ export class openiap extends EventEmitter {
      * @param priority Message priority, the higher the number the higher the priority. Default is 2, 3 or higher requeires updates to server configuration
      * @returns void
     */
-    async DeletePackage(options: DeletePackageOptions, priority: number = 2): Promise<void> {
+    async DeletePackage(options: DeletePackageOptions, priority: number = 2, span: Span = null): Promise<void> {
         if (!this.connected) throw new Error("Not connected to server");
         if (!this.signedin) throw new Error("Not signed in to server");
         const opt: DeletePackageOptions = Object.assign(new DeletePackageDefaults(), options)
@@ -1637,6 +1774,9 @@ export class openiap extends EventEmitter {
         const data = Any.create({ type_url: "type.googleapis.com/openiap.DeletePackage", "value": DeletePackageRequest.encode(message).finish() })
         const payload = Envelope.create({ command: "deletepackage", data, jwt: opt.jwt });
         payload.priority = priority;
+        const [traceId, spanId] = apiinstrumentation.GetTraceSpanId(span);
+        payload.spanid = spanId;
+        payload.traceid = traceId;
         DeletePackageResponse.decode((await protowrap.RPC(this.client, payload)).data.value);
     }
 }
