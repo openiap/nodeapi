@@ -1,6 +1,6 @@
 {
   "name": "@openiap/nodeapi",
-  "version": "0.0.39",
+  "version": "0.0.40",
   "description": "",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -11,7 +11,7 @@
     "agent": "ts-node src/agent.ts",
     "updateproto": "npm uninstall @openiap/proto && npm --save-dev i openiap/proto",
     "generate.old": "mkdir -p src/proto && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_out='service=grpc-node,mode=grpc-js:./src/proto' --ts_proto_opt=snakeToCamel=false --proto_path=proto --ts_proto_out=./src/proto proto/base.proto proto/ace.proto proto/querys.proto proto/queues.proto proto/watch.proto proto/workitems.proto proto/stripe.proto proto/agent.proto",
-    "generate": "mkdir -p src/proto && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_out='service=grpc-node,mode=grpc-js:./src/proto' --ts_proto_opt=snakeToCamel=false --proto_path=node_modules/@openiap/proto/ --ts_proto_out=./src/proto node_modules/@openiap/proto/base.proto node_modules/@openiap/proto/ace.proto node_modules/@openiap/proto/querys.proto node_modules/@openiap/proto/queues.proto node_modules/@openiap/proto/watch.proto node_modules/@openiap/proto/workitems.proto node_modules/@openiap/proto/stripe.proto node_modules/@openiap/proto/agent.proto && cp -r node_modules/@openiap/proto . && find proto -type f ! -name '*.proto' -exec rm {} +",
+    "generate": "mkdir -p src/proto && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_out='service=grpc-node,mode=grpc-js:./src/proto' --ts_proto_opt=snakeToCamel=false --proto_path=node_modules/@openiap/proto/ --ts_proto_out=./src/proto node_modules/@openiap/proto/base.proto node_modules/@openiap/proto/ace.proto node_modules/@openiap/proto/querys.proto node_modules/@openiap/proto/queues.proto node_modules/@openiap/proto/watch.proto node_modules/@openiap/proto/workitems.proto node_modules/@openiap/proto/stripe.proto node_modules/@openiap/proto/agent.proto && cp -r node_modules/@openiap/proto . && find proto -type f ! -name '*.proto' -exec rm {} + && rm src/proto/*.d.ts",
     "docs": "npx typedoc src/index.ts",
     "mddocs": "npx typedoc src/index.ts --plugin typedoc-plugin-markdown",
     "ncu": "npx npm-check-updates --interactive"
